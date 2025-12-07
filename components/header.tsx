@@ -27,6 +27,7 @@ export const Header = () => {
     };
 
     window.addEventListener("scroll", handleScroll);
+    handleScroll();
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
@@ -42,7 +43,7 @@ export const Header = () => {
       <div
         className={cn(
           "transition-all flex flex-row w-fit py-4 sm:px-8 px-4 backdrop-blur-3xl bg-black/5 rounded-full mx-auto",
-          isScrolled && "shadow w-full rounded-none mx-0 bg-background/75"
+          isScrolled && "shadow w-full rounded-none mx-0 bg-background"
         )}
       >
         <nav className="w-full max-w-3xl mx-auto flex flex-row items-center justify-center sm:gap-6 gap-4 font-semibold sm:text-base text-sm">
