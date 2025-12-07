@@ -1,3 +1,20 @@
+
+export const getInstagramPosts = async () => {
+  const URL = process.env.INSTAGRAM_POSTS_URL!;
+  const res = await fetch(URL, {
+    next: { revalidate: 2592000 },
+  });
+
+  if (!res.ok) {
+    return backup_posts_response.posts;
+  }
+
+  const data: {
+    posts: { timestamp: string; permalink: string; mediaUrl: string }[];
+  } = await res.json();
+  return data.posts;
+};
+
 export const backup_posts_response = {
   "username": "denizlg24",
   "biography": "🇵🇹🇹🇷",

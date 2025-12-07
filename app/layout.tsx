@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Calistoga, Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
+import { Header } from "@/components/header";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,8 +32,9 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${calistoga.variable} antialiased min-h-screen font-inter bg-background text-foreground pt-24`}
+        className={`${inter.variable} ${calistoga.variable} antialiased min-h-screen font-inter bg-background text-foreground pt-26`}
       >
+        <Header/>
         {children}
       </body>
     </html>
