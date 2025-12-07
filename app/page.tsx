@@ -7,7 +7,7 @@ const getInstagramPosts = async () => {
   });
 
   if (!res.ok) {
-    return [];
+    return (await import("@/lib/backup_posts")).backup_posts_response.posts;
   }
 
   const data: {
