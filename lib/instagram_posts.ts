@@ -1,3 +1,4 @@
+import { getInstagramToken } from "./instagram-token";
 
 
 export interface InstagramPost {
@@ -29,14 +30,15 @@ interface InstagramApiResponse {
 
 export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
   const fields = 'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username';
-  let url: string | null = `https://graph.instagram.com/me/media?fields=${fields}&access_token=${process.env.INSTAGRAM_ACCESS_TOKEN}`;
-  
+  const token = (await getInstagramToken())?.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN;
+  let url: string | null = `https://graph.instagram.com/me/media?fields=${fields}&access_token=${token}`;
+
   const allPosts: InstagramPost[] = [];
 
   try {
     while (url) {
       const response = await fetch(url, {
-        next: { revalidate: 2592000 }
+        next: { revalidate: 3600 },
       });
       const data: InstagramApiResponse = await response.json();
 

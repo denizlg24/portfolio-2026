@@ -223,9 +223,21 @@ class Media {
   }
 
   createShader() {
+    // Create a placeholder canvas with the surface color
+    const placeholderCanvas = document.createElement('canvas');
+    placeholderCanvas.width = 1;
+    placeholderCanvas.height = 1;
+    const ctx = placeholderCanvas.getContext('2d');
+    if (ctx) {
+      ctx.fillStyle = '#F1F3E0';
+      ctx.fillRect(0, 0, 1, 1);
+    }
+    
     const texture = new Texture(this.gl, {
       generateMipmaps: true
     });
+    texture.image = placeholderCanvas;
+    
     this.program = new Program(this.gl, {
       depthTest: false,
       depthWrite: false,
@@ -251,6 +263,7 @@ class Media {
         uniform vec2 uPlaneSizes;
         uniform sampler2D tMap;
         uniform float uBorderRadius;
+        uniform float uImageLoaded;
         varying vec2 vUv;
         
         float roundedBoxSDF(vec2 p, vec2 b, float r) {
@@ -259,23 +272,27 @@ class Media {
         }
         
         void main() {
-          vec2 ratio = vec2(
-            min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
-            min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
-          );
-          vec2 uv = vec2(
-            vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
-            vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
-          );
-          vec4 color = texture2D(tMap, uv);
-          
           float d = roundedBoxSDF(vUv - 0.5, vec2(0.5 - uBorderRadius), uBorderRadius);
           
-          // Smooth antialiasing for edges
-          float edgeSmooth = 0.002;
+          float edgeSmooth = 0.01;
           float alpha = 1.0 - smoothstep(-edgeSmooth, edgeSmooth, d);
           
-          gl_FragColor = vec4(color.rgb, alpha);
+          vec3 surfaceColor = vec3(0.945, 0.953, 0.878);
+          
+          if (uImageLoaded > 0.5) {
+            vec2 ratio = vec2(
+              min((uPlaneSizes.x / uPlaneSizes.y) / (uImageSizes.x / uImageSizes.y), 1.0),
+              min((uPlaneSizes.y / uPlaneSizes.x) / (uImageSizes.y / uImageSizes.x), 1.0)
+            );
+            vec2 uv = vec2(
+              vUv.x * ratio.x + (1.0 - ratio.x) * 0.5,
+              vUv.y * ratio.y + (1.0 - ratio.y) * 0.5
+            );
+            vec4 color = texture2D(tMap, uv);
+            gl_FragColor = vec4(color.rgb, alpha);
+          } else {
+            gl_FragColor = vec4(surfaceColor, alpha);
+          }
         }
       `,
       uniforms: {
@@ -284,7 +301,8 @@ class Media {
         uImageSizes: { value: [0, 0] },
         uSpeed: { value: 0 },
         uTime: { value: 100 * Math.random() },
-        uBorderRadius: { value: this.borderRadius }
+        uBorderRadius: { value: this.borderRadius },
+        uImageLoaded: { value: 0 }
       },
       transparent: true
     });
@@ -294,6 +312,7 @@ class Media {
     img.onload = () => {
       texture.image = img;
       this.program.uniforms.uImageSizes.value = [img.naturalWidth, img.naturalHeight];
+      this.program.uniforms.uImageLoaded.value = 1;
     };
   }
 
@@ -399,6 +418,7 @@ interface AppConfig {
   font?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  autoScrollSpeed?: number;
 }
 
 class App {
@@ -433,6 +453,9 @@ class App {
   isDown: boolean = false;
   hasMoved: boolean = false;
   start: number = 0;
+  autoScrollSpeed: number = 0;
+  lastInteractionTime: number = 0;
+  autoScrollTimeout: number = 1000;
 
   constructor(
     container: HTMLElement,
@@ -443,12 +466,14 @@ class App {
       borderRadius = 0,
       font = 'bold 30px Figtree',
       scrollSpeed = 2,
-      scrollEase = 0.05
+      scrollEase = 0.05,
+      autoScrollSpeed = 0
     }: AppConfig
   ) {
     document.documentElement.classList.remove('no-js');
     this.container = container;
     this.scrollSpeed = scrollSpeed;
+    this.autoScrollSpeed = autoScrollSpeed;
     this.scroll = { ease: scrollEase, current: 0, target: 0, last: 0 };
     this.onCheckDebounce = debounce(this.onCheck.bind(this), 200);
     this.createRenderer();
@@ -567,17 +592,28 @@ class App {
         font
       });
     });
+    
+    // Start one cycle scrolled to center the gallery
+    if (this.medias.length > 0) {
+      const firstMedia = this.medias[0];
+      const singleCycleWidth = firstMedia.width * (this.medias.length / 2);
+      this.scroll.current = singleCycleWidth;
+      this.scroll.target = singleCycleWidth;
+      this.scroll.last = singleCycleWidth;
+    }
   }
 
   onTouchDown(e: MouseEvent | TouchEvent) {
     this.isDown = true;
     this.hasMoved = false;
+    this.lastInteractionTime = Date.now();
     this.scroll.position = this.scroll.current;
     this.start = 'touches' in e ? e.touches[0].clientX : e.clientX;
   }
 
   onTouchMove(e: MouseEvent | TouchEvent) {
     if (!this.isDown) return;
+    this.lastInteractionTime = Date.now();
     const x = 'touches' in e ? e.touches[0].clientX : e.clientX;
     const distance = (this.start - x) * (this.scrollSpeed * 0.025);
     if (Math.abs(distance) > 2) {
@@ -588,6 +624,7 @@ class App {
 
   onTouchUp() {
     this.isDown = false;
+    this.lastInteractionTime = Date.now();
     this.onCheck();
   }
 
@@ -616,6 +653,7 @@ class App {
   }
 
   onWheel(e: Event) {
+    this.lastInteractionTime = Date.now();
     const wheelEvent = e as WheelEvent;
     const delta = wheelEvent.deltaY || (wheelEvent as any).wheelDelta || (wheelEvent as any).detail;
     this.scroll.target += (delta > 0 ? this.scrollSpeed : -this.scrollSpeed) * 0.2;
@@ -649,6 +687,14 @@ class App {
   }
 
   update() {
+    // Apply auto-scroll if enabled and no recent interaction
+    if (this.autoScrollSpeed > 0) {
+      const timeSinceInteraction = Date.now() - this.lastInteractionTime;
+      if (timeSinceInteraction > this.autoScrollTimeout) {
+        this.scroll.target += this.autoScrollSpeed;
+      }
+    }
+
     this.scroll.current = lerp(this.scroll.current, this.scroll.target, this.scroll.ease);
     const direction = this.scroll.current > this.scroll.last ? 'right' : 'left';
     if (this.medias) {
@@ -704,6 +750,7 @@ export interface CircularGalleryProps {
   font?: string;
   scrollSpeed?: number;
   scrollEase?: number;
+  autoScrollSpeed?: number;
 }
 
 export default function CircularGallery({
@@ -713,7 +760,8 @@ export default function CircularGallery({
   borderRadius = 0.05,
   font = 'bold 30px Figtree',
   scrollSpeed = 2,
-  scrollEase = 0.05
+  scrollEase = 0.05,
+  autoScrollSpeed = 0
 }: CircularGalleryProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -725,11 +773,12 @@ export default function CircularGallery({
       borderRadius,
       font,
       scrollSpeed,
-      scrollEase
+      scrollEase,
+      autoScrollSpeed
     });
     return () => {
       app.destroy();
     };
-  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase]);
+  }, [items, bend, textColor, borderRadius, font, scrollSpeed, scrollEase, autoScrollSpeed]);
   return <div className="w-full h-full overflow-hidden cursor-grab active:cursor-grabbing" ref={containerRef} />;
 }

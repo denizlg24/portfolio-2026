@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import * as TabsPrimitive from "@radix-ui/react-tabs"
+import { motion, AnimatePresence } from "motion/react"
 
 import { cn } from "@/lib/utils"
 
@@ -9,11 +10,18 @@ function Tabs({
   className,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Root>) {
+  const [activeTab, setActiveTab] = React.useState(props.defaultValue || props.value)
+  
   return (
     <TabsPrimitive.Root
       data-slot="tabs"
       className={cn("flex flex-col gap-2", className)}
       {...props}
+      onValueChange={(value) => {
+        setActiveTab(value)
+        props.onValueChange?.(value)
+      }}
+      value={props.value || activeTab}
     />
   )
 }
@@ -52,14 +60,28 @@ function TabsTrigger({
 
 function TabsContent({
   className,
+  value,
+  forceMount,
   ...props
 }: React.ComponentProps<typeof TabsPrimitive.Content>) {
   return (
     <TabsPrimitive.Content
       data-slot="tabs-content"
       className={cn("flex-1 outline-none", className)}
+      value={value}
+      forceMount={forceMount}
+      asChild
       {...props}
-    />
+    >
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        exit={{ opacity: 0, x: -20 }}
+        transition={{ duration: 0.3, ease: "easeInOut" }}
+      >
+        {props.children}
+      </motion.div>
+    </TabsPrimitive.Content>
   )
 }
 

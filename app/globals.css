@@ -31,7 +31,7 @@
 
   --destructive: #c0352b;
   --input: var(--surface);
-  --border: #E3E5D8;
+  --border: var(--muted);
   --ring: var(--accent-strong);
 
   /* Charts (optional) */
@@ -164,7 +164,6 @@
   --sidebar-border: #4A564B;
   --sidebar-ring: #A1BC98;
 }
-
 
 @layer base {
   * {

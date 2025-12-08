@@ -1,3 +1,5 @@
+import { saveInstagramToken } from '@/lib/instagram-token';
+import { ForbiddenError } from '@/lib/utils';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -31,7 +33,9 @@ export async function GET(request: Request) {
 
     const shortToken = shortData.access_token;
     const userId = shortData.user_id;
-
+    if (userId!='denizlg24'){
+      throw new ForbiddenError("Forbidden");
+    }
     const longUrl = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.INSTAGRAM_APP_SECRET}&access_token=${shortToken}`;
     
     const longRes = await fetch(longUrl);
@@ -41,16 +45,9 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: 'Long Token Failed', details: longData }, { status: 400 });
     }
 
-    return NextResponse.json({
-      message: "Here is the Long-Lived Token.",
-      token_data: {
-        access_token: longData.access_token,
-        expires_in: longData.expires_in,
-        token_type: longData.token_type,
-        user_id: userId,
-        generated_at: new Date().toISOString(),
-      }
-    });
+    await saveInstagramToken(longData.access_token, longData.expires_in);
+
+    return NextResponse.redirect('/admin/dashboard/instagram-tokens');
 
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error', details: String(error) }, { status: 500 });

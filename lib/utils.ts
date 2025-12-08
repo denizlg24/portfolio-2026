@@ -15,3 +15,11 @@ export function getAge(birthDate: string): number {
   }
   return age;
 }
+
+export class ForbiddenError extends Error {
+  statusCode = 403;
+  constructor(message: string) {
+    super(message);
+    this.name = "ForbiddenError";
+  }
+}

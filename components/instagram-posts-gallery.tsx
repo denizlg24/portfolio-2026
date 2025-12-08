@@ -20,7 +20,8 @@ export const InstagramPostsGallery = ({
         textColor="#778873"
         font="bold 48px Inter"
         borderRadius={0.05}
-        scrollEase={0.02}
+        scrollEase={0.15}
+        autoScrollSpeed={0.03}
       />
     </div>
   );

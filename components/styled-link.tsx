@@ -14,19 +14,19 @@ export const StyledLink = ({
   children,
   ...props
 }: StyledLinkProps) => {
+  const underlineClasses = "bg-[linear-gradient(currentColor,currentColor)] bg-[length:100%_2px] bg-no-repeat bg-[position:50%_100%] hover:bg-[length:0%_2px] transition-[background-size] duration-300";
+  
   if (type === "link") {
     return (
-      <Link {...props} className={cn("relative group", className)}>
+      <Link {...props} className={cn(underlineClasses, className)}>
         {children}
-        <span className="w-full absolute -bottom-px left-1/2 -translate-x-1/2 h-0.5 duration-300 group-hover:w-0 transition-all bg-foreground" />
       </Link>
     );
   }
   if (type === "anchor") {
     return (
-      <a {...props} className={cn("relative group", className)}>
+      <a {...props} className={cn(underlineClasses, className)}>
         {children}
-        <span className="w-full absolute -bottom-px left-1/2 -translate-x-1/2 h-0.5 duration-300 group-hover:w-0 transition-all bg-foreground" />
       </a>
     );
   }

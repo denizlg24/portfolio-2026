@@ -36,7 +36,7 @@ export const Header = () => {
   return (
     <header
       className={cn(
-        "transition-all w-full fixed pt-4 top-0 left-1/2 -translate-x-1/2 max-w-5xl sm:px-4 px-2 z-99",
+        "transition-all w-full fixed pt-4 top-0 left-1/2 -translate-x-1/2 max-w-5xl sm:px-4 px-2 z-45",
         isScrolled && "max-w-full px-0! pt-0!"
       )}
     >

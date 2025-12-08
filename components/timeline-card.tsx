@@ -19,7 +19,7 @@ export const TimelineCard = ({
 }) => {
   return (
     <article className={cn("flex flex-row items-start gap-4", className)}>
-      <div className={cn("w-12 h-12 rounded-full bg-accent shrink-0 overflow-hidden",item.logo && "bg-transparent")}>
+      <div className={cn("w-12 h-12 bg-accent shrink-0 overflow-hidden",item.logo && "bg-transparent")}>
         {item.logo}
       </div>
       <div className="flex flex-col gap-0 items-start grow">

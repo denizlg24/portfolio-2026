@@ -64,7 +64,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.variable} ${calistoga.variable} antialiased min-h-screen font-inter bg-background text-foreground pt-26`}
+        className={`${inter.variable} ${calistoga.variable} antialiased min-h-screen font-inter bg-background text-foreground mt-26`}
       >
         <Header/>
         {children}

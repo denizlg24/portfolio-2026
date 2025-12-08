@@ -1,0 +1,37 @@
+import { AppSidebar } from "@/components/app-sidebar";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { getAdminSession } from "@/lib/require-admin";
+import { ForbiddenError } from "@/lib/utils";
+
+export default async function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  const session = await getAdminSession();
+  
+  if (!session) {
+    throw new ForbiddenError("Forbidden");
+  }
+
+  return (
+    <SidebarProvider>
+      <AppSidebar />
+      <main className="w-full flex flex-col items-center">
+      <section className="w-full max-w-5xl px-4 mx-auto">
+        <div className="w-full flex flex-row items-center text-xs text-muted-foreground gap-2 pb-4 mb-4 border-b border-b-foreground">
+          <SidebarTrigger />
+          <KbdGroup>
+            <Kbd>Ctrl</Kbd>
+            <span>+</span>
+            <Kbd>B</Kbd>
+          </KbdGroup>
+        </div>
+        {children}
+      </section>
+    </main>
+      
+    </SidebarProvider>
+  );
+}

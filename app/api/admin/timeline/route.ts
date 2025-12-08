@@ -1,0 +1,74 @@
+import { NextRequest, NextResponse } from 'next/server';
+import { getAllTimelineItems, createTimelineItem } from '@/lib/timeline';
+import { requireAdmin } from '@/lib/require-admin';
+
+export async function GET(request: NextRequest) {
+  // Check admin authentication
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get('category') as 'work' | 'education' | 'personal' | null;
+    
+    const items = await getAllTimelineItems(category || undefined);
+    
+    return NextResponse.json({ items }, { status: 200 });
+  } catch (error: any) {
+    console.error('Error fetching timeline items:', error);
+    return NextResponse.json(
+      { error: 'Failed to fetch timeline items', details: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  // Check admin authentication
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
+  try {
+    const body = await request.json();
+    
+    // Validate required fields
+    if (!body.title || !body.subtitle || !body.dateFrom || !body.category) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // Auto-assign order: get max order for this category and add 1
+    let order = 0;
+    if (body.category) {
+      const itemsInCategory = await getAllTimelineItems(body.category);
+      if (itemsInCategory.length > 0) {
+        const maxOrder = Math.max(...itemsInCategory.map(item => item.order || 0));
+        order = maxOrder + 1;
+      }
+    }
+
+    // Create the timeline item
+    const item = await createTimelineItem({
+      title: body.title,
+      subtitle: body.subtitle,
+      logoUrl: body.logoUrl,
+      dateFrom: body.dateFrom,
+      dateTo: body.dateTo,
+      topics: body.topics || [],
+      category: body.category,
+      order,
+      links: body.links || [],
+      isActive: body.isActive ?? true,
+    });
+
+    return NextResponse.json({ item }, { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating timeline item:', error);
+    return NextResponse.json(
+      { error: 'Failed to create timeline item', details: error.message },
+      { status: 500 }
+    );
+  }
+}
