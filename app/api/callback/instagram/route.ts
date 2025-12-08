@@ -33,9 +33,7 @@ export async function GET(request: Request) {
 
     const shortToken = shortData.access_token;
     const userId = shortData.user_id;
-    if (userId!='denizlg24'){
-      throw new ForbiddenError("Forbidden");
-    }
+    console.log('Instagram OAuth Success:',shortData);
     const longUrl = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.INSTAGRAM_APP_SECRET}&access_token=${shortToken}`;
     
     const longRes = await fetch(longUrl);
