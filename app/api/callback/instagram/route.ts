@@ -32,20 +32,18 @@ export async function GET(request: Request) {
     }
 
     const shortToken = shortData.access_token;
-    const userId = shortData.user_id;
-    console.log('Instagram OAuth Success:',shortData);
     const longUrl = `https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret=${process.env.INSTAGRAM_APP_SECRET}&access_token=${shortToken}`;
     
     const longRes = await fetch(longUrl);
     const longData = await longRes.json();
-
+    console.log('Long Token Data:', longData);
     if (longData.error) {
       return NextResponse.json({ error: 'Long Token Failed', details: longData }, { status: 400 });
     }
 
     await saveInstagramToken(longData.access_token, longData.expires_in);
 
-    return NextResponse.redirect('/admin/dashboard/instagram-tokens');
+    return NextResponse.redirect(`${process.env.BETTER_AUTH_URL}/admin/dashboard/instagram-tokens`);
 
   } catch (error) {
     return NextResponse.json({ error: 'Internal Server Error', details: String(error) }, { status: 500 });
