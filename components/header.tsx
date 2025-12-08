@@ -42,7 +42,7 @@ export const Header = () => {
     >
       <div
         className={cn(
-          "transition-all flex flex-row w-fit py-4 sm:px-8 px-4 backdrop-blur-3xl bg-black/5 rounded-full mx-auto",
+          "transition-all flex flex-row w-fit py-4 sm:px-8 px-4 bg-black/5 rounded-full mx-auto",
           isScrolled && "shadow w-full rounded-none mx-0 bg-background"
         )}
       >
