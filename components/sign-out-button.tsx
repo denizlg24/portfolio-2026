@@ -7,12 +7,14 @@ import { useRouter } from "next/navigation";
 export const SignOutButton = () => {
   const router = useRouter();
   return (
-    <button
-      onClick={async () => {
+    <a
+    href="#"
+      onClick={async (e) => {
+        e.preventDefault();
         await authClient.signOut({
           fetchOptions: {
             onSuccess: () => {
-              router.push("/login");
+              router.push("/auth/login");
             },
           },
         });
@@ -20,6 +22,6 @@ export const SignOutButton = () => {
     >
       <LogOut />
       <span>Logout</span>
-    </button>
+    </a>
   );
 };
