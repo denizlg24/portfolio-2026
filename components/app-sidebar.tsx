@@ -1,5 +1,5 @@
 
-import { Briefcase, Calendar, FolderGit2, Home, Inbox, Instagram, LogOut, NotebookPen } from "lucide-react"
+import { Briefcase, Calendar, FolderGit2, Home, Inbox, Instagram, NotebookPen } from "lucide-react"
 
 import {
   Sidebar,
@@ -11,6 +11,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
+import { SignOutButton } from "./sign-out-button"
 
 const items = [
   {
@@ -71,10 +72,7 @@ export function AppSidebar() {
               ))}
               <SidebarMenuItem key={"logout"}>
                   <SidebarMenuButton asChild>
-                   <a href="">
-                      <LogOut/>
-                      <span>Logout</span>
-                    </a>
+                   <SignOutButton/>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>

@@ -86,6 +86,7 @@ export const LoginForm = () => {
           router.push("/admin/dashboard");
         },
         onError: (ctx) => {
+          console.log(ctx)
           setIsLoading(false);
           setError("root", {
             type: "manual",
