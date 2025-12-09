@@ -1,5 +1,5 @@
 
-import { Briefcase, Calendar, Home, Inbox, Instagram, LogOut, NotebookPen } from "lucide-react"
+import { Briefcase, Calendar, FolderGit2, Home, Inbox, Instagram, LogOut, NotebookPen } from "lucide-react"
 
 import {
   Sidebar,
@@ -38,6 +38,12 @@ const items = [
     url: "/admin/dashboard/timeline",
     icon: Briefcase,
   },
+  {
+    title:"Projects",
+    url:"/admin/dashboard/projects",
+    icon: FolderGit2,
+  }
+  ,
   {
     title:"Instagram Tokens",
     url:"/admin/dashboard/instagram-tokens",

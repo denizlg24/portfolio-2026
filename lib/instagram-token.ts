@@ -3,8 +3,8 @@ import { connectDB } from '@/lib/mongodb';
 
 export async function getInstagramToken(): Promise<IInstagramToken | null> {
   await connectDB();
-  const token = await InstagramToken.findOne().sort({ createdAt: -1 });
-  return token;
+  const token = await InstagramToken.findOne().sort({ createdAt: -1 }).lean();
+  return token ? {...token, _id: token._id.toString() } : null;
 }
 
 export async function saveInstagramToken(accessToken: string, expiresIn: number): Promise<IInstagramToken> {

@@ -2,7 +2,7 @@ import { getInstagramToken } from "@/lib/instagram-token";
 import { getAdminSession } from "@/lib/require-admin";
 import { ForbiddenError } from "@/lib/utils";
 
-import { ArrowUpRightIcon, InstagramIcon, Trash2, RefreshCw, Clock } from "lucide-react";
+import { InstagramIcon, Trash2, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

@@ -187,7 +187,7 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
+      <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6 mt-6">
         <Field data-invalid={!!errors.title}>
           <FieldLabel htmlFor="title">Title</FieldLabel>
           <Controller

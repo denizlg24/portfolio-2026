@@ -42,7 +42,7 @@ const iconMap = {
 export default async function Home() {
   const posts = await getAllInstagramPosts();
   const timelineItems = await getTimelineItemsByCategory();
-  
+
   return (
     <main className="flex flex-col items-center justify-center">
       <section className="w-full max-w-5xl mx-auto px-4 text-center items-center">
@@ -316,7 +316,11 @@ export default async function Home() {
           </TabsContent>
         </Tabs>
       </section>
+      <section className="w-full max-w-5xl mx-auto px-4 flex flex-col gap-6 mt-16">
+        <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
+          featured projects
+        </h1>
+      </section>
     </main>
   );
 }
-               
