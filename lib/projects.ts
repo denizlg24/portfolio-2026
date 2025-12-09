@@ -7,6 +7,10 @@ export async function getAllProjects() {
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
+    links:project.links.map((link) => ({
+      ...link,
+      _id: link._id.toString(),
+    }))
   })) as (IProject & { _id: string })[];
 }
 
@@ -16,6 +20,10 @@ export async function getActiveProjects() {
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
+    links:project.links.map((link) => ({
+      ...link,
+      _id: link._id.toString(),
+    }))
   })) as (IProject & { _id: string })[];
 }
 
@@ -27,6 +35,10 @@ export async function getProjectById(id: string) {
   return {
     ...project,
     _id: project._id.toString(),
+    links:project.links.map((link) => ({
+      ...link,
+      _id: link._id.toString(),
+    }))
   } as IProject & { _id: string };
 }
 
@@ -41,5 +53,9 @@ export async function toggleProjectActive(id: string) {
   return {
     ...project.toObject(),
     _id: project._id.toString(),
+    links:project.links.map((link) => ({
+      ...link,
+      _id: link._id.toString(),
+    }))
   };
 }

@@ -1,5 +1,4 @@
 import { cn } from "@/lib/utils";
-import Image from "next/image";
 import React from "react";
 
 export const TimelineCard = ({
@@ -21,7 +20,7 @@ export const TimelineCard = ({
     <article className={cn("flex flex-row items-start gap-4", className)}>
       <div className={cn("w-12 h-12 bg-accent shrink-0 overflow-hidden",item.logo && "bg-transparent")}>
         {item.logo}
-      </div>
+      </div>  
       <div className="flex flex-col gap-0 items-start grow">
         <div className="flex flex-row items-center gap-1 justify-start text-xs text-muted-foreground">
           <p>{item.date.from}</p>

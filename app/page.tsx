@@ -18,6 +18,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Timeline } from "@/components/timeline";
 import { TimelineCard } from "@/components/timeline-card";
 import { getTimelineItemsByCategory } from "@/lib/timeline";
+import { getActiveProjects } from "@/lib/projects";
+import { ProjectCard } from "@/components/project-card";
 
 export const metadata: Metadata = {
   title: {
@@ -42,7 +44,7 @@ const iconMap = {
 export default async function Home() {
   const posts = await getAllInstagramPosts();
   const timelineItems = await getTimelineItemsByCategory();
-
+  const projects = await getActiveProjects();
   return (
     <main className="flex flex-col items-center justify-center">
       <section className="w-full max-w-5xl mx-auto px-4 text-center items-center">
@@ -320,6 +322,22 @@ export default async function Home() {
         <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
           featured projects
         </h1>
+        <div className="grid md:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-4">
+          {projects.slice(0, 2).map((project) => (
+            <ProjectCard
+            key={project._id.toString()}
+            className="max-w-full col-span-1"
+              project={{
+                ...project,
+                links: project.links.map((link) => ({
+                  label: link.label,
+                  icon: link.icon,
+                  url: link.url,
+                })),
+              }}
+            />
+          ))}
+        </div>
       </section>
     </main>
   );
