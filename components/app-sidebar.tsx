@@ -71,9 +71,7 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem key={"logout"}>
-                  <SidebarMenuButton asChild>
                    <SignOutButton/>
-                  </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
