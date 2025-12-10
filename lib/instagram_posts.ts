@@ -38,7 +38,7 @@ export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
   try {
     while (url) {
       const response = await fetch(url, {
-        next: { revalidate: 3600 },
+        next: { revalidate: 60*60*24*7 },
       });
       const data: InstagramApiResponse = await response.json();
 

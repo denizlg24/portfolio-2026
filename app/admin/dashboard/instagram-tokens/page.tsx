@@ -1,6 +1,5 @@
 import { getInstagramToken } from "@/lib/instagram-token";
 import { getAdminSession } from "@/lib/require-admin";
-import { ForbiddenError } from "@/lib/utils";
 
 import { InstagramIcon, Trash2, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,6 +13,7 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import Link from "next/link";
+import { forbidden } from "next/navigation";
 
 const generateInstagramAuthUrl = () => {
   const appId = process.env.INSTAGRAM_APP_ID;
@@ -33,7 +33,7 @@ export default async function TimelinePage() {
   const session = await getAdminSession();
 
   if (!session) {
-    throw new ForbiddenError("Forbidden");
+    forbidden();
   }
   const token = await getInstagramToken();
   

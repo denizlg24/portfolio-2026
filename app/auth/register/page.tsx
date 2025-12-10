@@ -1,6 +1,6 @@
 import { getServerSession } from "@/lib/get-server-session";
 import { RegisterForm } from "./register-form";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { ForbiddenError } from "@/lib/utils";
 
 export default async function Page({
@@ -14,7 +14,7 @@ export default async function Page({
   }
   const { secret } = await searchParams;
   if (secret !== process.env.ADMIN_SECRET) {
-    throw new ForbiddenError("Forbidden");
+    forbidden();
   }
 
   return (

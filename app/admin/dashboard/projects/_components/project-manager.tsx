@@ -5,10 +5,10 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Plus, Eye, EyeOff } from "lucide-react";
 import { ProjectList } from "./project-list";
-import { IProject } from "@/models/Project";
+import { ILeanProject } from "@/models/Project";
 
 interface ProjectManagerProps {
-  initialProjects: (IProject & { _id: string })[];
+  initialProjects: ILeanProject[];
 }
 
 export function ProjectManager({ initialProjects }: ProjectManagerProps) {
@@ -44,7 +44,7 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
     setHasUnsavedChanges(false);
   }, [projects, visibilityFilter]);
 
-  const handleReorder = (newProjects: (IProject & { _id: string })[]) => {
+  const handleReorder = (newProjects: ILeanProject[]) => {
     setFilteredProjects(newProjects);
     setHasUnsavedChanges(true);
   };
@@ -80,7 +80,7 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
   return (
     <>
       <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between w-full">
-        <div>
+        <div className="">
           <h1 className="text-3xl font-bold mb-2">Projects Management</h1>
           <p className="text-muted-foreground">
             Create and manage your projects displayed on the homepage.

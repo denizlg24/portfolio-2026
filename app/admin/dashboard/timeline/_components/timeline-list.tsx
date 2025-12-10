@@ -18,22 +18,20 @@ import {
   SortableContent,
   SortableItem,
   SortableItemHandle,
-  SortableOverlay,
 } from "@/components/ui/sortable";
 import { Pencil, Trash2, Eye, EyeOff, ExternalLink, Github, NotepadText, GripVertical } from "lucide-react";
-import { ITimelineItem } from "@/models/TimelineItem";
+import { ITimelineItemLean } from "@/models/TimelineItem";
 
-type TimelineItemWithId = ITimelineItem & { _id: string };
 
 interface TimelineListProps {
-  items: TimelineItemWithId[];
+  items: ITimelineItemLean[];
   onRefresh?: () => void;
   enableReorder?: boolean;
-  onReorder?: (items: TimelineItemWithId[]) => void;
+  onReorder?: (items: ITimelineItemLean[]) => void;
 }
 
 export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorder }: TimelineListProps) => {
-  const [deletingItem, setDeletingItem] = useState<TimelineItemWithId | null>(null);
+  const [deletingItem, setDeletingItem] = useState<ITimelineItemLean | null>(null);
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localItems, setLocalItems] = useState(items);
@@ -85,7 +83,7 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
     }
   };
 
-  const handleReorder = (newItems: TimelineItemWithId[]) => {
+  const handleReorder = (newItems: ITimelineItemLean[]) => {
     setLocalItems(newItems);
     onReorder?.(newItems);
   };
@@ -98,7 +96,7 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
     );
   }
 
-  const renderItem = (item: TimelineItemWithId, isDragging?: boolean) => (
+  const renderItem = (item: ITimelineItemLean, isDragging?: boolean) => (
     <div
       className={`border-b-2 border-muted pb-2 transition-opacity ${
         !item.isActive ? "opacity-50" : ""
@@ -207,7 +205,7 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
           <Sortable
             value={localItems}
             onValueChange={handleReorder}
-            getItemValue={(item: TimelineItemWithId) => item._id}
+            getItemValue={(item: ITimelineItemLean) => item._id}
           >
             <SortableContent className="w-full flex flex-col gap-4">
               {localItems.map((item) => (

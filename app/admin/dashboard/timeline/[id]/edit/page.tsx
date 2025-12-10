@@ -11,7 +11,6 @@ export default async function EditTimelinePage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  // Verify admin access
   const session = await getAdminSession();
 
   if (!session) {
@@ -20,8 +19,6 @@ export default async function EditTimelinePage({
 
   const { id } = await params;
 
-  // Fetch directly from database instead of API route
-  // This avoids cookie/header forwarding issues with internal fetch()
   const item = await getTimelineItemById(id);
 
   if (!item) {

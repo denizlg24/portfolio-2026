@@ -1,35 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import { getServerSession } from "./get-server-session";
+import { forbidden } from "next/navigation";
 
 export async function requireAdmin(request?: NextRequest) {
   const session = await getServerSession();
   if (!session) {
-    return NextResponse.json(
-      { error: "Unauthorized - No session found" },
-      { status: 401 }
-    );
+    forbidden();
   }
 
   if (!session.user) {
-    return NextResponse.json(
-      { error: "Unauthorized - No user found" },
-      { status: 401 }
-    );
+    forbidden();
   }
 
   if (!session.user.emailVerified) {
-    return NextResponse.json(
-      { error: "Forbidden - Email not verified" },
-      { status: 403 }
-    );
+    forbidden();
   }
 
   const userRole = (session.user as any).role;
   if (userRole !== "admin") {
-    return NextResponse.json(
-      { error: "Forbidden - Admin access required" },
-      { status: 403 }
-    );
+    forbidden();
   }
 
   return null;

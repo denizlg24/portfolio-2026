@@ -1,4 +1,4 @@
-import { Project, IProject } from "@/models/Project";
+import { Project } from "@/models/Project";
 import { connectDB } from "./mongodb";
 
 export async function getAllProjects() {
@@ -11,7 +11,7 @@ export async function getAllProjects() {
       ...link,
       _id: link._id.toString(),
     }))
-  })) as (IProject & { _id: string })[];
+  }));
 }
 
 export async function getActiveProjects() {
@@ -24,7 +24,7 @@ export async function getActiveProjects() {
       ...link,
       _id: link._id.toString(),
     }))
-  })) as (IProject & { _id: string })[];
+  }));
 }
 
 export async function getProjectById(id: string) {
@@ -39,7 +39,7 @@ export async function getProjectById(id: string) {
       ...link,
       _id: link._id.toString(),
     }))
-  } as IProject & { _id: string };
+  };
 }
 
 export async function toggleProjectActive(id: string) {

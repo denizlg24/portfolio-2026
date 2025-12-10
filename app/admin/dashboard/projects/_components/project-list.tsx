@@ -1,21 +1,30 @@
 "use client";
 
-import { IProject } from "@/models/Project";
+import { ILeanProject } from "@/models/Project";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Eye, EyeOff, GripVertical, Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Sortable, SortableContent, SortableItem, SortableItemHandle, SortableOverlay } from "@/components/ui/sortable";
+import {
+  Sortable,
+  SortableContent,
+  SortableItem,
+  SortableItemHandle,
+} from "@/components/ui/sortable";
 
 interface ProjectListProps {
-  projects: (IProject & { _id: string })[];
+  projects: ILeanProject[];
   onRefresh: () => void;
-  onReorder: (projects: (IProject & { _id: string })[]) => void;
+  onReorder: (projects: ILeanProject[]) => void;
 }
 
-export function ProjectList({ projects, onRefresh, onReorder }: ProjectListProps) {
+export function ProjectList({
+  projects,
+  onRefresh,
+  onReorder,
+}: ProjectListProps) {
   const handleToggleActive = async (id: string) => {
     try {
       const response = await fetch(`/api/admin/projects/${id}`, {
@@ -71,52 +80,56 @@ export function ProjectList({ projects, onRefresh, onReorder }: ProjectListProps
       getItemValue={(project) => project._id}
     >
       <SortableContent>
-        <SortableOverlay>
-          <Card className="p-4">
-            <div className="flex items-center gap-2">
-              <GripVertical className="w-5 h-5 text-muted-foreground" />
-              <span className="font-medium">Dragging...</span>
-            </div>
-          </Card>
-        </SortableOverlay>
         <div className="space-y-3">
           {projects.map((project) => (
             <SortableItem key={project._id} value={project._id} asChild>
               <Card className="p-4">
-                <div className="flex items-start gap-4">
-                  <SortableItemHandle className="cursor-grab active:cursor-grabbing">
-                    <GripVertical className="w-5 h-5 text-muted-foreground mt-1" />
+                <div className="flex flex-col sm:flex-row items-start gap-4">
+                  <SortableItemHandle className="sm:block hidden cursor-grab active:cursor-grabbing shrink-0">
+                    <GripVertical className="w-5 h-5 text-muted-foreground" />
                   </SortableItemHandle>
+                  <div className="flex sm:flex-row flex-col items-center gap-3 sm:gap-2 w-full sm:w-auto">
+                    {project.images && project.images.length > 0 && (
+                      <div className="relative w-full h-20 sm:w-24 sm:h-24 rounded-md overflow-hidden shrink-0">
+                        <Image
+                          src={project.images[0]}
+                          alt={project.title}
+                          fill
+                          className="object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
 
-                  {/* Project Image */}
-                  {project.images && project.images.length > 0 && (
-                    <div className="relative w-24 h-24 rounded-md overflow-hidden shrink-0">
-                      <Image
-                        src={project.images[0]}
-                        alt={project.title}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                  )}
-
-                  {/* Project Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-lg truncate">{project.title}</h3>
+                  <div className="flex-1 min-w-0 w-full sm:w-auto">
+                    <h3 className="font-semibold text-base sm:text-lg truncate">
+                      {project.title}
+                    </h3>
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                       {project.subtitle}
                     </p>
                     <div className="flex flex-wrap gap-1">
-                      {project.tags.map((tag) => (
-                        <Badge key={tag} variant="secondary" className="text-xs">
+                      {project.tags.slice(0, 5).map((tag) => (
+                        <Badge
+                          key={tag}
+                          variant="secondary"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
+                      {project.tags.length > 5 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{project.tags.length - 5}
+                        </Badge>
+                      )}
                     </div>
                   </div>
 
-                  {/* Actions */}
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex sm:flex-col items-center justify-end sm:justify-start gap-2 w-full sm:w-auto shrink-0">
+                    <SortableItemHandle className="sm:hidden block cursor-grab active:cursor-grabbing shrink-0 mr-auto">
+                      <GripVertical className="w-5 h-5 text-muted-foreground" />
+                    </SortableItemHandle>
                     <Button
                       variant="ghost"
                       size="icon"
@@ -130,7 +143,9 @@ export function ProjectList({ projects, onRefresh, onReorder }: ProjectListProps
                       )}
                     </Button>
                     <Button variant="ghost" size="icon" asChild>
-                      <Link href={`/admin/dashboard/projects/${project._id}/edit`}>
+                      <Link
+                        href={`/admin/dashboard/projects/${project._id}/edit`}
+                      >
                         <Pencil className="w-4 h-4" />
                       </Link>
                     </Button>

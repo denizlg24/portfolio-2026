@@ -3,13 +3,13 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { getAdminSession } from "@/lib/require-admin";
-import { ForbiddenError } from "@/lib/utils";
+import { forbidden } from "next/navigation";
 
 export default async function NewTimelinePage() {
   const session = await getAdminSession();
 
   if (!session) {
-    throw new ForbiddenError("Forbidden");
+    forbidden();
   }
 
   return (

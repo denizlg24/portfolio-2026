@@ -1,5 +1,7 @@
 import { Linkedin, Github, Instagram, Mail } from "lucide-react";
 import Link from "next/link";
+import CurrentYear from "./current-year";
+import { Suspense } from "react";
 
 export const Footer = () => {
   return (
@@ -7,7 +9,7 @@ export const Footer = () => {
       <div className="w-full mx-auto max-w-5xl flex xs:flex-row flex-col items-center justify-between gap-2 px-4 text-foreground fo">
         <div className="inline-flex items-center gap-1">
           <p className="text-sm">
-            &copy; {new Date().getFullYear()} denizlg24.com
+            &copy; <Suspense fallback={<>....</>}><CurrentYear/></Suspense> denizlg24.com
           </p>
           <div className="w-px h-4 bg-foreground"/>
           <Link href="/privacy-policy" className="text-sm font-medium hover:text-accent hover:font-bold transition-all">

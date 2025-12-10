@@ -6,34 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Plus, Eye, EyeOff } from "lucide-react";
 import { TimelineList } from "./timeline-list";
-
-type TimelineItemWithId = {
-  _id: string;
-  title: string;
-  subtitle: string;
-  logoUrl?: string;
-  dateFrom: string;
-  dateTo?: string;
-  topics: string[];
-  category: "work" | "education" | "personal";
-  order: number;
-  links?: {
-    label: string;
-    url: string;
-    icon: "external" | "github" | "notepad";
-  }[];
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-};
+import { ITimelineItemLean } from "@/models/TimelineItem";
 
 interface TimelineManagerProps {
-  initialItems: TimelineItemWithId[];
+  initialItems: ITimelineItemLean[];
 }
 
 export function TimelineManager({ initialItems }: TimelineManagerProps) {
-  const [items, setItems] = useState<TimelineItemWithId[]>(initialItems);
-  const [filteredItems, setFilteredItems] = useState<TimelineItemWithId[]>(initialItems);
+  const [items, setItems] = useState<ITimelineItemLean[]>(initialItems);
+  const [filteredItems, setFilteredItems] = useState<ITimelineItemLean[]>(initialItems);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
   const [saving, setSaving] = useState(false);
@@ -69,7 +50,7 @@ export function TimelineManager({ initialItems }: TimelineManagerProps) {
     setHasUnsavedChanges(false);
   }, [items, activeCategory, visibilityFilter]);
 
-  const handleReorder = (newItems: TimelineItemWithId[]) => {
+  const handleReorder = (newItems: ITimelineItemLean[]) => {
     setFilteredItems(newItems);
     setHasUnsavedChanges(true);
   };

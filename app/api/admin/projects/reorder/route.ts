@@ -17,7 +17,7 @@ export async function PATCH(request: NextRequest) {
 
     await connectDB();
 
-    const bulkOps = items.map((item: { _id: string; order: number }) => ({
+    const bulkOps = items.map((item) => ({
       updateOne: {
         filter: { _id: item._id },
         update: { $set: { order: item.order } },

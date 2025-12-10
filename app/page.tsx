@@ -1,25 +1,16 @@
-import { InstagramPostsGallery } from "@/components/instagram-posts-gallery";
-import { getAge } from "@/lib/utils";
 import Image from "next/image";
-import {
-  ExternalLinkIcon,
-  FileDown,
-  Github,
-  Instagram,
-  Linkedin,
-  Mail,
-  FileText,
-} from "lucide-react";
+import { FileDown, Github, Instagram, Linkedin, Loader2Icon, Mail } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getAllInstagramPosts } from "@/lib/instagram_posts";
 import { StyledLink } from "@/components/styled-link";
 import type { Metadata } from "next";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import InstagramSection from "@/components/instagram-section";
+import { Suspense } from "react";
+import TimelineTabsContent from "@/components/timeline-tabs-content";
 import { Timeline } from "@/components/timeline";
-import { TimelineCard } from "@/components/timeline-card";
-import { getTimelineItemsByCategory } from "@/lib/timeline";
-import { getActiveProjects } from "@/lib/projects";
-import { ProjectCard } from "@/components/project-card";
+import { FeaturedProjectsSection } from "@/components/featured-projects-section";
+import CurrentAge from "@/components/current-age";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export const metadata: Metadata = {
   title: {
@@ -35,16 +26,7 @@ export const metadata: Metadata = {
   },
 };
 
-const iconMap = {
-  external: ExternalLinkIcon,
-  github: Github,
-  notepad: FileText,
-};
-
-export default async function Home() {
-  const posts = await getAllInstagramPosts();
-  const timelineItems = await getTimelineItemsByCategory();
-  const projects = await getActiveProjects();
+export default function Home() {
   return (
     <main className="flex flex-col items-center justify-center">
       <section className="w-full max-w-5xl mx-auto px-4 text-center items-center">
@@ -52,7 +34,7 @@ export default async function Home() {
           hi, deniz here.
         </h1>
         <h2 className="mt-2 whitespace-nowrap text-sm font-medium sm:text-base text-center inline-flex items-center justify-center gap-1">
-          {getAge("2004-04-24")} yo software engineer from Portugal
+          <CurrentAge /> yo software engineer from Portugal
           <Image
             src="/portugal-flag.svg"
             alt="portugal flag"
@@ -62,19 +44,15 @@ export default async function Home() {
           />
         </h2>
       </section>
-      <InstagramPostsGallery
-        items={posts
-          .filter((post) => post.media_type != "VIDEO")
-          .map((post) => ({
-            image: post.media_url,
-            text: new Date(post.timestamp).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            }),
-            link: post.permalink,
-          }))}
-      />
+      <Suspense
+        fallback={
+          <div className="sm:h-[300px] xs:h-[250px] h-[150px] w-full flex items-center justify-center text-accent" >
+            <Loader2Icon className="w-6 h-6 animate-spin"/>
+          </div>
+        }
+      >
+        <InstagramSection />
+      </Suspense>
       <section className="w-full max-w-5xl mx-auto px-4 md:grid flex flex-col-reverse grid-cols-5 gap-6 mt-6 items-center">
         <article className="col-span-3 flex flex-col items-start gap-6 w-full">
           <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
@@ -181,162 +159,43 @@ export default async function Home() {
           </TabsList>
           <TabsContent value="work" className="mt-4">
             <Timeline>
-              {timelineItems.work.map((item, idx) => {
-                return (
-                  <TimelineCard
-                    key={idx}
-                    item={{
-                      logo: item.logoUrl ? (
-                        <div className="w-full h-full flex items-center justify-center bg-background overflow-hidden">
-                          <Image
-                            className="w-full h-auto aspect-square object-cover"
-                            width={64}
-                            height={64}
-                            src={item.logoUrl}
-                            alt={item.title}
-                          />
-                        </div>
-                      ) : undefined,
-                      title: item.title,
-                      subtitle: item.subtitle,
-                      date: { from: item.dateFrom, to: item.dateTo },
-                      topics: item.topics,
-                    }}
-                  >
-                    {item.links && item.links.length > 0 && (
-                      <div className="flex flex-row items-center gap-2 flex-wrap mt-1">
-                        {item.links.map((link, linkIdx) => {
-                          const Icon = iconMap[link.icon];
-                          return (
-                            <StyledLink
-                              key={linkIdx}
-                              type="anchor"
-                              className="inline-flex items-center gap-1 text-sm"
-                              href={link.url}
-                              target="_blank"
-                            >
-                              {link.label} <Icon className="w-3.5 h-3.5" />
-                            </StyledLink>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </TimelineCard>
-                );
-              })}
+              <Suspense fallback={<Skeleton className="w-full h-[150px]" />}>
+                <TimelineTabsContent category="work" />
+              </Suspense>
             </Timeline>
           </TabsContent>
           <TabsContent value="education" className="mt-4">
             <Timeline>
-              {timelineItems.education.map((item: any) => (
-                <TimelineCard
-                  key={item._id.toString()}
-                  item={{
-                    logo: item.logoUrl ? (
-                      <div className="w-full h-full flex items-center justify-center bg-background overflow-hidden">
-                        <Image
-                          className="w-full h-auto aspect-square object-cover"
-                          width={64}
-                          height={64}
-                          src={item.logoUrl}
-                          alt={item.title}
-                        />
-                      </div>
-                    ) : undefined,
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    date: { from: item.dateFrom, to: item.dateTo },
-                    topics: item.topics,
-                  }}
-                >
-                  {item.links && item.links.length > 0 && (
-                    <div className="flex flex-row items-center gap-2 flex-wrap mt-1">
-                      {item.links.map((link: any, linkIdx: number) => {
-                        const Icon = iconMap[link.icon as keyof typeof iconMap];
-                        return (
-                          <StyledLink
-                            key={linkIdx}
-                            type="anchor"
-                            className="inline-flex items-center gap-1 text-sm"
-                            href={link.url}
-                            target="_blank"
-                          >
-                            {link.label} <Icon className="w-3.5 h-3.5" />
-                          </StyledLink>
-                        );
-                      })}
-                    </div>
-                  )}
-                </TimelineCard>
-              ))}
+              <Suspense fallback={<Skeleton className="w-full h-[150px]" />}>
+                <TimelineTabsContent category="education" />
+              </Suspense>
             </Timeline>
           </TabsContent>
           <TabsContent value="personal" className="mt-4">
             <Timeline>
-              {timelineItems.personal.map((item: any) => (
-                <TimelineCard
-                  key={item._id.toString()}
-                  item={{
-                    logo: item.logoUrl ? (
-                      <div className="w-full h-full flex items-center justify-center bg-background overflow-hidden">
-                        <Image
-                          className="w-full h-auto aspect-square object-cover"
-                          width={64}
-                          height={64}
-                          src={item.logoUrl}
-                          alt={item.title}
-                        />
-                      </div>
-                    ) : undefined,
-                    title: item.title,
-                    subtitle: item.subtitle,
-                    date: { from: item.dateFrom, to: item.dateTo },
-                    topics: item.topics,
-                  }}
-                >
-                  {item.links && item.links.length > 0 && (
-                    <div className="flex flex-row items-center gap-2 flex-wrap mt-1">
-                      {item.links.map((link: any, linkIdx: number) => {
-                        const Icon = iconMap[link.icon as keyof typeof iconMap];
-                        return (
-                          <StyledLink
-                            key={linkIdx}
-                            type="anchor"
-                            className="inline-flex items-center gap-1 text-sm"
-                            href={link.url}
-                            target="_blank"
-                          >
-                            {link.label} <Icon className="w-3.5 h-3.5" />
-                          </StyledLink>
-                        );
-                      })}
-                    </div>
-                  )}
-                </TimelineCard>
-              ))}
+              <Suspense fallback={<Skeleton className="w-full h-[150px]" />}>
+                <TimelineTabsContent category="personal" />
+              </Suspense>
             </Timeline>
           </TabsContent>
         </Tabs>
       </section>
-      <section className="w-full max-w-5xl mx-auto px-4 flex flex-col gap-6 mt-16">
+      <section className="w-full max-w-5xl mx-auto px-4 flex flex-col gap-12 mt-16">
         <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
           featured projects
         </h1>
         <div className="grid md:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-4">
-          {projects.slice(0, 2).map((project) => (
-            <ProjectCard
-            key={project._id.toString()}
-            className="max-w-full col-span-1"
-              project={{
-                ...project,
-                links: project.links.map((link) => ({
-                  label: link.label,
-                  icon: link.icon,
-                  url: link.url,
-                })),
-              }}
-            />
-          ))}
+          <Suspense
+            fallback={
+              <>
+                <Skeleton className="w-full h-[150px]" />
+                <Skeleton className="w-full h-[150px]" />
+                <Skeleton className="w-full h-[150px]" />
+              </>
+            }
+          >
+            <FeaturedProjectsSection count={3} />
+          </Suspense>
         </div>
       </section>
     </main>

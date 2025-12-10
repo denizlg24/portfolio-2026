@@ -56,7 +56,7 @@
 }
 
 @theme inline {
-  --breakpoint-xs: 420px;
+  --breakpoint-xs: 426px;
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);

@@ -25,7 +25,7 @@ export const TimelineCard = ({
         <div className="flex flex-row items-center gap-1 justify-start text-xs text-muted-foreground">
           <p>{item.date.from}</p>
           <span className="w-2 h-px bg-foreground/75"></span>
-          <p>{item.date.to ?? "Present"}</p>
+          <p>{item.date.to || "Present"}</p>
         </div>
         <h1 className="text-lg font-semibold">{item.title}</h1>
         <h2 className="text-sm text-muted-foreground">{item.subtitle}</h2>

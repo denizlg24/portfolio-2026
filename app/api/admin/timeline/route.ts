@@ -3,7 +3,6 @@ import { getAllTimelineItems, createTimelineItem } from '@/lib/timeline';
 import { requireAdmin } from '@/lib/require-admin';
 
 export async function GET(request: NextRequest) {
-  // Check admin authentication
   const authError = await requireAdmin(request);
   if (authError) return authError;
 
@@ -24,14 +23,12 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
-  // Check admin authentication
   const authError = await requireAdmin(request);
   if (authError) return authError;
 
   try {
     const body = await request.json();
     
-    // Validate required fields
     if (!body.title || !body.subtitle || !body.dateFrom || !body.category) {
       return NextResponse.json(
         { error: 'Missing required fields' },
@@ -39,7 +36,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Auto-assign order: get max order for this category and add 1
     let order = 0;
     if (body.category) {
       const itemsInCategory = await getAllTimelineItems(body.category);
@@ -49,7 +45,6 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Create the timeline item
     const item = await createTimelineItem({
       title: body.title,
       subtitle: body.subtitle,
@@ -64,10 +59,10 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ item }, { status: 201 });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating timeline item:', error);
     return NextResponse.json(
-      { error: 'Failed to create timeline item', details: error.message },
+      { error: 'Failed to create timeline item', details: (error as any).message },
       { status: 500 }
     );
   }

@@ -3,9 +3,14 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   /* config options here */
   reactCompiler: true,
-  images:{
-    remotePatterns:[new URL("https://rose-acceptable-bee-887.mypinata.cloud/**")]
-  }
+  experimental: {
+    authInterrupts: true,
+  },
+  images: {
+    remotePatterns: [
+      new URL("https://rose-acceptable-bee-887.mypinata.cloud/**"),
+    ],
+  },
 };
 
 export default nextConfig;

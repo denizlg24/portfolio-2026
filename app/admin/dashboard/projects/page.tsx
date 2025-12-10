@@ -49,5 +49,5 @@ export default async function ProjectsPage() {
       </div>
     );
   }
-  return <ProjectManager initialProjects={projects} />;
+  return     <div className="max-w-7xl mx-auto space-y-6"><ProjectManager initialProjects={projects} /></div>;
 }

@@ -30,8 +30,10 @@ import {
   NotepadText,
   Eye,
   PenLine,
+  Copy,
+  Check,
 } from "lucide-react";
-import { IProject } from "@/models/Project";
+import { ILeanProject } from "@/models/Project";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 
 const projectSchema = z.object({
@@ -53,7 +55,7 @@ const projectSchema = z.object({
 type ProjectFormData = z.infer<typeof projectSchema>;
 
 interface ProjectFormProps {
-  project?: IProject & { _id: string };
+  project?: ILeanProject;
   mode: "create" | "edit";
 }
 
@@ -61,9 +63,12 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [images, setImages] = useState<string[]>(project?.images || []);
+  const [media, setMedia] = useState<string[]>(project?.media || []);
   const [tags, setTags] = useState<string[]>(project?.tags || []);
   const [newTag, setNewTag] = useState("");
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingMedia, setUploadingMedia] = useState(false);
+  const [copiedUrl, setCopiedUrl] = useState<string | null>(null);
 
   const {
     register,
@@ -127,6 +132,59 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
     setImages(images.filter((_, i) => i !== index));
   };
 
+  const handleMediaUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Please upload an image file");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Image must be less than 5MB");
+      return;
+    }
+
+    setUploadingMedia(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to upload media");
+      }
+
+      const data = await response.json();
+      setMedia([...media, data.url]);
+    } catch (error) {
+      console.error("Error uploading media:", error);
+      alert("Failed to upload media. Please try again.");
+    } finally {
+      setUploadingMedia(false);
+    }
+  };
+
+  const removeMedia = (index: number) => {
+    setMedia(media.filter((_, i) => i !== index));
+  };
+
+  const copyToClipboard = async (url: string) => {
+    try {
+      await navigator.clipboard.writeText(url);
+      setCopiedUrl(url);
+      setTimeout(() => setCopiedUrl(null), 2000);
+    } catch (error) {
+      console.error("Failed to copy:", error);
+      alert("Failed to copy URL to clipboard");
+    }
+  };
+
   const addTag = () => {
     if (newTag.trim() && !tags.includes(newTag.trim())) {
       setTags([...tags, newTag.trim()]);
@@ -161,6 +219,7 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
       const payload = {
         ...data,
         images,
+        media,
         tags,
         links: (data.links || []).filter((link) => link.label && link.url),
       };
@@ -384,6 +443,95 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
                 </Button>
               </div>
             ))}
+          </div>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between">
+          <FieldLabel>Media Gallery (for Markdown)</FieldLabel>
+          <label htmlFor="media-upload">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={uploadingMedia}
+              asChild
+            >
+              <span>
+                <Upload className="w-4 h-4 mr-1" />
+                {uploadingMedia ? "Uploading..." : "Upload Image"}
+              </span>
+            </Button>
+            <input
+              id="media-upload"
+              type="file"
+              accept="image/*"
+              onChange={handleMediaUpload}
+              className="hidden"
+              disabled={uploadingMedia}
+            />
+          </label>
+        </div>
+        {media.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground">
+              Click on a URL to copy it for use in your markdown content
+            </p>
+            <div className="grid grid-cols-1 gap-3">
+              {media.map((url, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 p-3 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="relative w-20 h-20 shrink-0 rounded overflow-hidden bg-background">
+                    <Image
+                      src={url}
+                      alt={`Media ${index + 1}`}
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(url)}
+                      className="w-full text-left font-mono text-xs p-2 rounded bg-background hover:bg-accent transition-colors truncate block"
+                      title="Click to copy URL"
+                    >
+                      {url}
+                    </button>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => copyToClipboard(url)}
+                    className="shrink-0"
+                  >
+                    {copiedUrl === url ? (
+                      <Check className="w-4 h-4 text-green-500" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => removeMedia(index)}
+                    className="shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {media.length === 0 && (
+          <div className="p-6 border-2 border-dashed border-muted rounded-lg text-center text-sm text-muted-foreground">
+            No media uploaded yet. Upload images to use them in your markdown content.
           </div>
         )}
       </div>

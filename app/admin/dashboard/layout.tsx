@@ -2,7 +2,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAdminSession } from "@/lib/require-admin";
-import { ForbiddenError } from "@/lib/utils";
+import { forbidden } from "next/navigation";
 
 export default async function RootLayout({
   children,
@@ -12,7 +12,7 @@ export default async function RootLayout({
   const session = await getAdminSession();
   
   if (!session) {
-    throw new ForbiddenError("Forbidden");
+    forbidden();
   }
 
   return (

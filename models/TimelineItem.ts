@@ -1,18 +1,35 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from "mongoose";
+import { ILink, LinkSchema } from "./Project";
 
-export interface ITimelineItem {
+export interface ITimelineItem extends Document {
   title: string;
   subtitle: string;
   logoUrl?: string;
   dateFrom: string;
   dateTo?: string;
   topics: string[];
-  category: 'work' | 'education' | 'personal';
+  category: "work" | "education" | "personal";
+  order: number;
+  links?: ILink[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ITimelineItemLean {
+  _id: string;
+  title: string;
+  subtitle: string;
+  logoUrl?: string;
+  dateFrom: string;
+  dateTo?: string;
+  topics: string[];
+  category: "work" | "education" | "personal";
   order: number;
   links?: {
     label: string;
     url: string;
-    icon: 'external' | 'github' | 'notepad';
+    icon: "external" | "github" | "notepad";
   }[];
   isActive: boolean;
   createdAt: Date;
@@ -23,12 +40,12 @@ const timelineItemSchema = new mongoose.Schema<ITimelineItem>(
   {
     title: {
       type: String,
-      required: [true, 'Title is required'],
+      required: [true, "Title is required"],
       trim: true,
     },
     subtitle: {
       type: String,
-      required: [true, 'Subtitle is required'],
+      required: [true, "Subtitle is required"],
       trim: true,
     },
     logoUrl: {
@@ -37,7 +54,7 @@ const timelineItemSchema = new mongoose.Schema<ITimelineItem>(
     },
     dateFrom: {
       type: String,
-      required: [true, 'Start date is required'],
+      required: [true, "Start date is required"],
       trim: true,
     },
     dateTo: {
@@ -49,38 +66,20 @@ const timelineItemSchema = new mongoose.Schema<ITimelineItem>(
       default: [],
       validate: {
         validator: (v: string[]) => Array.isArray(v),
-        message: 'Topics must be an array of strings',
+        message: "Topics must be an array of strings",
       },
     },
     category: {
       type: String,
-      enum: ['work', 'education', 'personal'],
-      required: [true, 'Category is required'],
+      enum: ["work", "education", "personal"],
+      required: [true, "Category is required"],
     },
     order: {
       type: Number,
       default: 0,
       index: true,
     },
-    links: [
-      {
-        label: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        url: {
-          type: String,
-          required: true,
-          trim: true,
-        },
-        icon: {
-          type: String,
-          enum: ['external', 'github', 'notepad'],
-          default: 'external',
-        },
-      },
-    ],
+    links: [LinkSchema],
     isActive: {
       type: Boolean,
       default: true,
@@ -95,8 +94,8 @@ const timelineItemSchema = new mongoose.Schema<ITimelineItem>(
 timelineItemSchema.index({ category: 1, order: 1 });
 timelineItemSchema.index({ category: 1, isActive: 1, order: 1 });
 
-const TimelineItem =
+const TimelineItem: mongoose.Model<ITimelineItem> =
   mongoose.models.TimelineItem ||
-  mongoose.model<ITimelineItem>('TimelineItem', timelineItemSchema);
+  mongoose.model<ITimelineItem>("TimelineItem", timelineItemSchema);
 
 export default TimelineItem;

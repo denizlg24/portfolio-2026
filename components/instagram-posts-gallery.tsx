@@ -1,8 +1,8 @@
 "use client";
 
 import CircularGallery, {
-  CircularGalleryProps,
 } from "@/components/CircularGallery";
+import { InstagramPost } from "@/lib/instagram_posts";
 import { cn } from "@/lib/utils";
 
 export const InstagramPostsGallery = ({
@@ -10,12 +10,20 @@ export const InstagramPostsGallery = ({
   items,
 }: {
   className?: string;
-  items?: CircularGalleryProps["items"];
+  items?: InstagramPost[];
 }) => {
   return (
     <div className={cn("relative w-full sm:h-[300px] xs:h-[250px] h-[150px] text-foreground", className)}>
       <CircularGallery
-        items={items}
+       items={items?.map((post) => ({
+          image: post.media_url,
+          text: new Date(post.timestamp).toLocaleDateString("en-US", {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+          }),
+          link: post.permalink,
+        }))}
         bend={2}
         textColor="#778873"
         font="bold 48px Inter"

@@ -1,4 +1,4 @@
-import TimelineItem, { ITimelineItem } from '@/models/TimelineItem';
+import TimelineItem, { ITimelineItem, ITimelineItemLean } from '@/models/TimelineItem';
 import { connectDB } from '@/lib/mongodb';
 
 export async function getTimelineItems(
@@ -24,7 +24,7 @@ export async function getAllTimelineItems(
     .lean()
     .exec();
 
-  return items as (ITimelineItem & { _id: unknown })[];
+  return items;
 }
 
 export async function getTimelineItemsByCategory() {
@@ -49,13 +49,13 @@ export async function getTimelineItemsByCategory() {
   return grouped;
 }
 
-export async function createTimelineItem(data: Omit<ITimelineItem, 'createdAt' | 'updatedAt'>) {
+export async function createTimelineItem(data: Omit<ITimelineItemLean,'_id'| 'createdAt' | 'updatedAt'>) {
   await connectDB();
   const item = await TimelineItem.create(data);
   return item;
 }
 
-export async function updateTimelineItem(id: string, data: Partial<ITimelineItem>) {
+export async function updateTimelineItem(id: string, data: Partial<ITimelineItemLean>) {
   await connectDB();
   const item = await TimelineItem.findByIdAndUpdate(id, data, { new: true, runValidators: true });
   return item;
@@ -74,7 +74,7 @@ export async function getTimelineItemById(id: string) {
   return {
     ...item,
     _id: item._id.toString(),
-  } as ITimelineItem & { _id: string };
+  };
 }
 
 export async function toggleTimelineItemActive(id: string) {

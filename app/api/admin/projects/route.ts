@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, subtitle, images, links, markdown, tags, isActive } = body;
+    const { title, subtitle, images, media, links, markdown, tags, isActive } = body;
 
     await connectDB();
 
@@ -35,6 +35,7 @@ export async function POST(request: NextRequest) {
       title,
       subtitle,
       images: images || [],
+      media: media || [],
       links: links || [],
       markdown: markdown || "",
       tags: tags || [],

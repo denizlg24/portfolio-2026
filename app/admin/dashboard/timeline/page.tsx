@@ -1,13 +1,13 @@
 import { TimelineManager } from "./_components/timeline-manager";
 import { getAllTimelineItems } from "@/lib/timeline";
 import { getAdminSession } from "@/lib/require-admin";
-import { ForbiddenError } from "@/lib/utils";
+import { forbidden } from "next/navigation";
 
 export default async function TimelinePage() {
   const session = await getAdminSession();
 
   if (!session) {
-    throw new ForbiddenError("Forbidden");
+    forbidden();
   }
 
   const items = await getAllTimelineItems();
@@ -16,7 +16,7 @@ export default async function TimelinePage() {
     <div className="max-w-7xl mx-auto space-y-6">
       <TimelineManager
         initialItems={items.map((item) => ({
-          _id: (item._id as string).toString(),
+          _id: item._id.toString(),
           title: item.title,
           subtitle: item.subtitle,
           logoUrl: item.logoUrl,
