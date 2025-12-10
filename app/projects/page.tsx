@@ -31,7 +31,7 @@ export default async function Page() {
         </h1>
         <Suspense
           fallback={
-            <div className="w-full flex xs:flex-row flex-col items-center justify-between mt-16">
+            <div className="w-full flex xs:flex-row flex-col items-center justify-between mt-16 gap-2">
               <Input
                 placeholder="Search projects..."
                 className="w-full grow max-w-sm"
