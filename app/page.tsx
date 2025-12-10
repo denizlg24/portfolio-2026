@@ -1,5 +1,13 @@
 import Image from "next/image";
-import { FileDown, Github, Instagram, Linkedin, Loader2Icon, Mail } from "lucide-react";
+import {
+  FileDown,
+  Github,
+  Instagram,
+  Linkedin,
+  Loader2Icon,
+  Mail,
+  MoveRight,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { StyledLink } from "@/components/styled-link";
 import type { Metadata } from "next";
@@ -46,8 +54,8 @@ export default function Home() {
       </section>
       <Suspense
         fallback={
-          <div className="sm:h-[300px] xs:h-[250px] h-[150px] w-full flex items-center justify-center text-accent" >
-            <Loader2Icon className="w-6 h-6 animate-spin"/>
+          <div className="sm:h-[300px] xs:h-[250px] h-[150px] w-full flex items-center justify-center text-accent">
+            <Loader2Icon className="w-6 h-6 animate-spin" />
           </div>
         }
       >
@@ -181,16 +189,22 @@ export default function Home() {
         </Tabs>
       </section>
       <section className="w-full max-w-5xl mx-auto px-4 flex flex-col gap-12 mt-16">
-        <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
-          featured projects
-        </h1>
+        <div className="w-full flex flex-col gap-0.5 items-center">
+          <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
+            featured projects
+          </h1>
+          <StyledLink className="inline-flex gap-1 text-sm" href="/projects">
+            View More <MoveRight />
+          </StyledLink>
+        </div>
+
         <div className="grid md:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-4">
           <Suspense
             fallback={
               <>
-                <Skeleton className="w-full h-[150px]" />
-                <Skeleton className="w-full h-[150px]" />
-                <Skeleton className="w-full h-[150px]" />
+                <div className="col-span-full h-[150px] flex items-center justify-center">
+                  <Loader2Icon className="w-4 h-4 animate-spin" />
+                </div>
               </>
             }
           >

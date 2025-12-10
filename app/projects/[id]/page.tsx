@@ -1,4 +1,11 @@
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+} from "@/components/ui/carousel";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getActiveProjects, getProjectById } from "@/lib/projects";
@@ -7,7 +14,7 @@ import { notFound } from "next/navigation";
 
 export async function generateStaticParams() {
   const projects = await getActiveProjects();
- 
+
   return projects.map((project) => ({
     id: project._id.toString(),
   }));
@@ -30,12 +37,10 @@ export async function generateMetadata({
     title: {
       absolute: `${project.title} | Deniz Lopes Güneş`,
     },
-    description:
-        project.subtitle,
+    description: project.subtitle,
     openGraph: {
       title: `${project.title} | Deniz Lopes Güneş`,
-      description:
-        project.subtitle,
+      description: project.subtitle,
       url: `https://denizlg24.com/projects/${project._id}`,
     },
   };
@@ -58,15 +63,25 @@ export default async function ProjectPage({
           {project.title}
         </h1>
         <div className="mt-6 flex items-center justify-center w-full h-auto aspect-video overflow-hidden rounded-lg drop-shadow-xl">
-          <Image
-            src={project.images[0]}
-            alt={project.title}
-            width={1920}
-            height={1080}
-            className="object-cover w-full h-full"
-          />
+          <Carousel>
+            <CarouselContent>
+              {project.images.map((image, index) => (
+                <CarouselItem key={index}>
+                  <Image
+                    src={image}
+                    alt={project.title}
+                    width={1920}
+                    height={1080}
+                    className="object-cover w-full h-full rounded-lg border-2"
+                  />
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+            <CarouselPrevious className="left-1"/>
+            <CarouselNext className="right-1"/>
+          </Carousel>
         </div>
-        <div className="flex flex-col gap-0 mt-10 bg-surface/50 p-4 rounded">
+        <div className="flex flex-col gap-0 mt-10 bg-surface/50 xs:p-4 p-3 rounded">
           <Label className="">Project summary</Label>
           <Separator className="mt-2" />
           <h2 className="mt-2 sm:text-lg xs:text-base text-sm text-muted-foreground/75">
@@ -75,7 +90,7 @@ export default async function ProjectPage({
         </div>
 
         <Label className="mt-6 text-sm">Project description</Label>
-        <Separator className="mt-2 -mb-8" />
+        <Separator className="mt-2 md:-mb-8 sm:-mb-6 -mb-4" />
         <MarkdownRenderer content={project.markdown} />
       </section>
     </main>
