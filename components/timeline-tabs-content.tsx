@@ -4,11 +4,7 @@ import { StyledLink } from "./styled-link";
 import { TimelineCard } from "./timeline-card";
 import Image from "next/image";
 import { ExternalLinkIcon, Github, FileText } from "lucide-react";
-const iconMap = {
-  external: ExternalLinkIcon,
-  github: Github,
-  notepad: FileText,
-};
+import { iconMap } from "@/lib/utils";
 
 export default async function TimelineTabsContent({
   category,

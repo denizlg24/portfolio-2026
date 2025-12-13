@@ -1,4 +1,5 @@
 import { clsx, type ClassValue } from "clsx"
+import { ExternalLinkIcon, Github, FileText } from "lucide-react";
 import { twMerge } from "tailwind-merge"
 
 export function cn(...inputs: ClassValue[]) {
@@ -15,6 +16,12 @@ export function getAge(birthDate: string): number {
   }
   return age;
 }
+
+export const iconMap = {
+  external: ExternalLinkIcon,
+  github: Github,
+  notepad: FileText,
+};
 
 export class ForbiddenError extends Error {
   statusCode = 403;

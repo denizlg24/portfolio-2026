@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, iconMap } from "@/lib/utils";
 import Image from "next/image";
 import { Badge } from "./ui/badge";
 import { StyledLink } from "./styled-link";
@@ -8,11 +8,6 @@ import { ExternalLinkIcon, Github, FileText } from "lucide-react";
 import { ILeanProject } from "@/models/Project";
 import Link from "next/link";
 
-const iconMap = {
-  external: ExternalLinkIcon,
-  github: Github,
-  notepad: FileText,
-};
 export const ProjectCard = ({
   project,
   className,

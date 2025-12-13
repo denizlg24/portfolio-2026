@@ -42,13 +42,14 @@ export const Header = () => {
     >
       <div
         className={cn(
-          "transition-all flex flex-row w-fit py-4 sm:px-8 px-4 bg-black/5 rounded-full mx-auto",
-          isScrolled && "shadow w-full rounded-none mx-0 bg-background"
+          "transition-all flex flex-row w-fit py-4 sm:px-8 px-4 bg-surface border drop-shadow rounded-full mx-auto",
+          isScrolled && "shadow w-full rounded-none mx-0 bg-background border-0 drop-shadow-none"
         )}
       >
         <nav className="w-full max-w-3xl mx-auto flex flex-row items-center justify-center sm:gap-6 gap-4 font-semibold sm:text-base text-sm">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            
+            const isActive = link.href === "/" ? pathname === link.href : pathname.startsWith(link.href);
             const showUnderline = hoveredLink
               ? hoveredLink === link.href
               : isActive;
