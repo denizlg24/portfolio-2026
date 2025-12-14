@@ -1,10 +1,10 @@
-
 import { getTimelineItemsByCategory } from "@/lib/timeline";
 import { StyledLink } from "./styled-link";
 import { TimelineCard } from "./timeline-card";
 import Image from "next/image";
 import { ExternalLinkIcon, Github, FileText } from "lucide-react";
 import { iconMap } from "@/lib/utils";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default async function TimelineTabsContent({
   category,
@@ -20,13 +20,14 @@ export default async function TimelineTabsContent({
         item={{
           logo: item.logoUrl ? (
             <div className="w-full h-full flex items-center justify-center bg-background overflow-hidden">
-              <Image
-                className="w-full h-auto aspect-square object-cover"
-                width={64}
-                height={64}
-                src={item.logoUrl}
-                alt={item.title}
-              />
+              <Avatar className="w-full h-full rounded-none!">
+                <AvatarImage
+                  alt={item.title}
+                  className="w-full h-auto aspect-square object-cover"
+                  src={item.logoUrl}
+                />
+                <AvatarFallback className="w-full h-auto aspect-square object-cover animate-pulse rounded-full"></AvatarFallback>
+              </Avatar>
             </div>
           ) : undefined,
           title: item.title,

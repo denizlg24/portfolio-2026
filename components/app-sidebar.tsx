@@ -1,5 +1,5 @@
 
-import { Briefcase, Calendar, FolderGit2, Home, Inbox, Instagram, NotebookPen } from "lucide-react"
+import { Briefcase, Calendar, Contact, FolderGit2, Home, Inbox, Instagram, NotebookPen } from "lucide-react"
 
 import {
   Sidebar,
@@ -23,6 +23,11 @@ const items = [
     title: "Inbox",
     url: "/admin/dashboard/inbox",
     icon: Inbox,
+  },
+  {
+    title: "Contacts",
+    url: "/admin/dashboard/contacts",
+    icon: Contact
   },
   {
     title: "Calendar",

@@ -14,7 +14,7 @@ import {
   } from "@/components/ui/command"
 import { cn } from "@/lib/utils"
 import { useRouter, useSearchParams } from "next/navigation"
-export const TagSelect = ({tags,selected}:{tags:string[],selected:string[]}) => {
+export const TagSelect = ({tags,selected,related}:{tags:string[],selected:string[],related:"projects"|"blog"}) => {
     const [open, setOpen] = useState(false)
     const [values, setValues] = useState(selected);
     const router = useRouter();
@@ -25,7 +25,7 @@ export const TagSelect = ({tags,selected}:{tags:string[],selected:string[]}) => 
         values.forEach((val) => {
             newParams.append("tags", val);
         });
-        router.push(`/projects?${newParams.toString()}`);
+        router.push(`/${related}?${newParams.toString()}`);
     },[values])
     return (
       <Popover open={open} onOpenChange={setOpen}>
@@ -44,9 +44,9 @@ export const TagSelect = ({tags,selected}:{tags:string[],selected:string[]}) => 
         </PopoverTrigger>
         <PopoverContent className="w-[200px] p-0">
           <Command>
-            <CommandInput placeholder="Search framework..." className="h-9" />
+            <CommandInput placeholder="Search topic..." className="h-9" />
             <CommandList>
-              <CommandEmpty>No framework found.</CommandEmpty>
+              <CommandEmpty>No topic found.</CommandEmpty>
               <CommandGroup>
                 {tags.map((tag) => (
                   <CommandItem

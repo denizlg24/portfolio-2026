@@ -80,7 +80,7 @@ export const ProjectsSection = ({
           </p>
         )}
         <Empty className="col-span-full">
-          <EmptyHeader>
+          <EmptyHeader  className="max-w-lg!">
             <EmptyMedia variant="icon">
               <FolderGit2 />
             </EmptyMedia>

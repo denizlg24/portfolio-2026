@@ -3,14 +3,14 @@ import { useSearchParams } from "next/navigation";
 import { TagSelect } from "./tag-select";
 import { SearchInput } from "./search-input";
 
-export const FilterBar = ({ tags }: { tags: string[] }) => {
+export const FilterBar = ({ tags, related }: { tags: string[], related: "projects" | "blog" }) => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
   const arrayTags = searchParams.getAll("tags") || [];
   return (
     <div className="w-full flex flex-col items-center justify-between gap-2 xs:flex-row mt-16">
-      <SearchInput query={query} />
-      <TagSelect selected={arrayTags} tags={tags} />
+      <SearchInput related={related} query={query} />
+      <TagSelect related={related} selected={arrayTags} tags={tags} />
     </div>
   );
 };

@@ -27,7 +27,7 @@ export default async function ProjectsPage() {
         <h1 className="text-3xl font-bold">Projects</h1>
         <div>
           <Empty>
-            <EmptyHeader>
+            <EmptyHeader  className="max-w-lg!">
               <EmptyMedia variant="icon">
                 <FolderGit2 className="w-12 h-12 text-muted-foreground" />
               </EmptyMedia>
