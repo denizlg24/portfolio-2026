@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { getProjectById, toggleProjectActive } from "@/lib/projects";
 import { Project } from "@/models/Project";
 import { connectDB } from "@/lib/mongodb";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   request: NextRequest,
@@ -59,7 +60,7 @@ export async function PATCH(
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-
+    revalidatePath(`/projects/${project._id.toString()}`);
     return NextResponse.json(
       {
         message: "Project updated successfully",
@@ -92,6 +93,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
+    revalidatePath(`/projects/${project._id.toString()}`);
     return NextResponse.json({ message: "Project deleted successfully" }, { status: 200 });
   } catch (error) {
     console.error("Error deleting project:", error);

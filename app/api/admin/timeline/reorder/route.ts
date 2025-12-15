@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import TimelineItem from "@/models/TimelineItem";
 import { requireAdmin } from "@/lib/require-admin";
+import { revalidatePath } from "next/cache";
 
 export async function PATCH(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -28,7 +29,7 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await TimelineItem.bulkWrite(bulkOps);
-
+    revalidatePath("/");
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
     console.error("Error reordering timeline items:", error);

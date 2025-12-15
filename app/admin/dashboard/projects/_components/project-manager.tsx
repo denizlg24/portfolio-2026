@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, Eye, EyeOff } from "lucide-react";
 import { ProjectList } from "./project-list";
 import { ILeanProject } from "@/models/Project";
+import { Label } from "@/components/ui/label";
 
 interface ProjectManagerProps {
   initialProjects: ILeanProject[];
@@ -107,7 +108,8 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
       </div>
 
       <div className="space-y-6">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 justify-end">
+          <Label>Toggle Hidden:</Label>
           <Button
             variant={visibilityFilter === "hidden" ? "default" : "outline"}
             size="icon"

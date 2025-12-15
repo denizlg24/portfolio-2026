@@ -126,7 +126,7 @@ export function ProjectList({
                     </div>
                   </div>
 
-                  <div className="flex sm:flex-col items-center justify-end sm:justify-start gap-2 w-full sm:w-auto shrink-0">
+                  <div className="flex sm:flex-col items-center justify-end sm:justify-start gap-2 w-full sm:w-auto shrink-0 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0 pt-2 border-t">
                     <SortableItemHandle className="sm:hidden block cursor-grab active:cursor-grabbing shrink-0 mr-auto">
                       <GripVertical className="w-5 h-5 text-muted-foreground" />
                     </SortableItemHandle>

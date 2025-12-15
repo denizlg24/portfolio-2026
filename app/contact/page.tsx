@@ -43,12 +43,12 @@ export default async function Page() {
                 Email
               </span>
               <a
-                href="mailto:denizlg24@gmail.com"
+                href="mailto:denizgunes@oceaninformatix.com"
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors"
                 target="_blank"
               >
                 <Mail className="w-4 h-4" />
-                denizlg24@gmail.com
+                denizgunes@oceaninformatix.com
               </a>
             </div>
             <div className="flex flex-col items-center gap-1 flex-1">
@@ -75,41 +75,6 @@ export default async function Page() {
               >
                 <MapPin className="w-4 h-4" />
                 Porto, Portugal
-              </a>
-            </div>
-          </div>
-
-          <div className="flex flex-col items-center gap-2">
-            <span className="text-xs uppercase tracking-wider text-muted-foreground font-medium">
-              Connect
-            </span>
-            <div className="flex items-center gap-6">
-              <a
-                href="https://www.linkedin.com/in/deniz-g%C3%BCnes-068509263/"
-                className="text-accent hover:text-foreground transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="LinkedIn"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
-              <a
-                href="https://github.com/denizlg24"
-                className="text-accent hover:text-foreground transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="GitHub"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a
-                href="https://www.instagram.com/denizlg24"
-                className="text-accent hover:text-foreground transition-colors"
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Instagram"
-              >
-                <Instagram className="w-5 h-5" />
               </a>
             </div>
           </div>

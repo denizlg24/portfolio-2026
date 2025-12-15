@@ -19,7 +19,7 @@ export default async function RootLayout({
     <SidebarProvider>
       <AppSidebar />
       <main className="w-full flex flex-col items-center">
-      <section className="w-full max-w-5xl px-4 mx-auto">
+      <section className="w-full px-4 mx-auto">
         <div className="w-full flex flex-row items-center text-xs text-muted-foreground gap-2 pb-4 mb-4 border-b border-b-foreground">
           <SidebarTrigger />
           <KbdGroup>

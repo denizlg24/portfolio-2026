@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Card } from "@/components/ui/card";
 import { ContactsTable } from "./contacts-table";
 import { ILeanContact } from "@/models/Contact";
+import { Clock, Eye, Check, Archive, Send } from "lucide-react";
 
 interface ContactsWrapperProps {
   initialContacts: ILeanContact[];
@@ -32,27 +32,46 @@ export function ContactsWrapper({
 
   return (
     <>
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground">Total</div>
-          <div className="text-2xl font-bold">{stats.total}</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground">Pending</div>
-          <div className="text-2xl font-bold">{stats.pending}</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground">Read</div>
-          <div className="text-2xl font-bold">{stats.read}</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground">Responded</div>
-          <div className="text-2xl font-bold">{stats.responded}</div>
-        </Card>
-        <Card className="p-4">
-          <div className="text-sm text-muted-foreground">Archived</div>
-          <div className="text-2xl font-bold">{stats.archived}</div>
-        </Card>
+      <div className="flex flex-wrap gap-4 items-center">
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+          <Send className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-semibold">{stats.total}</span>
+            <span className="text-xs text-muted-foreground">Total</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+          <Clock className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-semibold">{stats.pending}</span>
+            <span className="text-xs text-muted-foreground">Pending</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+          <Eye className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-semibold">{stats.read}</span>
+            <span className="text-xs text-muted-foreground">Read</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+          <Check className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-semibold">{stats.responded}</span>
+            <span className="text-xs text-muted-foreground">Responded</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
+          <Archive className="w-4 h-4 text-muted-foreground" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="text-base font-semibold">{stats.archived}</span>
+            <span className="text-xs text-muted-foreground">Archived</span>
+          </div>
+        </div>
       </div>
 
       <ContactsTable

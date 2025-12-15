@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllTimelineItems, createTimelineItem } from '@/lib/timeline';
 import { requireAdmin } from '@/lib/require-admin';
+import { revalidatePath } from 'next/cache';
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -57,7 +58,7 @@ export async function POST(request: NextRequest) {
       links: body.links || [],
       isActive: body.isActive ?? true,
     });
-
+    revalidatePath("/");
     return NextResponse.json({ item }, { status: 201 });
   } catch (error) {
     console.error('Error creating timeline item:', error);
