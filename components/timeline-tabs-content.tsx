@@ -1,9 +1,7 @@
 import { getTimelineItemsByCategory } from "@/lib/timeline";
+import { iconMap } from "@/lib/utils";
 import { StyledLink } from "./styled-link";
 import { TimelineCard } from "./timeline-card";
-import Image from "next/image";
-import { ExternalLinkIcon, Github, FileText } from "lucide-react";
-import { iconMap } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export default async function TimelineTabsContent({

@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
-import TimelineItem from "@/models/TimelineItem";
-import { requireAdmin } from "@/lib/require-admin";
 import { revalidatePath } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
+import TimelineItem from "@/models/TimelineItem";
 
 export async function PATCH(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest) {
     if (!items || !Array.isArray(items)) {
       return NextResponse.json(
         { error: "Invalid items array" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -35,7 +35,7 @@ export async function PATCH(request: NextRequest) {
     console.error("Error reordering timeline items:", error);
     return NextResponse.json(
       { error: "Failed to reorder timeline items", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

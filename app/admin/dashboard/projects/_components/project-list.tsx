@@ -1,18 +1,18 @@
 "use client";
 
-import { ILeanProject } from "@/models/Project";
+import { Eye, EyeOff, GripVertical, Pencil, Trash2 } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Eye, EyeOff, GripVertical, Pencil, Trash2 } from "lucide-react";
-import Link from "next/link";
-import Image from "next/image";
 import {
   Sortable,
   SortableContent,
   SortableItem,
   SortableItemHandle,
 } from "@/components/ui/sortable";
+import type { ILeanProject } from "@/models/Project";
 
 interface ProjectListProps {
   projects: ILeanProject[];

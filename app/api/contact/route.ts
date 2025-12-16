@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { ipAddress } from "@vercel/functions";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createContact } from "@/lib/contacts";
 import { sendContactConfirmation } from "@/lib/resend";
-import { ipAddress } from '@vercel/functions';
+
 const contactSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
@@ -20,7 +21,7 @@ export async function POST(request: NextRequest) {
           error: "Validation failed",
           details: validationResult.error.issues,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,7 +53,7 @@ export async function POST(request: NextRequest) {
         ticketId: contact.ticketId,
         emailSent: emailResult.success,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error submitting contact form:", error);
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
       {
         error: "Failed to submit contact form",
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

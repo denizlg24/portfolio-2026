@@ -1,17 +1,17 @@
-import { NextRequest, NextResponse } from "next/server";
-import {
-  updateTimelineItem,
-  deleteTimelineItem,
-  toggleTimelineItemActive,
-} from "@/lib/timeline";
-import TimelineItem from "@/models/TimelineItem";
+import { revalidatePath } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
-import { revalidatePath } from "next/cache";
+import {
+  deleteTimelineItem,
+  toggleTimelineItemActive,
+  updateTimelineItem,
+} from "@/lib/timeline";
+import TimelineItem from "@/models/TimelineItem";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -25,7 +25,7 @@ export async function GET(
     if (!item) {
       return NextResponse.json(
         { error: "Timeline item not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -34,14 +34,14 @@ export async function GET(
     console.error("Error fetching timeline item:", error);
     return NextResponse.json(
       { error: "Failed to fetch timeline item", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -61,7 +61,7 @@ export async function PATCH(
     if (!item) {
       return NextResponse.json(
         { error: "Timeline item not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
     revalidatePath("/");
@@ -70,14 +70,14 @@ export async function PATCH(
     console.error("Error updating timeline item:", error);
     return NextResponse.json(
       { error: "Failed to update timeline item", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -92,7 +92,7 @@ export async function DELETE(
     console.error("Error deleting timeline item:", error);
     return NextResponse.json(
       { error: "Failed to delete timeline item", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

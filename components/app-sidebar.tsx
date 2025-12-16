@@ -1,5 +1,13 @@
-
-import { Briefcase, Calendar, Contact, FolderGit2, Home, Inbox, Instagram, NotebookPen } from "lucide-react"
+import {
+  Briefcase,
+  Calendar,
+  Contact,
+  FolderGit2,
+  Home,
+  Inbox,
+  Instagram,
+  NotebookPen,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -10,8 +18,8 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import { SignOutButton } from "./sign-out-button"
+} from "@/components/ui/sidebar";
+import { SignOutButton } from "./sign-out-button";
 
 const items = [
   {
@@ -27,7 +35,7 @@ const items = [
   {
     title: "Contacts",
     url: "/admin/dashboard/contacts",
-    icon: Contact
+    icon: Contact,
   },
   {
     title: "Calendar",
@@ -36,7 +44,7 @@ const items = [
   },
   {
     title: "Blog",
-    url: "/admin/dashboard/blog",
+    url: "/admin/dashboard/blogs",
     icon: NotebookPen,
   },
   {
@@ -45,17 +53,16 @@ const items = [
     icon: Briefcase,
   },
   {
-    title:"Projects",
-    url:"/admin/dashboard/projects",
+    title: "Projects",
+    url: "/admin/dashboard/projects",
     icon: FolderGit2,
-  }
-  ,
+  },
   {
-    title:"Instagram Tokens",
-    url:"/admin/dashboard/instagram-tokens",
+    title: "Instagram Tokens",
+    url: "/admin/dashboard/instagram-tokens",
     icon: Instagram,
-  }
-]
+  },
+];
 
 export function AppSidebar() {
   return (
@@ -76,12 +83,12 @@ export function AppSidebar() {
                 </SidebarMenuItem>
               ))}
               <SidebarMenuItem key={"logout"}>
-                   <SignOutButton/>
-                </SidebarMenuItem>
+                <SignOutButton />
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
     </Sidebar>
-  )
+  );
 }

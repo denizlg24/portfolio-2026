@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Eye, EyeOff } from "lucide-react";
+import type { ITimelineItemLean } from "@/models/TimelineItem";
 import { TimelineList } from "./timeline-list";
-import { ITimelineItemLean } from "@/models/TimelineItem";
 
 interface TimelineManagerProps {
   initialItems: ITimelineItemLean[];
@@ -14,7 +14,8 @@ interface TimelineManagerProps {
 
 export function TimelineManager({ initialItems }: TimelineManagerProps) {
   const [items, setItems] = useState<ITimelineItemLean[]>(initialItems);
-  const [filteredItems, setFilteredItems] = useState<ITimelineItemLean[]>(initialItems);
+  const [filteredItems, setFilteredItems] =
+    useState<ITimelineItemLean[]>(initialItems);
   const [activeCategory, setActiveCategory] = useState<string>("all");
   const [visibilityFilter, setVisibilityFilter] = useState<string>("all");
   const [saving, setSaving] = useState(false);
@@ -42,7 +43,7 @@ export function TimelineManager({ initialItems }: TimelineManagerProps) {
 
     if (visibilityFilter !== "all") {
       filtered = filtered.filter((item) =>
-        visibilityFilter === "visible" ? item.isActive : !item.isActive
+        visibilityFilter === "visible" ? item.isActive : !item.isActive,
       );
     }
 
@@ -114,7 +115,11 @@ export function TimelineManager({ initialItems }: TimelineManagerProps) {
 
       <div className="space-y-6">
         <div className="flex items-center gap-2">
-          <Tabs value={activeCategory} onValueChange={setActiveCategory} className="flex-1">
+          <Tabs
+            value={activeCategory}
+            onValueChange={setActiveCategory}
+            className="flex-1"
+          >
             <TabsList>
               <TabsTrigger value="all">All</TabsTrigger>
               <TabsTrigger value="work">Work</TabsTrigger>
@@ -122,14 +127,24 @@ export function TimelineManager({ initialItems }: TimelineManagerProps) {
               <TabsTrigger value="personal">Personal</TabsTrigger>
             </TabsList>
           </Tabs>
-          
+
           <Button
             variant={visibilityFilter === "hidden" ? "default" : "outline"}
             size="icon"
-            onClick={() => setVisibilityFilter(visibilityFilter === "hidden" ? "all" : "hidden")}
-            title={visibilityFilter === "hidden" ? "Show All" : "Show Hidden Only"}
+            onClick={() =>
+              setVisibilityFilter(
+                visibilityFilter === "hidden" ? "all" : "hidden",
+              )
+            }
+            title={
+              visibilityFilter === "hidden" ? "Show All" : "Show Hidden Only"
+            }
           >
-            {visibilityFilter === "hidden" ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {visibilityFilter === "hidden" ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
           </Button>
         </div>
 

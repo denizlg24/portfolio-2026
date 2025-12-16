@@ -1,12 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { Eye, EyeOff, Plus } from "lucide-react";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, Eye, EyeOff } from "lucide-react";
-import { ProjectList } from "./project-list";
-import { ILeanProject } from "@/models/Project";
 import { Label } from "@/components/ui/label";
+import type { ILeanProject } from "@/models/Project";
+import { ProjectList } from "./project-list";
 
 interface ProjectManagerProps {
   initialProjects: ILeanProject[];
@@ -37,7 +37,7 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
 
     if (visibilityFilter !== "all") {
       filtered = filtered.filter((project) =>
-        visibilityFilter === "hidden" ? !project.isActive : project.isActive
+        visibilityFilter === "hidden" ? !project.isActive : project.isActive,
       );
     }
 
@@ -113,10 +113,20 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
           <Button
             variant={visibilityFilter === "hidden" ? "default" : "outline"}
             size="icon"
-            onClick={() => setVisibilityFilter(visibilityFilter === "hidden" ? "all" : "hidden")}
-            title={visibilityFilter === "hidden" ? "Show All" : "Show Hidden Only"}
+            onClick={() =>
+              setVisibilityFilter(
+                visibilityFilter === "hidden" ? "all" : "hidden",
+              )
+            }
+            title={
+              visibilityFilter === "hidden" ? "Show All" : "Show Hidden Only"
+            }
           >
-            {visibilityFilter === "hidden" ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            {visibilityFilter === "hidden" ? (
+              <EyeOff className="w-4 h-4" />
+            ) : (
+              <Eye className="w-4 h-4" />
+            )}
           </Button>
         </div>
 

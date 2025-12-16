@@ -1,13 +1,20 @@
 "use client";
 
-import { useState } from "react";
-import { ColumnDef } from "@tanstack/react-table";
-import { Badge } from "@/components/ui/badge";
-import { DataTable } from "@/components/ui/data-table";
-import { ILeanContact } from "@/models/Contact";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  Archive,
+  ArrowUpDown,
+  Check,
+  Eye,
+  Mail,
+  MoreHorizontal,
+} from "lucide-react";
 import Link from "next/link";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown, Eye, MoreHorizontal, Check, Archive, Mail } from "lucide-react";
+import { DataTable } from "@/components/ui/data-table";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,14 +23,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { toast } from "sonner";
+import type { ILeanContact } from "@/models/Contact";
 
 interface ContactsTableProps {
   initialContacts: ILeanContact[];
   onStatusChange?: (oldStatus: string, newStatus: string) => void;
 }
 
-export function ContactsTable({ initialContacts, onStatusChange }: ContactsTableProps) {
+export function ContactsTable({
+  initialContacts,
+  onStatusChange,
+}: ContactsTableProps) {
   const [contacts, setContacts] = useState<ILeanContact[]>(initialContacts);
 
   const handleStatusUpdate = async (ticketId: string, newStatus: string) => {
@@ -41,8 +51,10 @@ export function ContactsTable({ initialContacts, onStatusChange }: ContactsTable
 
       setContacts((prev) =>
         prev.map((contact) =>
-          contact.ticketId === ticketId ? { ...contact, status: newStatus as any } : contact
-        )
+          contact.ticketId === ticketId
+            ? { ...contact, status: newStatus as any }
+            : contact,
+        ),
       );
 
       if (onStatusChange && oldStatus) {
@@ -178,7 +190,9 @@ export function ContactsTable({ initialContacts, onStatusChange }: ContactsTable
                 Mark as Read
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => handleStatusUpdate(contact.ticketId, "responded")}
+                onClick={() =>
+                  handleStatusUpdate(contact.ticketId, "responded")
+                }
                 disabled={contact.status === "responded"}
               >
                 <Check className="mr-2 h-4 w-4" />

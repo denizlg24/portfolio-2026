@@ -1,5 +1,5 @@
+import { Contact, type ILeanContact } from "@/models/Contact";
 import { connectDB } from "./mongodb";
-import { Contact, IContact, ILeanContact } from "@/models/Contact";
 
 export async function createContact(data: {
   name: string;
@@ -26,7 +26,7 @@ export async function createContact(data: {
 }
 
 export async function getContactByTicketId(
-  ticketId: string
+  ticketId: string,
 ): Promise<ILeanContact | null> {
   await connectDB();
 
@@ -59,14 +59,14 @@ export async function getAllContacts(filters?: {
 
 export async function updateContactStatus(
   ticketId: string,
-  status: "pending" | "read" | "responded" | "archived"
+  status: "pending" | "read" | "responded" | "archived",
 ): Promise<ILeanContact | null> {
   await connectDB();
 
   const contact = await Contact.findOneAndUpdate(
     { ticketId },
     { status },
-    { new: true }
+    { new: true },
   ).lean();
 
   return contact as ILeanContact | null;
@@ -75,10 +75,7 @@ export async function updateContactStatus(
 export async function markEmailSent(ticketId: string): Promise<boolean> {
   await connectDB();
 
-  const result = await Contact.updateOne(
-    { ticketId },
-    { emailSent: true }
-  );
+  const result = await Contact.updateOne({ ticketId }, { emailSent: true });
 
   return result.modifiedCount > 0;
 }

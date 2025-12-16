@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IContact extends Document {
   ticketId: string;
@@ -69,7 +69,7 @@ const ContactSchema = new Schema<IContact>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 ContactSchema.pre("save", async function () {
@@ -85,5 +85,4 @@ ContactSchema.index({ email: 1, status: 1 });
 ContactSchema.index({ createdAt: -1 });
 
 export const Contact =
-  mongoose.models.Contact ||
-  mongoose.model<IContact>("Contact", ContactSchema);
+  mongoose.models.Contact || mongoose.model<IContact>("Contact", ContactSchema);

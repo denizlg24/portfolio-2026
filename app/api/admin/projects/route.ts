@@ -1,8 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
-import { getAllProjects } from "@/lib/projects";
-import { Project } from "@/models/Project";
+import { revalidatePath } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getAllProjects } from "@/lib/projects";
+import { requireAdmin } from "@/lib/require-admin";
+import { Project } from "@/models/Project";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -13,7 +14,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ projects }, { status: 200 });
   } catch (error) {
     console.error("Error fetching projects:", error);
-    return NextResponse.json({ error: "Failed to fetch projects" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch projects" },
+      { status: 500 },
+    );
   }
 }
 
@@ -23,12 +27,16 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, subtitle, images, media, links, markdown, tags, isActive } = body;
+    const { title, subtitle, images, media, links, markdown, tags, isActive } =
+      body;
 
     await connectDB();
 
-    // Auto-assign order based on max order
-    const maxOrderProject = await Project.findOne().sort({ order: -1 }).select("order").lean().exec();
+    const maxOrderProject = await Project.findOne()
+      .sort({ order: -1 })
+      .select("order")
+      .lean()
+      .exec();
     const order = maxOrderProject ? maxOrderProject.order + 1 : 1;
 
     const project = await Project.create({
@@ -42,7 +50,8 @@ export async function POST(request: NextRequest) {
       isActive: isActive !== undefined ? isActive : true,
       order,
     });
-
+    revalidatePath("/");
+    revalidatePath("/projects");
     return NextResponse.json(
       {
         message: "Project created successfully",
@@ -51,10 +60,13 @@ export async function POST(request: NextRequest) {
           _id: project._id.toString(),
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating project:", error);
-    return NextResponse.json({ error: "Failed to create project" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to create project" },
+      { status: 500 },
+    );
   }
 }

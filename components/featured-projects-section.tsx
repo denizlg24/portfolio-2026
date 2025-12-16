@@ -1,7 +1,11 @@
 import { getActiveProjects } from "@/lib/projects";
 import { ProjectCard } from "./project-card";
 
-export async function FeaturedProjectsSection({count}: {count?: number} = {}) {
+export async function FeaturedProjectsSection({
+  count,
+}: {
+  count?: number;
+} = {}) {
   const projects = await getActiveProjects();
 
   return projects.slice(0, count ?? 3).map((project) => (

@@ -1,16 +1,21 @@
 "use client";
 
-import { StyledLink } from "@/components/styled-link";
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2Icon, SendHorizonal, CheckCircle2, XCircle } from "lucide-react";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  CheckCircle2,
+  Loader2Icon,
+  SendHorizonal,
+  XCircle,
+} from "lucide-react";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { sendToSlack } from "@/app/actions/send-contact-to-slack";
-import { useState } from "react";
+import { StyledLink } from "@/components/styled-link";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 
 const contactFormSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -54,7 +59,8 @@ export const ContactForm = () => {
       if (!response.ok) {
         setStatus("error");
         setStatusMessage(
-          result.error || "There was a problem sending your message, try again later."
+          result.error ||
+            "There was a problem sending your message, try again later.",
         );
         return;
       }
@@ -64,12 +70,14 @@ export const ContactForm = () => {
       setStatus("success");
       setStatusMessage("I've gotten your message, thank you!");
       setTicketId(result.ticketId);
-      
+
       reset();
     } catch (error) {
       console.error("Error submitting form:", error);
       setStatus("error");
-      setStatusMessage("There was a problem sending your message, try again later.");
+      setStatusMessage(
+        "There was a problem sending your message, try again later.",
+      );
     }
   };
 
@@ -81,14 +89,13 @@ export const ContactForm = () => {
 
   if (status === "success" || status === "error") {
     return (
-      <div 
+      <div
         className="w-full min-h-[400px] flex items-center justify-center"
         role="status"
         aria-live="polite"
         aria-atomic="true"
       >
         <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          
           {status === "success" && (
             <>
               <CheckCircle2 className="w-16 h-16 mx-auto text-foreground animate-in zoom-in duration-500" />
@@ -98,7 +105,10 @@ export const ContactForm = () => {
                 </h3>
                 {ticketId && (
                   <p className="text-sm text-foreground/60">
-                    Ticket ID: <span className="font-mono font-semibold text-foreground/80">{ticketId}</span>
+                    Ticket ID:{" "}
+                    <span className="font-mono font-semibold text-foreground/80">
+                      {ticketId}
+                    </span>
                   </p>
                 )}
                 <p className="text-sm text-foreground/50">
@@ -114,7 +124,7 @@ export const ContactForm = () => {
               </Button>
             </>
           )}
-          
+
           {status === "error" && (
             <>
               <XCircle className="w-16 h-16 mx-auto text-red-600 dark:text-red-400 animate-in zoom-in duration-500" />

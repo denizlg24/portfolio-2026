@@ -1,17 +1,31 @@
 "use client";
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import {
+  Check,
+  Copy,
+  ExternalLink,
+  Eye,
+  Github,
+  NotepadText,
+  PenLine,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,22 +33,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import {
-  X,
-  Plus,
-  Upload,
-  Trash2,
-  ExternalLink,
-  Github,
-  NotepadText,
-  Eye,
-  PenLine,
-  Copy,
-  Check,
-} from "lucide-react";
-import { ILeanProject } from "@/models/Project";
-import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { Textarea } from "@/components/ui/textarea";
+import type { ILeanProject } from "@/models/Project";
 
 const projectSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -46,7 +46,7 @@ const projectSchema = z.object({
         label: z.string().min(1, "Link label is required"),
         url: z.string().url("Must be a valid URL"),
         icon: z.enum(["external", "github", "notepad"]),
-      })
+      }),
     )
     .optional(),
   isActive: z.boolean(),
@@ -208,7 +208,7 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
     const currentLinks = watch("links") || [];
     setValue(
       "links",
-      currentLinks.filter((_, i) => i !== index)
+      currentLinks.filter((_, i) => i !== index),
     );
   };
 
@@ -531,7 +531,8 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
         )}
         {media.length === 0 && (
           <div className="p-6 border-2 border-dashed border-muted rounded-lg text-center text-sm text-muted-foreground">
-            No media uploaded yet. Upload images to use them in your markdown content.
+            No media uploaded yet. Upload images to use them in your markdown
+            content.
           </div>
         )}
       </div>
@@ -595,8 +596,8 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
           {loading
             ? "Saving..."
             : mode === "create"
-            ? "Create Project"
-            : "Update Project"}
+              ? "Create Project"
+              : "Update Project"}
         </Button>
         <Button type="button" variant="outline" onClick={() => router.back()}>
           Cancel

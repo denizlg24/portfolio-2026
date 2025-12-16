@@ -1,4 +1,6 @@
-import { Metadata } from "next";
+export const revalidate = 15552000; // Revalidate every 6 months
+
+import type { Metadata } from "next";
 import { StyledLink } from "@/components/styled-link";
 
 export const metadata: Metadata = {
@@ -9,17 +11,20 @@ export const metadata: Metadata = {
 export default function PrivacyPolicyPage() {
   return (
     <main className="max-w-4xl mx-auto px-4">
-      <h1 className="text-4xl font-bold mb-2 font-calistoga text-center">privacy policy.</h1>
+      <h1 className="text-4xl font-bold mb-2 font-calistoga text-center">
+        privacy policy.
+      </h1>
       <article className="max-w-none mt-16">
-        
-        <p className="text-muted-foreground mb-8">Last Updated: December 2025</p>
+        <p className="text-muted-foreground mb-8">
+          Last Updated: December 2025
+        </p>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Hey, Welcome!</h2>
           <p className="text-foreground/80 leading-relaxed">
-            Thanks for stopping by! This Privacy Policy is just here to let you know how things 
-            work around here. My website is mainly about showcasing my work, and I'm all about 
-            respecting your privacy.
+            Thanks for stopping by! This Privacy Policy is just here to let you
+            know how things work around here. My website is mainly about
+            showcasing my work, and I'm all about respecting your privacy.
           </p>
         </section>
 
@@ -28,16 +33,17 @@ export default function PrivacyPolicyPage() {
             What Information I Collect (Hint: Not Much)
           </h2>
           <p className="text-foreground/80 leading-relaxed mb-4">
-            Honestly, this is just a portfolio site, so I don't actively collect any personal 
-            information. There's no account creation, no tracking cookies, and definitely no 
-            sneaky data gathering.
+            Honestly, this is just a portfolio site, so I don't actively collect
+            any personal information. There's no account creation, no tracking
+            cookies, and definitely no sneaky data gathering.
           </p>
 
           <h3 className="text-xl font-medium mb-3 mt-6">Contact Info</h3>
           <p className="text-foreground/80 leading-relaxed">
-            If you reach out via email or the contact form, the info you provide is entirely 
-            up to you. I'll only use it to reply and have a conversation with you—no funny 
-            business. When you submit the contact form, I collect:
+            If you reach out via email or the contact form, the info you provide
+            is entirely up to you. I'll only use it to reply and have a
+            conversation with you—no funny business. When you submit the contact
+            form, I collect:
           </p>
           <ul className="list-disc list-inside space-y-2 text-foreground/80 ml-4 mt-3">
             <li>Your name</li>
@@ -68,8 +74,9 @@ export default function PrivacyPolicyPage() {
             Sharing Your Info (Spoiler: I Don't)
           </h2>
           <p className="text-foreground/80 leading-relaxed">
-            I don't sell, trade, or rent your personal info. If you shared something sensitive 
-            by accident, feel free to reach out, and I'll help you remove it.
+            I don't sell, trade, or rent your personal info. If you shared
+            something sensitive by accident, feel free to reach out, and I'll
+            help you remove it.
           </p>
         </section>
 
@@ -78,9 +85,9 @@ export default function PrivacyPolicyPage() {
             Security (The Internet Isn't Perfect)
           </h2>
           <p className="text-foreground/80 leading-relaxed">
-            I'll do my best to keep any info you share safe, but let's be real—no system is 
-            foolproof. While I'll take reasonable steps to protect your info, I can't promise 
-            100% security.
+            I'll do my best to keep any info you share safe, but let's be
+            real—no system is foolproof. While I'll take reasonable steps to
+            protect your info, I can't promise 100% security.
           </p>
         </section>
 
@@ -89,25 +96,23 @@ export default function PrivacyPolicyPage() {
             Policy Updates (No Surprises)
           </h2>
           <p className="text-foreground/80 leading-relaxed">
-            This policy is current as of December 2025. If I make any changes, I'll update 
-            it here, so you're always in the loop. Feel free to check back occasionally, 
-            but don't worry—I'm not making any big changes without letting you know.
+            This policy is current as of December 2025. If I make any changes,
+            I'll update it here, so you're always in the loop. Feel free to
+            check back occasionally, but don't worry—I'm not making any big
+            changes without letting you know.
           </p>
         </section>
 
         <section className="mb-8">
           <h2 className="text-2xl font-semibold mb-4">Got Questions?</h2>
           <p className="text-foreground/80 leading-relaxed">
-            If you have any questions, concerns, or just want to say hi, drop me an email 
-            at{" "}
+            If you have any questions, concerns, or just want to say hi, drop me
+            an email at{" "}
             <StyledLink href="mailto:denizlg24@gmail.com">
               denizlg24@gmail.com
             </StyledLink>{" "}
-            or use the{" "}
-            <StyledLink href="/contact">
-              contact form
-            </StyledLink>
-            . I'd love to hear from you!
+            or use the <StyledLink href="/contact">contact form</StyledLink>.
+            I'd love to hear from you!
           </p>
         </section>
       </article>

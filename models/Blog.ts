@@ -1,65 +1,79 @@
-import mongoose, {Schema, Document} from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface IBlog extends Document {
-    slug:string;
-    title:string;
-    content:string;
-    timeToRead:number;
-    media?:string[];
-    tags?:string[];
-    createdAt:Date;
-    updatedAt:Date;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  timeToRead: number;
+  media?: string[];
+  tags?: string[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ILeanBlog {
-    _id:string;
-    slug:string;
-    title:string;
-    content:string;
-    timeToRead:number;
-    media?:string[];
-    tags?:string[];
-    createdAt:Date;
-    updatedAt:Date;
+  _id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  timeToRead: number;
+  media?: string[];
+  tags?: string[];
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 const BlogSchema = new Schema<IBlog>(
-    {
-        slug: {
-            type: String,
-            required: true,
-            unique: true,
-            trim: true,
-        },
-        title: {
-            type: String,
-            required: true,
-            trim: true,
-        },
-        content: {
-            type: String,
-            required: true,
-        },
-        timeToRead: {
-            type: Number,
-            required: true,
-        },
-        media: [
-            {
-                type: String,
-                trim: true,
-            },
-        ],
-        tags: [
-            {
-                type: String,
-                trim: true,
-            },
-        ],
+  {
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
     },
-    {
-        timestamps: true,
-    }
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    content: {
+      type: String,
+      required: true,
+    },
+    excerpt: {
+      type: String,
+      required: true,
+    },
+    timeToRead: {
+      type: Number,
+      required: true,
+    },
+    media: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    tags: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+  },
+  {
+    timestamps: true,
+  },
 );
 
-export const Blog: mongoose.Model<IBlog> = mongoose.models.Blog || mongoose.model<IBlog>("Blog", BlogSchema);
+export const Blog: mongoose.Model<IBlog> =
+  mongoose.models.Blog || mongoose.model<IBlog>("Blog", BlogSchema);

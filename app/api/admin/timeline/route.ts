@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getAllTimelineItems, createTimelineItem } from '@/lib/timeline';
-import { requireAdmin } from '@/lib/require-admin';
-import { revalidatePath } from 'next/cache';
+import { revalidatePath } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/require-admin";
+import { createTimelineItem, getAllTimelineItems } from "@/lib/timeline";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -9,16 +9,20 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const category = searchParams.get('category') as 'work' | 'education' | 'personal' | null;
-    
+    const category = searchParams.get("category") as
+      | "work"
+      | "education"
+      | "personal"
+      | null;
+
     const items = await getAllTimelineItems(category || undefined);
-    
+
     return NextResponse.json({ items }, { status: 200 });
   } catch (error: any) {
-    console.error('Error fetching timeline items:', error);
+    console.error("Error fetching timeline items:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch timeline items', details: error.message },
-      { status: 500 }
+      { error: "Failed to fetch timeline items", details: error.message },
+      { status: 500 },
     );
   }
 }
@@ -29,11 +33,11 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    
+
     if (!body.title || !body.subtitle || !body.dateFrom || !body.category) {
       return NextResponse.json(
-        { error: 'Missing required fields' },
-        { status: 400 }
+        { error: "Missing required fields" },
+        { status: 400 },
       );
     }
 
@@ -41,7 +45,9 @@ export async function POST(request: NextRequest) {
     if (body.category) {
       const itemsInCategory = await getAllTimelineItems(body.category);
       if (itemsInCategory.length > 0) {
-        const maxOrder = Math.max(...itemsInCategory.map(item => item.order || 0));
+        const maxOrder = Math.max(
+          ...itemsInCategory.map((item) => item.order || 0),
+        );
         order = maxOrder + 1;
       }
     }
@@ -61,10 +67,13 @@ export async function POST(request: NextRequest) {
     revalidatePath("/");
     return NextResponse.json({ item }, { status: 201 });
   } catch (error) {
-    console.error('Error creating timeline item:', error);
+    console.error("Error creating timeline item:", error);
     return NextResponse.json(
-      { error: 'Failed to create timeline item', details: (error as any).message },
-      { status: 500 }
+      {
+        error: "Failed to create timeline item",
+        details: (error as any).message,
+      },
+      { status: 500 },
     );
   }
 }

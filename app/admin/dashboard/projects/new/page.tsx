@@ -1,9 +1,9 @@
-import { getAdminSession } from "@/lib/require-admin";
-import { redirect } from "next/navigation";
-import { ProjectForm } from "../_components/project-form";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { getAdminSession } from "@/lib/require-admin";
+import { ProjectForm } from "../_components/project-form";
 
 export default async function NewProjectPage() {
   const session = await getAdminSession();

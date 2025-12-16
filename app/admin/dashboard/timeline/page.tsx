@@ -1,7 +1,7 @@
-import { TimelineManager } from "./_components/timeline-manager";
-import { getAllTimelineItems } from "@/lib/timeline";
-import { getAdminSession } from "@/lib/require-admin";
 import { forbidden } from "next/navigation";
+import { getAdminSession } from "@/lib/require-admin";
+import { getAllTimelineItems } from "@/lib/timeline";
+import { TimelineManager } from "./_components/timeline-manager";
 
 export default async function TimelinePage() {
   const session = await getAdminSession();

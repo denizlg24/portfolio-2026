@@ -1,4 +1,5 @@
-import Image from "next/image";
+export const revalidate = 604800; // Revalidate every 30 days
+
 import {
   FileDown,
   Github,
@@ -8,17 +9,18 @@ import {
   Mail,
   MoveRight,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { StyledLink } from "@/components/styled-link";
 import type { Metadata } from "next";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import InstagramSection from "@/components/instagram-section";
+import Image from "next/image";
 import { Suspense } from "react";
-import TimelineTabsContent from "@/components/timeline-tabs-content";
-import { Timeline } from "@/components/timeline";
-import { FeaturedProjectsSection } from "@/components/featured-projects-section";
 import CurrentAge from "@/components/current-age";
+import { FeaturedProjectsSection } from "@/components/featured-projects-section";
+import InstagramSection from "@/components/instagram-section";
+import { StyledLink } from "@/components/styled-link";
+import { Timeline } from "@/components/timeline";
+import TimelineTabsContent from "@/components/timeline-tabs-content";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
   title: {
@@ -119,7 +121,11 @@ export default function Home() {
           </div>
           <div className="flex justify-between w-full sm:max-w-2xs max-w-3xs gap-4 items-center mx-auto">
             <Button variant={"secondary"} className="w-fit" asChild>
-              <a href="/assets/DenizGunesCV2025.pdf" target="_blank">
+              <a
+                href="/assets/DenizGunesCV2025.pdf"
+                target="_blank"
+                rel="noopener"
+              >
                 Resume <FileDown />
               </a>
             </Button>
@@ -201,11 +207,9 @@ export default function Home() {
         <div className="grid md:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-4">
           <Suspense
             fallback={
-              <>
-                <div className="col-span-full h-[150px] flex items-center justify-center">
-                  <Loader2Icon className="w-4 h-4 animate-spin" />
-                </div>
-              </>
+              <div className="col-span-full h-[150px] flex items-center justify-center">
+                <Loader2Icon className="w-4 h-4 animate-spin" />
+              </div>
             }
           >
             <FeaturedProjectsSection count={3} />

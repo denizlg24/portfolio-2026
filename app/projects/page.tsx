@@ -1,25 +1,25 @@
 import { ChevronsUpDown, Loader2 } from "lucide-react";
-import { ProjectsSection } from "./components/projects-section";
+import type { Metadata } from "next";
 import { Suspense } from "react";
-import { FilterWrapper } from "./components/filter-wrapper";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { getActiveProjects } from "@/lib/projects";
-import { Metadata } from "next";
+import { FilterWrapper } from "./components/filter-wrapper";
+import { ProjectsSection } from "./components/projects-section";
 
 export const metadata: Metadata = {
-    title: {
-      absolute: "Projects | Deniz Lopes Güneş",
-    },
+  title: {
+    absolute: "Projects | Deniz Lopes Güneş",
+  },
+  description:
+    "Explore a curated selection of software projects developed by Deniz Lopes Güneş, showcasing expertise in fullstack applications, open-source contributions, and innovative solutions.",
+  openGraph: {
+    title: "Projects | Deniz Lopes Güneş",
     description:
       "Explore a curated selection of software projects developed by Deniz Lopes Güneş, showcasing expertise in fullstack applications, open-source contributions, and innovative solutions.",
-    openGraph: {
-      title: "Projects | Deniz Lopes Güneş",
-      description:
-        "Explore a curated selection of software projects developed by Deniz Lopes Güneş, showcasing expertise in fullstack applications, open-source contributions, and innovative solutions.",
-      url: "https://denizlg24.com/projects",
-    },
-  };
+    url: "https://denizlg24.com/projects",
+  },
+};
 
 export default async function Page() {
   const projects = await getActiveProjects();

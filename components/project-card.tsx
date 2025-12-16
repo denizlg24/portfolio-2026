@@ -1,12 +1,11 @@
 "use client";
 
-import { cn, iconMap } from "@/lib/utils";
 import Image from "next/image";
-import { Badge } from "./ui/badge";
-import { StyledLink } from "./styled-link";
-import { ExternalLinkIcon, Github, FileText } from "lucide-react";
-import { ILeanProject } from "@/models/Project";
 import Link from "next/link";
+import { cn, iconMap } from "@/lib/utils";
+import type { ILeanProject } from "@/models/Project";
+import { StyledLink } from "./styled-link";
+import { Badge } from "./ui/badge";
 
 export const ProjectCard = ({
   project,
@@ -39,7 +38,7 @@ export const ProjectCard = ({
                 <Badge key={tag} className="text-xs">
                   {tag}
                 </Badge>
-              )
+              ),
             )}
             {project.tags.length > 4 && (
               <Badge className="text-xs">{`+${project.tags.length - 4}`}</Badge>

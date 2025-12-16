@@ -7,7 +7,8 @@ export default function NotFound() {
       <div className="max-w-4xl mx-auto text-center space-y-4">
         <h1 className="text-3xl font-bold">Timeline Item Not Found</h1>
         <p className="text-muted-foreground">
-          The timeline item you're looking for doesn't exist or has been deleted.
+          The timeline item you're looking for doesn't exist or has been
+          deleted.
         </p>
         <Button asChild>
           <Link href="/admin/dashboard/timeline">Back to Timeline</Link>

@@ -1,8 +1,9 @@
 import { betterAuth } from "better-auth";
-import { MongoClient } from "mongodb";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 import { nextCookies } from "better-auth/next-js";
 import { admin } from "better-auth/plugins/admin";
+import { MongoClient } from "mongodb";
+
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db();
 export const auth = betterAuth({
@@ -21,7 +22,7 @@ export const auth = betterAuth({
   },
   emailAndPassword: {
     enabled: true,
-    autoSignIn:false
+    autoSignIn: false,
   },
   plugins: [admin(), nextCookies()],
 });

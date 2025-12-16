@@ -1,6 +1,11 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { updateContactStatus, markEmailSent, getContactByTicketId, deleteContact } from "@/lib/contacts";
+import {
+  deleteContact,
+  getContactByTicketId,
+  markEmailSent,
+  updateContactStatus,
+} from "@/lib/contacts";
 import { getAdminSession } from "@/lib/require-admin";
 
 const updateStatusSchema = z.object({
@@ -12,8 +17,8 @@ const markEmailSentSchema = z.object({
 });
 
 export async function GET(
-  request: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ ticketId: string }> },
 ) {
   try {
     const session = await getAdminSession();
@@ -25,10 +30,7 @@ export async function GET(
     const contact = await getContactByTicketId(ticketId);
 
     if (!contact) {
-      return NextResponse.json(
-        { error: "Contact not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
     return NextResponse.json(contact);
@@ -36,14 +38,14 @@ export async function GET(
     console.error("Error fetching contact:", error);
     return NextResponse.json(
       { error: "Failed to fetch contact" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> }
+  { params }: { params: Promise<{ ticketId: string }> },
 ) {
   try {
     const session = await getAdminSession();
@@ -59,19 +61,19 @@ export async function PATCH(
       if (!validationResult.success) {
         return NextResponse.json(
           { error: "Invalid status value" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
       const contact = await updateContactStatus(
         ticketId,
-        validationResult.data.status
+        validationResult.data.status,
       );
 
       if (!contact) {
         return NextResponse.json(
           { error: "Contact not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -83,7 +85,7 @@ export async function PATCH(
       if (!validationResult.success) {
         return NextResponse.json(
           { error: "Invalid emailSent value" },
-          { status: 400 }
+          { status: 400 },
         );
       }
 
@@ -92,7 +94,7 @@ export async function PATCH(
       if (!success) {
         return NextResponse.json(
           { error: "Contact not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -101,20 +103,20 @@ export async function PATCH(
 
     return NextResponse.json(
       { error: "No valid fields to update" },
-      { status: 400 }
+      { status: 400 },
     );
   } catch (error) {
     console.error("Error updating contact:", error);
     return NextResponse.json(
       { error: "Failed to update contact" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: Promise<{ ticketId: string }> }
+  _request: NextRequest,
+  { params }: { params: Promise<{ ticketId: string }> },
 ) {
   try {
     const session = await getAdminSession();
@@ -126,10 +128,7 @@ export async function DELETE(
     const success = await deleteContact(ticketId);
 
     if (!success) {
-      return NextResponse.json(
-        { error: "Contact not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true });
@@ -137,7 +136,7 @@ export async function DELETE(
     console.error("Error deleting contact:", error);
     return NextResponse.json(
       { error: "Failed to delete contact" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

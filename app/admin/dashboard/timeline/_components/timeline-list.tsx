@@ -1,10 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
+import {
+  ExternalLink,
+  Eye,
+  EyeOff,
+  Github,
+  GripVertical,
+  NotepadText,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import Image from "next/image";
-import { Button } from "@/components/ui/button";
+import Link from "next/link";
+import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -19,9 +29,7 @@ import {
   SortableItem,
   SortableItemHandle,
 } from "@/components/ui/sortable";
-import { Pencil, Trash2, Eye, EyeOff, ExternalLink, Github, NotepadText, GripVertical } from "lucide-react";
-import { ITimelineItemLean } from "@/models/TimelineItem";
-
+import type { ITimelineItemLean } from "@/models/TimelineItem";
 
 interface TimelineListProps {
   items: ITimelineItemLean[];
@@ -30,8 +38,15 @@ interface TimelineListProps {
   onReorder?: (items: ITimelineItemLean[]) => void;
 }
 
-export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorder }: TimelineListProps) => {
-  const [deletingItem, setDeletingItem] = useState<ITimelineItemLean | null>(null);
+export const TimelineList = ({
+  items,
+  onRefresh,
+  enableReorder = false,
+  onReorder,
+}: TimelineListProps) => {
+  const [deletingItem, setDeletingItem] = useState<ITimelineItemLean | null>(
+    null,
+  );
   const [togglingId, setTogglingId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [localItems, setLocalItems] = useState(items);
@@ -108,7 +123,7 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
             <GripVertical className="w-5 h-5 text-muted-foreground hover:text-foreground transition-colors" />
           </SortableItemHandle>
         )}
-        
+
         <div className="flex-1 flex gap-4">
           {item.logoUrl && (
             <div className="relative w-12 h-12 rounded-lg overflow-hidden shrink-0">
@@ -158,9 +173,16 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-xs px-2 py-1 border border-accent rounded hover:bg-accent transition-colors inline-flex items-center gap-1"
-                    title={`Icon: ${link.icon || 'external'}`}
+                    title={`Icon: ${link.icon || "external"}`}
                   >
-                    {link.label} {link.icon === "external" ? <ExternalLink className="w-3.5 h-3.5"/> : link.icon == "github" ? <Github className="w-3.5 h-3.5"/> : <NotepadText className="w-3.5 h-3.5"/>}
+                    {link.label}{" "}
+                    {link.icon === "external" ? (
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    ) : link.icon === "github" ? (
+                      <Github className="w-3.5 h-3.5" />
+                    ) : (
+                      <NotepadText className="w-3.5 h-3.5" />
+                    )}
                   </a>
                 ))}
               </div>
@@ -216,11 +238,7 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
             </SortableContent>
           </Sortable>
         ) : (
-          items.map((item) => (
-            <div key={item._id}>
-              {renderItem(item)}
-            </div>
-          ))
+          items.map((item) => <div key={item._id}>{renderItem(item)}</div>)
         )}
       </div>
 
@@ -229,8 +247,8 @@ export const TimelineList = ({ items, onRefresh, enableReorder = false, onReorde
           <DialogHeader>
             <DialogTitle>Delete Timeline Item</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{deletingItem?.title}"? This action
-              cannot be undone.
+              Are you sure you want to delete "{deletingItem?.title}"? This
+              action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>

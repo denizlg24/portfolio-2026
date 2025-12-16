@@ -1,4 +1,8 @@
 "use client";
+import { FolderGit2, RefreshCcwIcon, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
+import { useMemo } from "react";
 import { ProjectCard } from "@/components/project-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,11 +13,7 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { ILeanProject } from "@/models/Project";
-import { FolderGit2, RefreshCcwIcon, Trash2 } from "lucide-react";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import { useMemo } from "react";
+import type { ILeanProject } from "@/models/Project";
 
 export const ProjectsSection = ({
   initialProjects,
@@ -24,7 +24,7 @@ export const ProjectsSection = ({
   const query = searchParams.get("query") || "";
   const arrayTags = searchParams.getAll("tags") || [];
   const projects = useMemo(() => {
-    if (!query && arrayTags.length == 0) return initialProjects;
+    if (!query && arrayTags.length === 0) return initialProjects;
 
     const lowerQuery = query.toLowerCase().trim();
 
@@ -67,7 +67,7 @@ export const ProjectsSection = ({
       .sort((a, b) => b.score - a.score);
   }, [initialProjects, query, arrayTags]);
 
-  if (projects.length == 0)
+  if (projects.length === 0)
     return (
       <>
         {query || arrayTags.length > 0 ? (
@@ -80,7 +80,7 @@ export const ProjectsSection = ({
           </p>
         )}
         <Empty className="col-span-full">
-          <EmptyHeader  className="max-w-lg!">
+          <EmptyHeader className="max-w-lg!">
             <EmptyMedia variant="icon">
               <FolderGit2 />
             </EmptyMedia>

@@ -1,10 +1,16 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 
-export const SearchInput = ({ query,related }: { query: string,related:"projects"|"blog" }) => {
+export const SearchInput = ({
+  query,
+  related,
+}: {
+  query: string;
+  related: "projects" | "blog";
+}) => {
   const [input, setInput] = useState(query);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -20,11 +26,11 @@ export const SearchInput = ({ query,related }: { query: string,related:"projects
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [input]);
+  }, [input, related, router.push, searchParams]);
 
   return (
     <Input
-      placeholder={`Search ${related == 'projects' ? "projects" : "for posts"}...`}
+      placeholder={`Search ${related === "projects" ? "projects" : "for posts"}...`}
       className="w-full grow max-w-sm"
       value={input}
       onChange={(e) => setInput(e.target.value)}

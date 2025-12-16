@@ -1,22 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  ExternalLink,
+  Github,
+  NotepadText,
+  Plus,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
 import * as z from "zod";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -24,8 +24,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { Trash2, Plus, Upload, X, ExternalLink, Github, NotepadText } from "lucide-react";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 const timelineSchema = z.object({
   title: z.string().min(2, "Title must be at least 2 characters"),
@@ -33,17 +41,23 @@ const timelineSchema = z.object({
   logoUrl: z.string().optional(),
   dateFrom: z.string().min(1, "Start date is required"),
   dateTo: z.string().optional(),
-  category: z.enum(["work", "education", "personal"]).refine(val => val !== undefined, {
-    message: "Category is required",
-  }),
-  topics: z.array(z.string().min(1, "Topic cannot be empty")).min(1, "At least one topic is required"),
-  links: z.array(
-    z.object({
-      label: z.string().min(1, "Link label is required"),
-      url: z.url("Must be a valid URL"),
-      icon: z.enum(["external", "github", "notepad"]),
-    })
-  ).optional(),
+  category: z
+    .enum(["work", "education", "personal"])
+    .refine((val) => val !== undefined, {
+      message: "Category is required",
+    }),
+  topics: z
+    .array(z.string().min(1, "Topic cannot be empty"))
+    .min(1, "At least one topic is required"),
+  links: z
+    .array(
+      z.object({
+        label: z.string().min(1, "Link label is required"),
+        url: z.url("Must be a valid URL"),
+        icon: z.enum(["external", "github", "notepad"]),
+      }),
+    )
+    .optional(),
   isActive: z.boolean(),
 });
 
@@ -57,7 +71,9 @@ interface TimelineFormProps {
 export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
-  const [logoPreview, setLogoPreview] = useState<string | null>(initialData?.logoUrl || null);
+  const [logoPreview, setLogoPreview] = useState<string | null>(
+    initialData?.logoUrl || null,
+  );
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [errorDialog, setErrorDialog] = useState<string | null>(null);
   const [successDialog, setSuccessDialog] = useState(false);
@@ -94,30 +110,39 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
 
   const removeTopic = (index: number) => {
     const currentTopics = watch("topics") || [];
-    setValue("topics", currentTopics.filter((_, i) => i !== index));
+    setValue(
+      "topics",
+      currentTopics.filter((_, i) => i !== index),
+    );
   };
 
   const addLink = () => {
     const currentLinks = watch("links") || [];
-    setValue("links", [...currentLinks, { label: "", url: "", icon: "external" as const }]);
+    setValue("links", [
+      ...currentLinks,
+      { label: "", url: "", icon: "external" as const },
+    ]);
   };
 
   const removeLink = (index: number) => {
     const currentLinks = watch("links") || [];
-    setValue("links", currentLinks.filter((_, i) => i !== index));
+    setValue(
+      "links",
+      currentLinks.filter((_, i) => i !== index),
+    );
   };
 
   const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      setError('logoUrl', { message: 'Please upload an image file' });
+    if (!file.type.startsWith("image/")) {
+      setError("logoUrl", { message: "Please upload an image file" });
       return;
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      setError('logoUrl', { message: 'Image must be less than 5MB' });
+      setError("logoUrl", { message: "Image must be less than 5MB" });
       return;
     }
 
@@ -125,29 +150,29 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
 
     try {
       const formData = new FormData();
-      formData.append('file', file);
+      formData.append("file", file);
 
-      const response = await fetch('/api/admin/upload', {
-        method: 'POST',
+      const response = await fetch("/api/admin/upload", {
+        method: "POST",
         body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Upload failed');
+        throw new Error("Upload failed");
       }
 
       const data = await response.json();
-      setValue('logoUrl', data.url);
+      setValue("logoUrl", data.url);
       setLogoPreview(data.url);
-    } catch (error) {
-      setError('logoUrl', { message: 'Failed to upload logo' });
+    } catch (_error) {
+      setError("logoUrl", { message: "Failed to upload logo" });
     } finally {
       setUploadingLogo(false);
     }
   };
 
   const removeLogo = () => {
-    setValue('logoUrl', '');
+    setValue("logoUrl", "");
     setLogoPreview(null);
   };
 
@@ -155,15 +180,16 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
     setIsLoading(true);
 
     try {
-      const url = mode === "edit" 
-        ? `/api/admin/timeline/${initialData?._id}` 
-        : '/api/admin/timeline';
-      
-      const method = mode === "edit" ? 'PATCH' : 'POST';
+      const url =
+        mode === "edit"
+          ? `/api/admin/timeline/${initialData?._id}`
+          : "/api/admin/timeline";
+
+      const method = mode === "edit" ? "PATCH" : "POST";
 
       const response = await fetch(url, {
         method,
-        headers: { 'Content-Type': 'application/json' },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
 
@@ -182,12 +208,15 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
 
   const handleSuccessClose = () => {
     setSuccessDialog(false);
-    router.push('/admin/dashboard/timeline');
+    router.push("/admin/dashboard/timeline");
   };
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)} className="w-full flex flex-col gap-6 mt-6">
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="w-full flex flex-col gap-6 mt-6"
+      >
         <Field data-invalid={!!errors.title}>
           <FieldLabel htmlFor="title">Title</FieldLabel>
           <Controller
@@ -217,7 +246,9 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
               />
             )}
           />
-          {errors.subtitle && <FieldError>{errors.subtitle.message}</FieldError>}
+          {errors.subtitle && (
+            <FieldError>{errors.subtitle.message}</FieldError>
+          )}
         </Field>
 
         <Field data-invalid={!!errors.logoUrl}>
@@ -225,7 +256,12 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
           <div className="flex flex-col gap-2">
             {logoPreview ? (
               <div className="relative w-24 h-24 rounded-lg overflow-hidden border-2 border-accent">
-                <Image src={logoPreview} alt="Logo preview" fill className="object-cover" />
+                <Image
+                  src={logoPreview}
+                  alt="Logo preview"
+                  fill
+                  className="object-cover"
+                />
                 <button
                   type="button"
                   onClick={removeLogo}
@@ -237,7 +273,9 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
             ) : (
               <label className="flex items-center gap-2 px-4 py-2 border-2 border-dashed border-accent rounded-lg cursor-pointer hover:border-foreground transition-colors w-fit">
                 <Upload className="w-4 h-4" />
-                <span className="text-sm">{uploadingLogo ? 'Uploading...' : 'Upload Logo'}</span>
+                <span className="text-sm">
+                  {uploadingLogo ? "Uploading..." : "Upload Logo"}
+                </span>
                 <input
                   type="file"
                   accept="image/*"
@@ -258,14 +296,12 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
               name="dateFrom"
               control={control}
               render={({ field }) => (
-                <Input
-                  {...field}
-                  id="dateFrom"
-                  placeholder="e.g. Jan 2024"
-                />
+                <Input {...field} id="dateFrom" placeholder="e.g. Jan 2024" />
               )}
             />
-            {errors.dateFrom && <FieldError>{errors.dateFrom.message}</FieldError>}
+            {errors.dateFrom && (
+              <FieldError>{errors.dateFrom.message}</FieldError>
+            )}
           </Field>
 
           <Field data-invalid={!!errors.dateTo}>
@@ -303,7 +339,9 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
               </Select>
             )}
           />
-          {errors.category && <FieldError>{errors.category.message}</FieldError>}
+          {errors.category && (
+            <FieldError>{errors.category.message}</FieldError>
+          )}
         </Field>
 
         <div className="flex flex-col gap-3">
@@ -360,12 +398,7 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
         <div className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <FieldLabel>Links (optional)</FieldLabel>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addLink}
-            >
+            <Button type="button" variant="outline" size="sm" onClick={addLink}>
               <Plus className="w-4 h-4 mr-1" />
               Add Link
             </Button>
@@ -379,14 +412,13 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
                       name={`links.${index}.label` as const}
                       control={control}
                       render={({ field }) => (
-                        <Input
-                          {...field}
-                          placeholder="Link label"
-                        />
+                        <Input {...field} placeholder="Link label" />
                       )}
                     />
                     {errors.links?.[index]?.label && (
-                      <FieldError>{errors.links[index]?.label?.message}</FieldError>
+                      <FieldError>
+                        {errors.links[index]?.label?.message}
+                      </FieldError>
                     )}
                   </div>
                   <div className="grow">
@@ -394,14 +426,13 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
                       name={`links.${index}.url` as const}
                       control={control}
                       render={({ field }) => (
-                        <Input
-                          {...field}
-                          placeholder="https://..."
-                        />
+                        <Input {...field} placeholder="https://..." />
                       )}
                     />
                     {errors.links?.[index]?.url && (
-                      <FieldError>{errors.links[index]?.url?.message}</FieldError>
+                      <FieldError>
+                        {errors.links[index]?.url?.message}
+                      </FieldError>
                     )}
                   </div>
                   <div className="w-fit">
@@ -409,20 +440,31 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
                       name={`links.${index}.icon` as const}
                       control={control}
                       render={({ field }) => (
-                        <Select value={field.value} onValueChange={field.onChange}>
+                        <Select
+                          value={field.value}
+                          onValueChange={field.onChange}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Icon" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="external"><ExternalLink/></SelectItem>
-                            <SelectItem value="github"><Github/></SelectItem>
-                            <SelectItem value="notepad"><NotepadText/></SelectItem>
+                            <SelectItem value="external">
+                              <ExternalLink />
+                            </SelectItem>
+                            <SelectItem value="github">
+                              <Github />
+                            </SelectItem>
+                            <SelectItem value="notepad">
+                              <NotepadText />
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       )}
                     />
                     {errors.links?.[index]?.icon && (
-                      <FieldError>{errors.links[index]?.icon?.message}</FieldError>
+                      <FieldError>
+                        {errors.links[index]?.icon?.message}
+                      </FieldError>
                     )}
                   </div>
                 </div>
@@ -471,8 +513,17 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
           >
             Cancel
           </Button>
-          <Button type="submit" size="lg" disabled={isLoading} className="flex-1">
-            {isLoading ? `${mode === "edit" ? "Updating" : "Creating"}...` : mode === "edit" ? "Update" : "Create"}
+          <Button
+            type="submit"
+            size="lg"
+            disabled={isLoading}
+            className="flex-1"
+          >
+            {isLoading
+              ? `${mode === "edit" ? "Updating" : "Creating"}...`
+              : mode === "edit"
+                ? "Update"
+                : "Create"}
           </Button>
         </div>
       </form>
@@ -481,9 +532,7 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Error</DialogTitle>
-            <DialogDescription>
-              {errorDialog}
-            </DialogDescription>
+            <DialogDescription>{errorDialog}</DialogDescription>
           </DialogHeader>
           <Button onClick={() => setErrorDialog(null)}>Close</Button>
         </DialogContent>
@@ -494,7 +543,8 @@ export const TimelineForm = ({ initialData, mode }: TimelineFormProps) => {
           <DialogHeader>
             <DialogTitle>Success</DialogTitle>
             <DialogDescription>
-              Timeline item {mode === "edit" ? "updated" : "created"} successfully!
+              Timeline item {mode === "edit" ? "updated" : "created"}{" "}
+              successfully!
             </DialogDescription>
           </DialogHeader>
           <Button onClick={handleSuccessClose}>Close</Button>

@@ -1,13 +1,19 @@
 import { Project } from "@/models/Project";
 import { connectDB } from "./mongodb";
 
-export async function getProjectTags(){
+export async function getProjectTags() {
   await connectDB();
   const tags = await Project.distinct("tags");
   return tags;
 }
 
-export async function getFilteredActiveProjects({tags,query}:{tags:string[],query:string}) {
+export async function getFilteredActiveProjects({
+  tags,
+  query,
+}: {
+  tags: string[];
+  query: string;
+}) {
   await connectDB();
   const filter: any = { isActive: true };
 
@@ -28,10 +34,10 @@ export async function getFilteredActiveProjects({tags,query}:{tags:string[],quer
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
-    links:project.links.map((link) => ({
+    links: project.links.map((link) => ({
       ...link,
       _id: link._id.toString(),
-    }))
+    })),
   }));
 }
 
@@ -41,23 +47,26 @@ export async function getAllProjects() {
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
-    links:project.links.map((link) => ({
+    links: project.links.map((link) => ({
       ...link,
       _id: link._id.toString(),
-    }))
+    })),
   }));
 }
 
 export async function getActiveProjects() {
   await connectDB();
-  const projects = await Project.find({ isActive: true }).sort({ order: 1 }).lean().exec();
+  const projects = await Project.find({ isActive: true })
+    .sort({ order: 1 })
+    .lean()
+    .exec();
   return projects.map((project) => ({
     ...project,
     _id: project._id.toString(),
-    links:project.links.map((link) => ({
+    links: project.links.map((link) => ({
       ...link,
       _id: link._id.toString(),
-    }))
+    })),
   }));
 }
 
@@ -69,10 +78,10 @@ export async function getProjectById(id: string) {
   return {
     ...project,
     _id: project._id.toString(),
-    links:project.links.map((link) => ({
+    links: project.links.map((link) => ({
       ...link,
       _id: link._id.toString(),
-    }))
+    })),
   };
 }
 
@@ -87,9 +96,9 @@ export async function toggleProjectActive(id: string) {
   return {
     ...project.toObject(),
     _id: project._id.toString(),
-    links:project.links.map((link) => ({
+    links: project.links.map((link) => ({
       ...link,
       _id: link._id.toString(),
-    }))
+    })),
   };
 }

@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from "mongoose";
+import mongoose, { type Document, Schema } from "mongoose";
 
 export interface ILink extends Document {
   label: string;
@@ -9,7 +9,7 @@ export interface IProject extends Document {
   title: string;
   subtitle: string;
   images: string[];
-  media?:string[];
+  media?: string[];
   links: ILink[];
   markdown: string;
   tags: string[];
@@ -98,7 +98,7 @@ const ProjectSchema = new Schema<IProject>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 ProjectSchema.index({ order: 1 });

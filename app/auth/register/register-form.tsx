@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { authClient } from "@/lib/auth-client";
-import { Loader2, MoveRight } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useState } from "react";
+import { Loader2, MoveRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { authClient } from "@/lib/auth-client";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters"),
@@ -18,7 +18,7 @@ const registerSchema = z.object({
     .min(8, "Password must be at least 8 characters")
     .regex(
       /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/,
-      "Password must contain at least one uppercase letter, one lowercase letter, and one number"
+      "Password must contain at least one uppercase letter, one lowercase letter, and one number",
     ),
 });
 
@@ -26,7 +26,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export const RegisterForm = () => {
   const [isLoading, setIsLoading] = useState(false);
- const router = useRouter();
+  const router = useRouter();
   const {
     control,
     handleSubmit,
@@ -64,7 +64,7 @@ export const RegisterForm = () => {
             message: ctx.error.message,
           });
         },
-      }
+      },
     );
   };
 
@@ -132,7 +132,8 @@ export const RegisterForm = () => {
       )}
 
       <Button type="submit" size={"lg"} className="mt-4" disabled={isLoading}>
-        {isLoading ? "Registering..." : "Register"} {isLoading ? <Loader2 className="animate-spin"/> : <MoveRight />}
+        {isLoading ? "Registering..." : "Register"}{" "}
+        {isLoading ? <Loader2 className="animate-spin" /> : <MoveRight />}
       </Button>
     </form>
   );

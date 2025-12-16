@@ -1,10 +1,9 @@
 import { getInstagramToken } from "./instagram-token";
 
-
 export interface InstagramPost {
   id: string;
-  caption?: string; 
-  media_type: 'IMAGE' | 'VIDEO' | 'CAROUSEL_ALBUM';
+  caption?: string;
+  media_type: "IMAGE" | "VIDEO" | "CAROUSEL_ALBUM";
   media_url: string;
   permalink: string;
   thumbnail_url?: string;
@@ -29,17 +28,19 @@ interface InstagramApiResponse {
 }
 
 export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
-  const fields = 'id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username';
-  const token = (await getInstagramToken())?.accessToken || process.env.INSTAGRAM_ACCESS_TOKEN;
-  let url: string | null = `https://graph.instagram.com/me/media?fields=${fields}&access_token=${token}`;
+  const fields =
+    "id,caption,media_type,media_url,permalink,thumbnail_url,timestamp,username";
+  const token =
+    (await getInstagramToken())?.accessToken ||
+    process.env.INSTAGRAM_ACCESS_TOKEN;
+  let url: string | null =
+    `https://graph.instagram.com/me/media?fields=${fields}&access_token=${token}`;
 
   const allPosts: InstagramPost[] = [];
 
   try {
     while (url) {
-      const response = await fetch(url, {
-        next: { revalidate: 60*60*24*7 },
-      });
+      const response = await fetch(url);
       const data: InstagramApiResponse = await response.json();
 
       if (data.error) {
@@ -50,7 +51,7 @@ export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
         allPosts.push(...data.data);
       }
 
-      if (data.paging && data.paging.next) {
+      if (data.paging?.next) {
         url = data.paging.next;
       } else {
         url = null;
@@ -58,9 +59,8 @@ export async function getAllInstagramPosts(): Promise<InstagramPost[]> {
     }
 
     return allPosts;
-
   } catch (error) {
-    console.error('Failed to fetch Instagram posts:', error);
+    console.error("Failed to fetch Instagram posts:", error);
     throw error;
   }
 }

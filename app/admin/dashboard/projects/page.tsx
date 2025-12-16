@@ -1,7 +1,7 @@
-import { getAdminSession } from "@/lib/require-admin";
+import { FolderGit2, Plus } from "lucide-react";
+import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAllProjects } from "@/lib/projects";
-import { ProjectManager } from "./_components/project-manager";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -10,9 +10,9 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { FolderGit2, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
+import { getAllProjects } from "@/lib/projects";
+import { getAdminSession } from "@/lib/require-admin";
+import { ProjectManager } from "./_components/project-manager";
 export default async function ProjectsPage() {
   const session = await getAdminSession();
 
@@ -27,13 +27,14 @@ export default async function ProjectsPage() {
         <h1 className="text-3xl font-bold">Projects</h1>
         <div>
           <Empty>
-            <EmptyHeader  className="max-w-lg!">
+            <EmptyHeader className="max-w-lg!">
               <EmptyMedia variant="icon">
                 <FolderGit2 className="w-12 h-12 text-muted-foreground" />
               </EmptyMedia>
               <EmptyTitle>No Projects Yet</EmptyTitle>
               <EmptyDescription>
-                You don't have any projects yet. Create a new one to get started displaying your projects.
+                You don't have any projects yet. Create a new one to get started
+                displaying your projects.
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
@@ -49,5 +50,9 @@ export default async function ProjectsPage() {
       </div>
     );
   }
-  return     <div className="mx-auto space-y-6"><ProjectManager initialProjects={projects} /></div>;
+  return (
+    <div className="mx-auto space-y-6">
+      <ProjectManager initialProjects={projects} />
+    </div>
+  );
 }

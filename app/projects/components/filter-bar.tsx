@@ -1,9 +1,15 @@
 "use client";
 import { useSearchParams } from "next/navigation";
-import { TagSelect } from "./tag-select";
 import { SearchInput } from "./search-input";
+import { TagSelect } from "./tag-select";
 
-export const FilterBar = ({ tags, related }: { tags: string[], related: "projects" | "blog" }) => {
+export const FilterBar = ({
+  tags,
+  related,
+}: {
+  tags: string[];
+  related: "projects" | "blog";
+}) => {
   const searchParams = useSearchParams();
   const query = searchParams.get("query") || "";
   const arrayTags = searchParams.getAll("tags") || [];

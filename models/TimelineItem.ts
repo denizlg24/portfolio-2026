@@ -1,5 +1,5 @@
-import mongoose, { Document } from "mongoose";
-import { ILink, LinkSchema } from "./Project";
+import mongoose, { type Document } from "mongoose";
+import { type ILink, LinkSchema } from "./Project";
 
 export interface ITimelineItem extends Document {
   title: string;
@@ -88,7 +88,7 @@ const timelineItemSchema = new mongoose.Schema<ITimelineItem>(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 timelineItemSchema.index({ category: 1, order: 1 });

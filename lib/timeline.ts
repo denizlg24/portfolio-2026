@@ -1,12 +1,18 @@
-import TimelineItem, { ITimelineItem, ITimelineItemLean } from '@/models/TimelineItem';
-import { connectDB } from '@/lib/mongodb';
+import { connectDB } from "@/lib/mongodb";
+import TimelineItem, {
+  type ITimelineItem,
+  type ITimelineItemLean,
+} from "@/models/TimelineItem";
 
 export async function getTimelineItems(
-  category?: 'work' | 'education' | 'personal'
+  category?: "work" | "education" | "personal",
 ): Promise<ITimelineItem[]> {
   await connectDB();
 
-  const items = await TimelineItem.find({isActive:true, ...(category ? {category} : {})})
+  const items = await TimelineItem.find({
+    isActive: true,
+    ...(category ? { category } : {}),
+  })
     .sort({ order: 1, createdAt: -1 })
     .lean()
     .exec();
@@ -15,11 +21,11 @@ export async function getTimelineItems(
 }
 
 export async function getAllTimelineItems(
-  category?: 'work' | 'education' | 'personal'
+  category?: "work" | "education" | "personal",
 ) {
   await connectDB();
 
-  const items = await TimelineItem.find({...(category ? {category} : {})})
+  const items = await TimelineItem.find({ ...(category ? { category } : {}) })
     .sort({ order: 1, createdAt: -1 })
     .lean()
     .exec();
@@ -42,22 +48,30 @@ export async function getTimelineItemsByCategory() {
   };
 
   items.forEach((item: any) => {
-    const category = item.category as 'work' | 'education' | 'personal';
+    const category = item.category as "work" | "education" | "personal";
     grouped[category].push(item as ITimelineItem);
   });
 
   return grouped;
 }
 
-export async function createTimelineItem(data: Omit<ITimelineItemLean,'_id'| 'createdAt' | 'updatedAt'>) {
+export async function createTimelineItem(
+  data: Omit<ITimelineItemLean, "_id" | "createdAt" | "updatedAt">,
+) {
   await connectDB();
   const item = await TimelineItem.create(data);
   return item;
 }
 
-export async function updateTimelineItem(id: string, data: Partial<ITimelineItemLean>) {
+export async function updateTimelineItem(
+  id: string,
+  data: Partial<ITimelineItemLean>,
+) {
   await connectDB();
-  const item = await TimelineItem.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+  const item = await TimelineItem.findByIdAndUpdate(id, data, {
+    new: true,
+    runValidators: true,
+  });
   return item;
 }
 
@@ -70,7 +84,7 @@ export async function getTimelineItemById(id: string) {
   await connectDB();
   const item = await TimelineItem.findById(id).lean().exec();
   if (!item) return null;
-  
+
   return {
     ...item,
     _id: item._id.toString(),
@@ -80,13 +94,13 @@ export async function getTimelineItemById(id: string) {
 export async function toggleTimelineItemActive(id: string) {
   await connectDB();
   const item = await TimelineItem.findById(id);
-  if (!item) throw new Error('Timeline item not found');
-  
+  if (!item) throw new Error("Timeline item not found");
+
   const updatedItem = await TimelineItem.findByIdAndUpdate(
     id,
     { isActive: !item.isActive },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   );
-  
+
   return updatedItem;
 }

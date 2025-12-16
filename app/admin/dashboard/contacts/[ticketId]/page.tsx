@@ -1,11 +1,11 @@
-import { Metadata } from "next";
-import { notFound } from "next/navigation";
-import { getContactByTicketId } from "@/lib/contacts";
-import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { ArrowLeft, Clock, Mail, MapPin, User } from "lucide-react";
+import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Mail, MapPin, User, Clock } from "lucide-react";
+import { notFound } from "next/navigation";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { getContactByTicketId } from "@/lib/contacts";
 import { DeleteContactButton } from "./delete-contact-button";
 import { MarkAsRead } from "./mark-as-read";
 
@@ -40,9 +40,7 @@ export default async function ContactDetailsPage({
 
         <div>
           <h1 className="text-3xl font-bold mb-2">Contact details</h1>
-          <p className="text-muted-foreground">
-            Ticket #{contact.ticketId}
-          </p>
+          <p className="text-muted-foreground">Ticket #{contact.ticketId}</p>
         </div>
       </div>
 
@@ -91,10 +89,10 @@ export default async function ContactDetailsPage({
                   contact.status === "pending"
                     ? "default"
                     : contact.status === "read"
-                    ? "secondary"
-                    : contact.status === "responded"
-                    ? "default"
-                    : "secondary"
+                      ? "secondary"
+                      : contact.status === "responded"
+                        ? "default"
+                        : "secondary"
                 }
               >
                 {contact.status}

@@ -1,5 +1,5 @@
-import { getServerSession } from "@/lib/get-server-session";;
 import { redirect } from "next/navigation";
+import { getServerSession } from "@/lib/get-server-session";
 import { LoginForm } from "./login-form";
 
 export default async function Page() {
@@ -14,7 +14,7 @@ export default async function Page() {
         <h1 className="sm:text-5xl text-4xl font-calistoga font-bold text-center">
           login.
         </h1>
-        <LoginForm/>
+        <LoginForm />
       </section>
     </main>
   );

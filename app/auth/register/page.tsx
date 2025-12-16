@@ -1,7 +1,6 @@
+import { forbidden, redirect } from "next/navigation";
 import { getServerSession } from "@/lib/get-server-session";
 import { RegisterForm } from "./register-form";
-import { forbidden, redirect } from "next/navigation";
-import { ForbiddenError } from "@/lib/utils";
 
 export default async function Page({
   searchParams,

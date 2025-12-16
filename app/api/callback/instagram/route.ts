@@ -1,7 +1,6 @@
-
+import { NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import InstagramToken from "@/models/InstagramToken";
-import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -26,7 +25,7 @@ export async function GET(request: Request) {
       {
         method: "POST",
         body: shortTokenForm,
-      }
+      },
     );
 
     const shortData = await shortRes.json();
@@ -34,7 +33,7 @@ export async function GET(request: Request) {
     if (shortData.error_message || shortData.error) {
       return NextResponse.json(
         { error: "Short Token Failed", details: shortData },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -47,7 +46,7 @@ export async function GET(request: Request) {
     if (longData.error) {
       return NextResponse.json(
         { error: "Long Token Failed", details: longData },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -61,12 +60,12 @@ export async function GET(request: Request) {
     await token.save();
 
     return NextResponse.redirect(
-      `${process.env.BETTER_AUTH_URL}/admin/dashboard/instagram-tokens`
+      `${process.env.BETTER_AUTH_URL}/admin/dashboard/instagram-tokens`,
     );
   } catch (error) {
     return NextResponse.json(
       { error: "Internal Server Error", details: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

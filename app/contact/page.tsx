@@ -1,7 +1,8 @@
-import { Metadata } from "next";
+export const revalidate = 15552000; // Revalidate every 6 months
+
+import { Mail, MapPin, Phone } from "lucide-react";
+import type { Metadata } from "next";
 import { ContactForm } from "./components/contact-form";
-import { MapPin, Phone, Mail, Linkedin, Github, Instagram } from "lucide-react";
-import { StyledLink } from "@/components/styled-link";
 
 export const metadata: Metadata = {
   title: {
@@ -46,6 +47,7 @@ export default async function Page() {
                 href="mailto:denizgunes@oceaninformatix.com"
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors"
                 target="_blank"
+                rel="noopener"
               >
                 <Mail className="w-4 h-4" />
                 denizgunes@oceaninformatix.com
@@ -59,6 +61,7 @@ export default async function Page() {
                 href="tel:+351910143859"
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors"
                 target="_blank"
+                rel="noopener"
               >
                 <Phone className="w-4 h-4" />
                 +351 910 143 859
@@ -72,6 +75,7 @@ export default async function Page() {
                 href="https://maps.app.goo.gl/FSaCHY8Kub2kamaVA"
                 className="inline-flex items-center gap-2 text-accent hover:text-foreground transition-colors"
                 target="_blank"
+                rel="noopener"
               >
                 <MapPin className="w-4 h-4" />
                 Porto, Portugal

@@ -6,13 +6,13 @@
 
 :root {
   /* Your palette with accent-strong + foreground swapped */
-  --background: #F9F8F6;
-  --surface: #F1F3E0;
-  --muted: #D2DCB6;
+  --background: #f9f8f6;
+  --surface: #f1f3e0;
+  --muted: #d2dcb6;
 
-  --accent: #A1BC98;
+  --accent: #a1bc98;
   --accent-strong: #303630; /* used to be foreground */
-  --foreground: #778873;    /* used to be accent-strong */
+  --foreground: #778873; /* used to be accent-strong */
 
   /* Shadcn-compatible tokens */
   --card: var(--background);
@@ -27,7 +27,7 @@
   --secondary: var(--surface);
   --secondary-foreground: var(--foreground);
 
-  --muted-foreground: #4F5A4A;
+  --muted-foreground: #4f5a4a;
   --accent-foreground: var(--foreground);
 
   --destructive: #c0352b;
@@ -38,8 +38,8 @@
   /* Charts (optional) */
   --chart-1: var(--accent);
   --chart-2: var(--accent-strong);
-  --chart-3: #A1BC98;
-  --chart-4: #D2DCB6;
+  --chart-3: #a1bc98;
+  --chart-4: #d2dcb6;
   --chart-5: #303630;
 
   /* Sidebar */
@@ -108,62 +108,62 @@
 
 .dark {
   /* Backgrounds + text */
-  --background: #303630;      /* deep greenish charcoal */
-  --foreground: #F9F8F6;      /* light beige for text */
+  --background: #303630; /* deep greenish charcoal */
+  --foreground: #f9f8f6; /* light beige for text */
 
   /* Cards */
-  --card: #3D463C;
+  --card: #3d463c;
   --card-foreground: var(--foreground);
 
   /* Popovers */
-  --popover: #3D463C;
+  --popover: #3d463c;
   --popover-foreground: var(--foreground);
 
   /* Primary (uses accent-strong, now #303630) */
-  --primary: #A1BC98; /* mid accent for primary elements */
+  --primary: #a1bc98; /* mid accent for primary elements */
   --primary-foreground: #303630;
 
   /* Secondary surfaces */
-  --secondary: #4A564B;
+  --secondary: #4a564b;
   --secondary-foreground: var(--foreground);
 
   /* Muted */
-  --muted: #4A564B;
-  --muted-foreground: #D2DCB6;
+  --muted: #4a564b;
+  --muted-foreground: #d2dcb6;
 
   /* Accent (mid-tone green) */
-  --accent: #A1BC98;
+  --accent: #a1bc98;
   --accent-foreground: #303630;
 
   /* Destructive */
-  --destructive: #A04033;
+  --destructive: #a04033;
 
   /* Borders / Inputs */
-  --border: #4A564B;
-  --input: #4A564B;
+  --border: #4a564b;
+  --input: #4a564b;
 
   /* Ring */
-  --ring: #A1BC98;
+  --ring: #a1bc98;
 
   /* Charts (aligned with identity) */
-  --chart-1: #A1BC98;
+  --chart-1: #a1bc98;
   --chart-2: #778873;
-  --chart-3: #D2DCB6;
-  --chart-4: #F1F3E0;
+  --chart-3: #d2dcb6;
+  --chart-4: #f1f3e0;
   --chart-5: #303630;
 
   /* Sidebar */
   --sidebar: #303630;
   --sidebar-foreground: var(--foreground);
 
-  --sidebar-primary: #A1BC98;
+  --sidebar-primary: #a1bc98;
   --sidebar-primary-foreground: #303630;
 
-  --sidebar-accent: #4A564B;
+  --sidebar-accent: #4a564b;
   --sidebar-accent-foreground: var(--foreground);
 
-  --sidebar-border: #4A564B;
-  --sidebar-ring: #A1BC98;
+  --sidebar-border: #4a564b;
+  --sidebar-ring: #a1bc98;
 }
 
 @layer base {
@@ -199,6 +199,6 @@
   /* Firefox scrollbar styling */
   * {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.muted') theme('colors.background');
+    scrollbar-color: theme("colors.muted") theme("colors.background");
   }
 }

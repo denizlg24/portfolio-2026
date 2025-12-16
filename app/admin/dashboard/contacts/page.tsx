@@ -1,4 +1,4 @@
-import { Metadata } from "next";
+import type { Metadata } from "next";
 import { getAllContacts, getContactCountByStatus } from "@/lib/contacts";
 import { ContactsWrapper } from "./contacts-wrapper";
 
@@ -24,7 +24,13 @@ export default async function ContactsPage() {
         </p>
       </div>
 
-      <ContactsWrapper initialContacts={contacts.map((contact) => ({...contact, _id: contact._id.toString()}))} initialStats={stats} />
+      <ContactsWrapper
+        initialContacts={contacts.map((contact) => ({
+          ...contact,
+          _id: contact._id.toString(),
+        }))}
+        initialStats={stats}
+      />
     </div>
   );
 }

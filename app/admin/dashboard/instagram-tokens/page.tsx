@@ -1,9 +1,8 @@
-import { getInstagramToken } from "@/lib/instagram-token";
-import { getAdminSession } from "@/lib/require-admin";
-
-import { InstagramIcon, Trash2, RefreshCw, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { Clock, InstagramIcon, RefreshCw, Trash2 } from "lucide-react";
+import Link from "next/link";
+import { forbidden } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Empty,
   EmptyContent,
@@ -12,8 +11,8 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import Link from "next/link";
-import { forbidden } from "next/navigation";
+import { getInstagramToken } from "@/lib/instagram-token";
+import { getAdminSession } from "@/lib/require-admin";
 
 const generateInstagramAuthUrl = () => {
   const appId = process.env.INSTAGRAM_APP_ID;
@@ -36,7 +35,7 @@ export default async function TimelinePage() {
     forbidden();
   }
   const token = await getInstagramToken();
-  
+
   if (!token) {
     return (
       <div className="w-full flex flex-col gap-6">
@@ -68,18 +67,22 @@ export default async function TimelinePage() {
 
   const now = new Date();
   const expiresAt = new Date(token.expiresAt);
-  const daysUntilExpiry = Math.floor((expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const daysUntilExpiry = Math.floor(
+    (expiresAt.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
   const isExpired = daysUntilExpiry < 0;
   const isExpiringSoon = daysUntilExpiry <= 7 && daysUntilExpiry >= 0;
 
   return (
     <div className="w-full flex flex-col gap-6">
       <h1 className="text-3xl font-bold">Instagram Tokens</h1>
-      
+
       <div className="flex items-center gap-4 p-4 border rounded-lg bg-card">
         <div className="flex-1 min-w-0">
           <p className="text-sm text-muted-foreground mb-1">Token ID</p>
-          <code className="text-sm font-mono truncate block">{token._id.toString()}</code>
+          <code className="text-sm font-mono truncate block">
+            {token._id.toString()}
+          </code>
         </div>
 
         <div className="flex items-center gap-2">
@@ -87,35 +90,50 @@ export default async function TimelinePage() {
           {isExpired ? (
             <Badge variant="destructive">Expired</Badge>
           ) : isExpiringSoon ? (
-            <Badge variant="outline" className="border-yellow-500 text-yellow-600 dark:text-yellow-500">
+            <Badge
+              variant="outline"
+              className="border-yellow-500 text-yellow-600 dark:text-yellow-500"
+            >
               Expires in {daysUntilExpiry}d
             </Badge>
           ) : (
-            <Badge variant="secondary">
-              Expires in {daysUntilExpiry}d
-            </Badge>
+            <Badge variant="secondary">Expires in {daysUntilExpiry}d</Badge>
           )}
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" asChild title="Regenerate Token">
+          <Button
+            variant="outline"
+            size="icon"
+            asChild
+            title="Regenerate Token"
+          >
             <Link href={generateInstagramAuthUrl()}>
               <RefreshCw className="w-4 h-4" />
             </Link>
           </Button>
-          <form action={async () => {
-            "use server";
-            const { deleteInstagramToken } = await import("@/lib/instagram-token");
-            await deleteInstagramToken(token._id.toString());
-            const { redirect } = await import("next/navigation");
-            redirect("/admin/dashboard/instagram-tokens");
-          }}>
-            <Button variant="outline" size="icon" type="submit" title="Delete Token">
+          <form
+            action={async () => {
+              "use server";
+              const { deleteInstagramToken } = await import(
+                "@/lib/instagram-token"
+              );
+              await deleteInstagramToken(token._id.toString());
+              const { redirect } = await import("next/navigation");
+              redirect("/admin/dashboard/instagram-tokens");
+            }}
+          >
+            <Button
+              variant="outline"
+              size="icon"
+              type="submit"
+              title="Delete Token"
+            >
               <Trash2 className="w-4 h-4" />
             </Button>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }

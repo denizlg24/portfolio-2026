@@ -1,9 +1,9 @@
-import { TimelineForm } from "../_components/timeline-form";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
+import { forbidden } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getAdminSession } from "@/lib/require-admin";
-import { forbidden } from "next/navigation";
+import { TimelineForm } from "../_components/timeline-form";
 
 export default async function NewTimelinePage() {
   const session = await getAdminSession();

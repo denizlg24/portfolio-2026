@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getAllContacts, getContactCountByStatus } from "@/lib/contacts";
 import { getAdminSession } from "@/lib/require-admin";
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
     const session = await getAdminSession();
     if (!session) {
@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching contacts:", error);
     return NextResponse.json(
       { error: "Failed to fetch contacts" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

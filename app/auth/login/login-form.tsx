@@ -1,14 +1,14 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Field, FieldLabel, FieldError } from "@/components/ui/field";
-import { authClient } from "@/lib/auth-client";
-import { Loader2, MoveRight } from "lucide-react";
-import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { useState } from "react";
+import { Loader2, MoveRight } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Controller, useForm } from "react-hook-form";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
+import { authClient } from "@/lib/auth-client";
 
 const loginSchema = z.object({
   email: z.string().email("Invalid email address"),
@@ -45,9 +45,9 @@ export const LoginForm = () => {
         onRequest: () => {
           setIsLoading(true);
         },
-        onSuccess: async (ctx) => {
+        onSuccess: async (_ctx) => {
           const session = await authClient.getSession();
-          
+
           if (!session.data?.user || !session.data?.session) {
             setIsLoading(false);
             setError("root", {
@@ -60,7 +60,7 @@ export const LoginForm = () => {
 
           const user = session.data.user;
           const sessionData = session.data.session as any;
-          
+
           if (!user.emailVerified) {
             setIsLoading(false);
             setError("root", {
@@ -86,14 +86,14 @@ export const LoginForm = () => {
           router.push("/admin/dashboard");
         },
         onError: (ctx) => {
-          console.log(ctx)
+          console.log(ctx);
           setIsLoading(false);
           setError("root", {
             type: "manual",
             message: ctx.error.message,
           });
         },
-      }
+      },
     );
   };
 
@@ -143,7 +143,8 @@ export const LoginForm = () => {
       )}
 
       <Button type="submit" size={"lg"} className="mt-4" disabled={isLoading}>
-        {isLoading ? "Logging in..." : "Login"} {isLoading ? <Loader2 className="animate-spin"/> : <MoveRight />}
+        {isLoading ? "Logging in..." : "Login"}{" "}
+        {isLoading ? <Loader2 className="animate-spin" /> : <MoveRight />}
       </Button>
     </form>
   );

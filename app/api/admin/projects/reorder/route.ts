@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
+import { revalidatePath } from "next/cache";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
 import { Project } from "@/models/Project";
 
 export async function PATCH(request: NextRequest) {
@@ -12,7 +13,10 @@ export async function PATCH(request: NextRequest) {
     const { items } = body;
 
     if (!Array.isArray(items)) {
-      return NextResponse.json({ error: "Invalid items array" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid items array" },
+        { status: 400 },
+      );
     }
 
     await connectDB();
@@ -25,10 +29,17 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await Project.bulkWrite(bulkOps);
-
-    return NextResponse.json({ message: "Projects reordered successfully" }, { status: 200 });
+    revalidatePath("/");
+    revalidatePath("/projects");
+    return NextResponse.json(
+      { message: "Projects reordered successfully" },
+      { status: 200 },
+    );
   } catch (error) {
     console.error("Error reordering projects:", error);
-    return NextResponse.json({ error: "Failed to reorder projects" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to reorder projects" },
+      { status: 500 },
+    );
   }
 }

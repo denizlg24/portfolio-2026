@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Calistoga, Geist, Geist_Mono, Inter } from "next/font/google";
+import { Calistoga, Inter } from "next/font/google";
 import "./globals.css";
-import { Header } from "@/components/header";
-import { Footer } from "@/components/footer";
 import { Toaster } from "sonner";
+import { Footer } from "@/components/footer";
+import { Header } from "@/components/header";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -23,8 +23,17 @@ export const metadata: Metadata = {
     default: "Deniz Lopes Güneş | Software Engineer",
     template: "%s | Deniz Lopes Güneş",
   },
-  description: "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix, building modern web applications and digital experiences.",
-  keywords: ["Deniz Lopes Güneş", "Software Engineer", "Web Developer", "Portugal", "Ocean Informatix", "Full Stack Developer", "FEUP"],
+  description:
+    "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix, building modern web applications and digital experiences.",
+  keywords: [
+    "Deniz Lopes Güneş",
+    "Software Engineer",
+    "Web Developer",
+    "Portugal",
+    "Ocean Informatix",
+    "Full Stack Developer",
+    "FEUP",
+  ],
   authors: [{ name: "Deniz Lopes Güneş" }],
   creator: "Deniz Lopes Güneş",
   openGraph: {
@@ -32,13 +41,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://denizlg24.com",
     title: "Deniz Lopes Güneş | Software Engineer",
-    description: "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix, building modern web applications and digital experiences.",
+    description:
+      "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix, building modern web applications and digital experiences.",
     siteName: "Deniz Lopes Güneş Portfolio",
   },
   twitter: {
     card: "summary_large_image",
     title: "Deniz Lopes Güneş | Software Engineer",
-    description: "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix.",
+    description:
+      "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix.",
     creator: "@denizlg24",
   },
   robots: {
@@ -59,17 +70,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-
-
   return (
     <html lang="en">
       <body
         className={`${inter.variable} ${calistoga.variable} antialiased min-h-screen font-inter bg-background text-foreground mt-26`}
       >
-        <Header/>
+        <Header />
         {children}
-        <Footer/>
+        <Footer />
         <Toaster />
       </body>
     </html>

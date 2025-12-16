@@ -1,10 +1,10 @@
-import { getAdminSession } from "@/lib/require-admin";
-import { redirect, notFound } from "next/navigation";
-import { getProjectById } from "@/lib/projects";
-import { ProjectForm } from "../../_components/project-form";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import { notFound, redirect } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { getProjectById } from "@/lib/projects";
+import { getAdminSession } from "@/lib/require-admin";
+import { ProjectForm } from "../../_components/project-form";
 
 export default async function EditProjectPage({
   params,

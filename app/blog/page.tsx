@@ -1,12 +1,13 @@
+export const revalidate = 2592000; // Revalidate every 30 days
+
+import { ChevronsUpDown, Loader2 } from "lucide-react";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ChevronsUpDown, Loader2 } from "lucide-react";
-import { Metadata } from "next";
-import { Suspense } from "react";
+import { getActiveBlogs } from "@/lib/blog";
 import { FilterWrapper } from "../projects/components/filter-wrapper";
 import { BlogSection } from "./components/blog-section";
-import { Select, SelectTrigger } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 
 export const metadata: Metadata = {
   title: {
@@ -32,6 +33,7 @@ export const metadata: Metadata = {
 };
 
 export default async function Page() {
+  const blogs = await getActiveBlogs();
   return (
     <main className="flex flex-col items-center min-h-screen">
       <section className="w-full max-w-5xl mx-auto px-4 text-center items-center">
@@ -57,15 +59,15 @@ export default async function Page() {
         >
           <FilterWrapper fetcher="blog" />
         </Suspense>
-        <div className="grid md:grid-cols-3 xs:grid-cols-2 grid-cols-1 gap-4 mt-4 pt-4 border-t">
+        <div className="flex flex-col gap-1 mt-4 pt-4 border-t">
           <Suspense
             fallback={
-              <div className="w-fit h-[150px] flex items-center justify-center mx-auto col-span-full">
+              <div className="w-fit h-[150px] flex items-center justify-center mx-auto">
                 <Loader2 className="animate-spin" />
               </div>
             }
           >
-            <BlogSection initialBlogs={[]} />
+            <BlogSection initialBlogs={blogs} />
           </Suspense>
         </div>
       </section>

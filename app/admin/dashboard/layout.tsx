@@ -1,8 +1,8 @@
+import { forbidden } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAdminSession } from "@/lib/require-admin";
-import { forbidden } from "next/navigation";
 
 export default async function RootLayout({
   children,
@@ -10,7 +10,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const session = await getAdminSession();
-  
+
   if (!session) {
     forbidden();
   }
@@ -19,19 +19,18 @@ export default async function RootLayout({
     <SidebarProvider>
       <AppSidebar />
       <main className="w-full flex flex-col items-center">
-      <section className="w-full px-4 mx-auto">
-        <div className="w-full flex flex-row items-center text-xs text-muted-foreground gap-2 pb-4 mb-4 border-b border-b-foreground">
-          <SidebarTrigger />
-          <KbdGroup>
-            <Kbd>Ctrl</Kbd>
-            <span>+</span>
-            <Kbd>B</Kbd>
-          </KbdGroup>
-        </div>
-        {children}
-      </section>
-    </main>
-      
+        <section className="w-full px-4 mx-auto">
+          <div className="w-full flex flex-row items-center text-xs text-muted-foreground gap-2 pb-4 mb-4 border-b border-b-foreground">
+            <SidebarTrigger />
+            <KbdGroup>
+              <Kbd>Ctrl</Kbd>
+              <span>+</span>
+              <Kbd>B</Kbd>
+            </KbdGroup>
+          </div>
+          {children}
+        </section>
+      </main>
     </SidebarProvider>
   );
 }

@@ -1,9 +1,9 @@
 "use client";
 
+import { Archive, Check, Clock, Eye, Send } from "lucide-react";
 import { useState } from "react";
+import type { ILeanContact } from "@/models/Contact";
 import { ContactsTable } from "./contacts-table";
-import { ILeanContact } from "@/models/Contact";
-import { Clock, Eye, Check, Archive, Send } from "lucide-react";
 
 interface ContactsWrapperProps {
   initialContacts: ILeanContact[];

@@ -1,8 +1,8 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "./get-server-session";
 import { forbidden } from "next/navigation";
+import type { NextRequest } from "next/server";
+import { getServerSession } from "./get-server-session";
 
-export async function requireAdmin(request?: NextRequest) {
+export async function requireAdmin(_request?: NextRequest) {
   const session = await getServerSession();
   if (!session) {
     forbidden();
