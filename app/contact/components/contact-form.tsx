@@ -65,7 +65,7 @@ export const ContactForm = () => {
         return;
       }
 
-      await sendToSlack(data);
+      await sendToSlack({ ...data, ticketId: result.ticketId });
 
       setStatus("success");
       setStatusMessage("I've gotten your message, thank you!");

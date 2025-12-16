@@ -1,6 +1,6 @@
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { forbidden, notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getBlogById } from "@/lib/blog";
 import { getAdminSession } from "@/lib/require-admin";
@@ -14,7 +14,7 @@ export default async function EditBlogPage({
   const session = await getAdminSession();
 
   if (!session) {
-    redirect("/auth/login");
+    forbidden();
   }
 
   const { id } = await params;

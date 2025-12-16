@@ -52,7 +52,7 @@ export default async function BlogsPage() {
     );
   }
   return (
-    <div className="mx-auto space-y-6">
+    <div className="mx-auto">
       <BlogManager initialBlogs={blogs} />
     </div>
   );

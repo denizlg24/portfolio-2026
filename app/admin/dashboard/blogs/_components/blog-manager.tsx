@@ -61,7 +61,7 @@ export function BlogManager({ initialBlogs }: BlogManagerProps) {
         </div>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-2 mt-4">
         <div className="flex items-center gap-2 justify-end">
           <Label>Toggle Hidden:</Label>
           <Button

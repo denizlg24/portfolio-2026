@@ -5,6 +5,7 @@ export interface IBlogComment extends Document {
   commentId?: string;
   authorName: string;
   content: string;
+  sessionId?: string;
   isApproved: boolean;
   isDeleted: boolean;
   createdAt: Date;
@@ -17,6 +18,7 @@ export interface ILeanBlogComment {
   commentId?: string;
   authorName: string;
   content: string;
+  sessionId?: string;
   isApproved: boolean;
   isDeleted: boolean;
   createdAt: Date;
@@ -43,6 +45,11 @@ const BlogCommentSchema = new Schema<IBlogComment>(
     content: {
       type: String,
       required: true,
+    },
+    sessionId: {
+      type: String,
+      trim: true,
+      index: true,
     },
     isApproved: {
       type: Boolean,

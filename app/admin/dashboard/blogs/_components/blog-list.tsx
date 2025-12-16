@@ -1,6 +1,6 @@
 "use client";
 
-import { Clock, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { Clock, Eye, EyeOff, MessageSquare,  Pencil, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -65,7 +65,7 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
     <div className="space-y-3">
       {blogs.map((blog) => (
         <Card key={blog._id} className="p-4">
-          <div className="flex flex-col sm:flex-row items-start gap-4">
+          <div className="flex flex-col items-start gap-4">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
               <h3 className="font-semibold text-base sm:text-lg truncate">
                 {blog.title}
@@ -91,7 +91,12 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
               </div>
             </div>
 
-            <div className="flex sm:flex-col items-center justify-end sm:justify-start gap-2 w-full sm:w-auto shrink-0 sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0 pt-2 border-t">
+            <div className="flex items-center justify-end gap-2 w-full shrink-0 pt-2 border-t">
+              <Button asChild size={"icon"} variant={"ghost"}>
+                <Link href={`/admin/dashboard/blogs/${blog._id}/comments`}>
+                  <MessageSquare/>
+                </Link>
+              </Button>
               <Button
                 variant="ghost"
                 size="icon"

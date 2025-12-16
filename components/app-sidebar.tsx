@@ -6,6 +6,7 @@ import {
   Home,
   Inbox,
   Instagram,
+  MessageSquare,
   NotebookPen,
 } from "lucide-react";
 
@@ -46,6 +47,11 @@ const items = [
     title: "Blog",
     url: "/admin/dashboard/blogs",
     icon: NotebookPen,
+  },
+  {
+    title: "Comments",
+    url: "/admin/dashboard/comments",
+    icon: MessageSquare,
   },
   {
     title: "Timeline",

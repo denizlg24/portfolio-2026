@@ -212,5 +212,12 @@ export function ContactsTable({
     },
   ];
 
-  return <DataTable columns={columns} data={contacts} />;
+  return (
+    <DataTable
+      columns={columns}
+      data={contacts}
+      searchPlaceholder="Search by ticket ID or email..."
+      searchableColumns={["ticketId", "email"]}
+    />
+  );
 }

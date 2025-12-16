@@ -3,29 +3,27 @@
 import { MessageSquare } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 import { CommentCard } from "./comment-card";
-import { CommentInput } from "./comment-input";
-
-interface Comment {
-  _id: string;
-  blogId: string;
-  commentId?: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
-}
+import { CommentInput, getCommenterInfo } from "./comment-input";
+import { ILeanBlogComment } from "@/models/BlogComment";
 
 interface CommentsSectionProps {
   blogId: string;
 }
 
 export function CommentsSection({ blogId }: CommentsSectionProps) {
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<ILeanBlogComment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const fetchComments = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/blog/comments?blogId=${blogId}`);
+      const commenterInfo = getCommenterInfo();
+      const sessionParam = commenterInfo?.sessionId
+        ? `&sessionId=${commenterInfo.sessionId}`
+        : "";
+      const response = await fetch(
+        `/api/blog/comments?blogId=${blogId}${sessionParam}`
+      );
       if (response.ok) {
         const data = await response.json();
         setComments(data.comments || []);
@@ -35,7 +33,7 @@ export function CommentsSection({ blogId }: CommentsSectionProps) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [blogId]);
 
   useEffect(() => {
     fetchComments();

@@ -18,6 +18,11 @@ const COMMENTER_COOKIE = "blog_commenter";
 
 interface CommenterInfo {
   name: string;
+  sessionId: string;
+}
+
+function generateSessionId(): string {
+  return `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 10)}`;
 }
 
 function generateAnonymousName(): string {
@@ -25,11 +30,17 @@ function generateAnonymousName(): string {
   return `Anonymous ${randomId}`;
 }
 
-function getCommenterInfo(): CommenterInfo | null {
+export function getCommenterInfo(): CommenterInfo | null {
   const cookie = Cookies.get(COMMENTER_COOKIE);
   if (cookie) {
     try {
-      return JSON.parse(cookie);
+      const parsed = JSON.parse(cookie);
+      // Ensure sessionId exists (migrate old cookies)
+      if (!parsed.sessionId) {
+        parsed.sessionId = generateSessionId();
+        setCommenterInfo(parsed);
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -39,6 +50,16 @@ function getCommenterInfo(): CommenterInfo | null {
 
 function setCommenterInfo(info: CommenterInfo): void {
   Cookies.set(COMMENTER_COOKIE, JSON.stringify(info), { expires: 365 });
+}
+
+export function getOrCreateSessionId(): string {
+  const existing = getCommenterInfo();
+  if (existing?.sessionId) {
+    return existing.sessionId;
+  }
+  // Create a new session with just sessionId (name will be set later)
+  const sessionId = generateSessionId();
+  return sessionId;
 }
 
 interface CommentInputProps {
@@ -78,7 +99,7 @@ export function CommentInput({
     // If user already has a cookie, submit directly
     const existingInfo = getCommenterInfo();
     if (existingInfo) {
-      submitComment(existingInfo.name);
+      submitComment(existingInfo.name, existingInfo.sessionId);
     } else {
       setDialogOpen(true);
     }
@@ -86,12 +107,13 @@ export function CommentInput({
 
   const handleDialogSubmit = () => {
     const finalName = nameInput.trim() || generateAnonymousName();
-    setCommenterInfo({ name: finalName });
+    const sessionId = getCommenterInfo()?.sessionId || generateSessionId();
+    setCommenterInfo({ name: finalName, sessionId });
     setHasExistingIdentity(true);
-    submitComment(finalName);
+    submitComment(finalName, sessionId);
   };
 
-  const submitComment = async (authorName: string) => {
+  const submitComment = async (authorName: string, sessionId: string) => {
     setSubmitting(true);
 
     try {
@@ -103,6 +125,7 @@ export function CommentInput({
           commentId: parentCommentId,
           authorName,
           content: content.trim(),
+          sessionId,
         }),
       });
 

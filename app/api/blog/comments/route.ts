@@ -1,6 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { Blog } from "@/models/Blog";
 import { BlogComment } from "@/models/BlogComment";
+import { sendToSlack } from "@/lib/comments";
 
 function sanitizeString(str: string): string {
   return str
@@ -18,6 +20,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const blogId = searchParams.get("blogId");
     const parentId = searchParams.get("parentId");
+    const sessionId = searchParams.get("sessionId");
 
     if (!blogId) {
       return NextResponse.json(
@@ -42,14 +45,28 @@ export async function GET(request: NextRequest) {
 
     await connectDB();
 
-    const query: Record<string, unknown> = {
+    const baseQuery: Record<string, unknown> = {
       blogId,
+      isDeleted: { $ne: true },
     };
 
     if (parentId) {
-      query.commentId = parentId;
+      baseQuery.commentId = parentId;
     } else {
-      query.commentId = { $exists: false };
+      baseQuery.commentId = { $exists: false };
+    }
+
+    let query: Record<string, unknown>;
+    if (sessionId) {
+      query = {
+        ...baseQuery,
+        $or: [{ isApproved: true }, { sessionId: sessionId }],
+      };
+    } else {
+      query = {
+        ...baseQuery,
+        isApproved: true,
+      };
     }
 
     const comments = await BlogComment.find(query)
@@ -59,6 +76,7 @@ export async function GET(request: NextRequest) {
     const formattedComments = comments.map((comment) => ({
       ...comment,
       _id: comment._id.toString(),
+      sessionId: comment.sessionId === sessionId ? comment.sessionId : undefined,
     }));
 
     return NextResponse.json({ comments: formattedComments }, { status: 200 });
@@ -74,7 +92,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { blogId, commentId, authorName, content } = body;
+    const { blogId, commentId, authorName, content, sessionId } = body;
 
     if (typeof blogId !== "string" || typeof content !== "string") {
       return NextResponse.json(
@@ -152,6 +170,26 @@ export async function POST(request: NextRequest) {
       commentId: commentId || undefined,
       authorName: sanitizedAuthorName,
       content: sanitizedContent,
+      sessionId: typeof sessionId === "string" ? sessionId : undefined,
+    });
+
+    // Fetch blog info for Slack notification
+    const blog = await Blog.findById(blogId).select("title slug").lean();
+
+    await sendToSlack({
+      comment: {
+        _id: comment._id.toString(),
+        blogId,
+        commentId,
+        authorName: sanitizedAuthorName,
+        content: sanitizedContent,
+        isApproved: false,
+        isDeleted: false,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      blogTitle: blog?.title,
+      blogSlug: blog?.slug,
     });
 
     return NextResponse.json(

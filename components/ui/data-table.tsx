@@ -28,11 +28,17 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  searchPlaceholder?: string;
+  searchableColumns?: string[];
+  children?: React.ReactNode;
 }
 
 export function DataTable<TData, TValue>({
   columns,
+  children,
   data,
+  searchPlaceholder = "Search...",
+  searchableColumns = ["ticketId", "email"],
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -57,13 +63,11 @@ export function DataTable<TData, TValue>({
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, _columnId, filterValue) => {
       const search = filterValue.toLowerCase();
-      const ticketId = row.getValue("ticketId") as string;
-      const email = row.getValue("email") as string;
-
-      return (
-        ticketId?.toLowerCase().includes(search) ||
-        email?.toLowerCase().includes(search)
-      );
+      return searchableColumns.some((col) => {
+        const value = row.getValue(col);
+        if (value === null || value === undefined) return false;
+        return String(value).toLowerCase().includes(search);
+      });
     },
     state: {
       sorting,
@@ -76,13 +80,14 @@ export function DataTable<TData, TValue>({
 
   return (
     <div className="w-full">
-      <div className="flex items-center py-4 gap-4">
+      <div className="flex sm:flex-row flex-col-reverse justify-between sm:items-center items-end py-2 gap-2">
         <Input
-          placeholder="Search by ticket ID or email..."
+          placeholder={searchPlaceholder}
           value={globalFilter ?? ""}
           onChange={(event) => setGlobalFilter(event.target.value)}
-          className="max-w-sm"
+          className="sm:max-w-sm grow"
         />
+        {children}
       </div>
       <div className="rounded-md border">
         <Table>

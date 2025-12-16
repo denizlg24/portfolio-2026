@@ -4,6 +4,7 @@ import Cookies from "js-cookie";
 import {
   Calendar,
   ChevronUp,
+  Clock,
   Loader2Icon,
   MessageSquare,
   Trash2,
@@ -14,22 +15,14 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import { CommentInput } from "./comment-input";
+import { CommentInput, getCommenterInfo } from "./comment-input";
+import { ILeanBlogComment } from "@/models/BlogComment";
 
 const COMMENTER_COOKIE = "blog_commenter";
 
-interface Comment {
-  _id: string;
-  blogId: string;
-  commentId?: string;
-  authorName: string;
-  content: string;
-  createdAt: string;
-  isDeleted?: boolean;
-}
 
 interface CommentCardProps {
-  comment: Comment;
+  comment: ILeanBlogComment;
   blogId: string;
   depth?: number;
   onDeleted?: () => void;
@@ -42,7 +35,7 @@ export function CommentCard({
   onDeleted,
 }: CommentCardProps) {
   const [showReplyInput, setShowReplyInput] = useState(false);
-  const [replies, setReplies] = useState<Comment[]>([]);
+  const [replies, setReplies] = useState<ILeanBlogComment[]>([]);
   const [loadingReplies, setLoadingReplies] = useState(false);
   const [showReplies, setShowReplies] = useState(true);
   const [hasReplies, setHasReplies] = useState(false);
@@ -60,8 +53,12 @@ export function CommentCard({
   const fetchReplies = useCallback(async () => {
     try {
       setLoadingReplies(true);
+      const commenterInfo = getCommenterInfo();
+      const sessionParam = commenterInfo?.sessionId
+        ? `&sessionId=${commenterInfo.sessionId}`
+        : "";
       const response = await fetch(
-        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}`
+        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}${sessionParam}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -73,7 +70,7 @@ export function CommentCard({
     } finally {
       setLoadingReplies(false);
     }
-  }, []);
+  }, [blogId, comment._id]);
 
   useEffect(() => {
     fetchReplies();
@@ -133,7 +130,7 @@ export function CommentCard({
       .slice(0, 2);
   };
 
-  const formatDate = (dateStr: string) => {
+  const formatDate = (dateStr: string|Date) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -144,6 +141,7 @@ export function CommentCard({
 
   const displayName = isOwner ? "Me" : comment.authorName;
   const isDeletedComment = localIsDeleted;
+  const isPending = !comment.isApproved && !isDeletedComment;
 
   return (
     <div className={`${depth > 0 ? "ml-8 border-l-2 border-muted pl-4" : ""}`}>
@@ -175,6 +173,12 @@ export function CommentCard({
               <Calendar className="w-3 h-3" />
               {formatDate(comment.createdAt)}
             </span>
+            {isPending && (
+              <span className="text-xs text-amber-600 dark:text-amber-500 flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                Pending
+              </span>
+            )}
           </div>
 
           <p
