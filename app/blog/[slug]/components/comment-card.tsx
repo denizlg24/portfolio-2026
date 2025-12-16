@@ -8,7 +8,7 @@ import {
   MessageSquare,
   Trash2,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -49,7 +49,7 @@ export function CommentCard({
   const [isOwner, setIsOwner] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [localIsDeleted, setLocalIsDeleted] = useState(
-    comment.isDeleted ?? false,
+    comment.isDeleted ?? false
   );
 
   const { data: session } = authClient.useSession();
@@ -57,11 +57,11 @@ export function CommentCard({
 
   const maxDepth = 3;
 
-  const fetchReplies = async () => {
+  const fetchReplies = useCallback(async () => {
     try {
       setLoadingReplies(true);
       const response = await fetch(
-        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}`,
+        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}`
       );
       if (response.ok) {
         const data = await response.json();
@@ -73,7 +73,7 @@ export function CommentCard({
     } finally {
       setLoadingReplies(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchReplies();
@@ -154,7 +154,7 @@ export function CommentCard({
               "text-xs",
               isDeletedComment
                 ? "bg-muted text-muted-foreground"
-                : "bg-primary/10 text-primary",
+                : "bg-primary/10 text-primary"
             )}
           >
             {isDeletedComment ? "?" : getInitials(displayName)}
@@ -166,7 +166,7 @@ export function CommentCard({
             <span
               className={cn(
                 "font-medium text-sm",
-                isDeletedComment && "text-muted-foreground italic",
+                isDeletedComment && "text-muted-foreground italic"
               )}
             >
               {isDeletedComment ? "[deleted]" : displayName}
@@ -182,7 +182,7 @@ export function CommentCard({
               "text-sm whitespace-pre-wrap",
               isDeletedComment
                 ? "text-muted-foreground italic"
-                : "text-foreground/90",
+                : "text-foreground/90"
             )}
           >
             {isDeletedComment
@@ -212,7 +212,7 @@ export function CommentCard({
                 <ChevronUp
                   className={cn(
                     "w-3 h-3 transition-transform duration-200",
-                    showReplies && "rotate-180",
+                    showReplies && "rotate-180"
                   )}
                 />
                 {showReplies ? (

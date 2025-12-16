@@ -1,7 +1,7 @@
 "use client";
 
 import { MessageSquare } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { CommentCard } from "./comment-card";
 import { CommentInput } from "./comment-input";
 
@@ -22,7 +22,7 @@ export function CommentsSection({ blogId }: CommentsSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchComments = async () => {
+  const fetchComments = useCallback(async () => {
     try {
       setLoading(true);
       const response = await fetch(`/api/blog/comments?blogId=${blogId}`);
@@ -35,7 +35,7 @@ export function CommentsSection({ blogId }: CommentsSectionProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchComments();
