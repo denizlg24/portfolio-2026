@@ -3,6 +3,7 @@ import { CalendarEvent, ICalendarEvent } from "@/models/CalendarEvent";
 
 export async function GET(request: Request) {
   try {
+    console.log("Authorization header:", request.headers.get('Authorization'));
     if (request.headers.get('Authorization') !== `Bearer ${process.env.CALENDAR_API_BEARER_TOKEN}`) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
