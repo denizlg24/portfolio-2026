@@ -43,7 +43,7 @@ async function sendEventToSlack(event: ICalendarEvent) {
     type: "section",
     text: {
       type: "mrkdwn",
-      text: `⏰ *Reminder*:*${event.title}*`,
+      text: `⏰ *Reminder*: *${event.title}*`,
     },
   },
   {
