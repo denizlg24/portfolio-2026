@@ -34,9 +34,24 @@ import {
   Clock,
   Loader2,
   CalendarIcon,
+  Bell,
+  BellRing,
 } from "lucide-react";
 import { ILeanCalendarEvent } from "@/models/CalendarEvent";
 import { fetchFavicon } from "@/lib/fetch-favicon";
+
+// Helper function to format notification time in human-readable format
+function formatNotificationTime(minutes: number): string {
+  if (minutes < 60) {
+    return `${minutes}min`;
+  }
+  if (minutes < 1440) {
+    const hours = Math.floor(minutes / 60);
+    return hours === 1 ? "1hr" : `${hours}hrs`;
+  }
+  const days = Math.floor(minutes / 1440);
+  return days === 1 ? "1 day" : `${days} days`;
+}
 
 interface EventLink {
   _id?: string;
@@ -623,9 +638,19 @@ function EventCard({
           {event.notifyBySlack && (
             <Badge
               variant={event.isNotificationSent ? "default" : "outline"}
-              className="text-xs shrink-0"
+              className="text-xs shrink-0 flex items-center gap-1"
             >
-              🔔 {event.isNotificationSent ? "Sent" : `${event.notifyBeforeMinutes}min`}
+              {event.isNotificationSent ? (
+                <>
+                  <Bell className="w-3 h-3" />
+                  <span>Sent</span>
+                </>
+              ) : (
+                <>
+                  <BellRing className="w-3 h-3" />
+                  <span>{formatNotificationTime(event.notifyBeforeMinutes)}</span>
+                </>
+              )}
             </Badge>
           )}
         </div>
@@ -749,13 +774,6 @@ function EventCard({
             </a>
           ))}
         </div>
-      )}
-
-      
-      {event.notifyBySlack && (
-        <Badge variant="outline" className="text-xs">
-          📢 Slack notification
-        </Badge>
       )}
     </div>
   );

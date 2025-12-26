@@ -11,9 +11,10 @@ import {
 } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { PopoverClose } from "@radix-ui/react-popover";
 
 interface TimePickerProps {
-  value: string; 
+  value: string;
   onChange: (time: string) => void;
   className?: string;
 }
@@ -29,22 +30,24 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
     setLocalMinutes(m || "00");
   }, [value]);
 
-  const handleApply = () => {
-    onChange(`${localHours}:${localMinutes}`);
-  };
-
   const handleHoursChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (val === "" || (Number(val) >= 0 && Number(val) <= 23)) {
-      setLocalHours(val.padStart(2, "0"));
+      setLocalHours(val);
     }
   };
 
   const handleMinutesChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     if (val === "" || (Number(val) >= 0 && Number(val) <= 59)) {
-      setLocalMinutes(val.padStart(2, "0"));
+      setLocalMinutes(val);
     }
+  };
+
+  const handleApply = () => {
+    const paddedHours = localHours.padStart(2, "0");
+    const paddedMinutes = localMinutes.padStart(2, "0");
+    onChange(`${paddedHours}:${paddedMinutes}`);
   };
 
   return (
@@ -90,9 +93,11 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
               />
             </div>
           </div>
-          <Button onClick={handleApply} className="w-full">
-            Apply
-          </Button>
+          <PopoverClose asChild>
+            <Button onClick={handleApply} className="w-full">
+              Apply
+            </Button>
+          </PopoverClose>
         </div>
       </PopoverContent>
     </Popover>

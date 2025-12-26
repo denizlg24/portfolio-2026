@@ -51,7 +51,7 @@ export const updateCalendarEvent = async ({
     if (data.notifyBySlack && (data.date || data.notifyBeforeMinutes !== undefined)) {
       const event = await CalendarEvent.findById(id);
       if (event) {
-        const eventDate = data.date || event.date;
+        const eventDate = new Date(data.date || event.date);
         const notifyBeforeMinutes = data.notifyBeforeMinutes ?? event.notifyBeforeMinutes;
         data.notifyAt = new Date(
           eventDate.getTime() - notifyBeforeMinutes * 60_000
