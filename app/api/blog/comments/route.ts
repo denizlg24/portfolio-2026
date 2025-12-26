@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       sessionId: typeof sessionId === "string" ? sessionId : undefined,
     });
 
-    // Fetch blog info for Slack notification
+    
     const blog = await Blog.findById(blogId).select("title slug").lean();
 
     await sendToSlack({

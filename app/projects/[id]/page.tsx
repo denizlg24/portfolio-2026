@@ -17,6 +17,14 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getActiveProjects, getProjectById } from "@/lib/projects";
 import { iconMap } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export async function generateStaticParams() {
   const projects = await getActiveProjects();
@@ -80,15 +88,31 @@ export default async function ProjectPage({
                     height={1080}
                     className="object-cover w-full h-auto aspect-video rounded-lg border-2"
                   />
-                  <Button
-                    asChild
-                    size="icon-sm"
-                    className="absolute right-2 bottom-2"
-                  >
-                    <a href={image} target="_blank">
-                      <Fullscreen />
-                    </a>
-                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="icon-sm"
+                        className="absolute right-2 bottom-2"
+                      >
+                        <Fullscreen />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[calc(100vw-16px)] max-w-full! mx-auto bg-surface">
+                      <DialogHeader className="text-center items-center">
+                        <DialogTitle>{project.title}</DialogTitle>
+                        <DialogDescription className="italic text-accent">
+                          {"{"}{image}{"}"}
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Image
+                        src={image}
+                        alt={project.title}
+                        width={1920}
+                        height={1080}
+                        className="object-cover w-full h-auto max-h-[80vh] aspect-video rounded-lg border-2"
+                      />
+                    </DialogContent>
+                  </Dialog>
                 </CarouselItem>
               ))}
             </CarouselContent>

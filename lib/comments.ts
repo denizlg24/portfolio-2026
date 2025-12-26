@@ -158,10 +158,10 @@ export async function getAllComments(options?: {
     .limit(options?.limit || 100)
     .lean();
 
-  // Get all unique blog IDs
+  
   const blogIds = [...new Set(comments.map((c) => c.blogId))];
 
-  // Fetch blog titles
+  
   const blogs = await Blog.find({ _id: { $in: blogIds } })
     .select("_id title slug")
     .lean();
@@ -234,11 +234,11 @@ export async function deleteComment(id: string) {
   const comment = await BlogComment.findById(id);
   if (!comment) return null;
 
-  // Check if comment has replies
+  
   const hasReplies = await BlogComment.exists({ commentId: id });
 
   if (hasReplies) {
-    // Soft delete if has replies
+    
     await BlogComment.findByIdAndUpdate(id, {
       isDeleted: true,
       content: "[deleted]",
@@ -247,7 +247,7 @@ export async function deleteComment(id: string) {
     return { softDeleted: true };
   }
 
-  // Hard delete if no replies
+  
   await BlogComment.findByIdAndDelete(id);
   return { softDeleted: false };
 }

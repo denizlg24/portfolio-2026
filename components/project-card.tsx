@@ -15,7 +15,7 @@ export const ProjectCard = ({
   className?: string;
 }) => {
   return (
-    <article className={cn("w-full flex flex-col gap-4 max-w-3xs", className)}>
+    <article className={cn("w-full flex flex-col gap-4 max-w-3xs h-full", className)}>
       <Link href={`/projects/${project._id}`}>
         <div className="w-full flex flex-col gap-2 group hover:cursor-pointer">
           <Image
@@ -46,7 +46,7 @@ export const ProjectCard = ({
           </div>
         </div>
       </Link>
-      <div className="flex flex-row items-center justify-start gap-1 flex-wrap w-full">
+      <div className="flex flex-row items-center justify-start gap-1 flex-wrap w-full mt-auto">
         {project.links.map((link, linkIdx) => {
           const Icon = iconMap[link.icon];
           return (

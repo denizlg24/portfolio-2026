@@ -46,8 +46,8 @@ export function BlogManager({ initialBlogs }: BlogManagerProps) {
     <>
       <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between w-full">
         <div className="">
-          <h1 className="text-3xl font-bold mb-2">Blogs Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Blogs Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Create and manage your blog posts.
           </p>
         </div>
@@ -63,7 +63,7 @@ export function BlogManager({ initialBlogs }: BlogManagerProps) {
 
       <div className="space-y-2 mt-4">
         <div className="flex items-center gap-2 justify-end">
-          <Label>Toggle Hidden:</Label>
+          <Label className="text-sm">Toggle Hidden:</Label>
           <Button
             variant={visibilityFilter === "hidden" ? "default" : "outline"}
             size="icon"

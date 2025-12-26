@@ -25,7 +25,7 @@ export default async function BlogsPage() {
   if (!blogs || blogs.length === 0) {
     return (
       <div className="w-full flex flex-col gap-6">
-        <h1 className="text-3xl font-bold">Blogs</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Blogs</h1>
         <div>
           <Empty>
             <EmptyHeader className="max-w-lg!">

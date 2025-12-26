@@ -25,8 +25,8 @@ export default async function CommentsPage() {
   return (
     <div className="flex flex-col">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold">Comment Moderation</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold">Comment Moderation</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           Review and moderate blog comments
         </p>
       </div>

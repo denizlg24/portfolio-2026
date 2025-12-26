@@ -35,7 +35,7 @@ export function getCommenterInfo(): CommenterInfo | null {
   if (cookie) {
     try {
       const parsed = JSON.parse(cookie);
-      // Ensure sessionId exists (migrate old cookies)
+      
       if (!parsed.sessionId) {
         parsed.sessionId = generateSessionId();
         setCommenterInfo(parsed);
@@ -57,7 +57,7 @@ export function getOrCreateSessionId(): string {
   if (existing?.sessionId) {
     return existing.sessionId;
   }
-  // Create a new session with just sessionId (name will be set later)
+  
   const sessionId = generateSessionId();
   return sessionId;
 }
@@ -96,7 +96,7 @@ export function CommentInput({
       return;
     }
 
-    // If user already has a cookie, submit directly
+    
     const existingInfo = getCommenterInfo();
     if (existingInfo) {
       submitComment(existingInfo.name, existingInfo.sessionId);

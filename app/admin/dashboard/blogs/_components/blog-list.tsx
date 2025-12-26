@@ -56,7 +56,7 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
   if (blogs.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-muted-foreground">No blogs found</p>
+        <p className="text-sm sm:text-base text-muted-foreground">No blogs found</p>
       </div>
     );
   }
@@ -64,13 +64,13 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
   return (
     <div className="space-y-3">
       {blogs.map((blog) => (
-        <Card key={blog._id} className="p-4">
+        <Card key={blog._id} className="p-3 sm:p-4">
           <div className="flex flex-col items-start gap-4">
             <div className="flex-1 min-w-0 w-full sm:w-auto">
-              <h3 className="font-semibold text-base sm:text-lg truncate">
+              <h3 className="font-semibold text-sm sm:text-base md:text-lg truncate">
                 {blog.title}
               </h3>
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
+              <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2 mb-2">
                 {blog.excerpt}
               </p>
               <div className="flex flex-wrap items-center gap-2">

@@ -39,7 +39,7 @@ export default async function TimelinePage() {
   if (!token) {
     return (
       <div className="w-full flex flex-col gap-6">
-        <h1 className="text-3xl font-bold">Instagram Tokens</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Instagram Tokens</h1>
         <div>
           <Empty>
             <EmptyHeader>
@@ -75,12 +75,12 @@ export default async function TimelinePage() {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <h1 className="text-3xl font-bold">Instagram Tokens</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold">Instagram Tokens</h1>
 
       <div className="flex items-center gap-4 p-4 border rounded-lg bg-card">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-muted-foreground mb-1">Token ID</p>
-          <code className="text-sm font-mono truncate block">
+          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Token ID</p>
+          <code className="text-xs sm:text-sm font-mono truncate block">
             {token._id.toString()}
           </code>
         </div>

@@ -19,14 +19,14 @@ export const StyledLink = ({
 
   if (type === "link") {
     return (
-      <Link {...props} className={cn(underlineClasses, className)}>
+      <Link {...props} className={cn(underlineClasses, className,"pb-px")}>
         {children}
       </Link>
     );
   }
   if (type === "anchor") {
     return (
-      <a {...props} className={cn(underlineClasses, className)}>
+      <a {...props} className={cn(underlineClasses, className,"pb-px")}>
         {children}
       </a>
     );

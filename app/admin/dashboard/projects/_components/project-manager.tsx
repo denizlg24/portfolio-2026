@@ -82,8 +82,8 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
     <>
       <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between w-full">
         <div className="">
-          <h1 className="text-3xl font-bold mb-2">Projects Management</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Projects Management</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Create and manage your projects displayed on the homepage.
             {" Drag items to reorder them."}
           </p>
@@ -109,7 +109,7 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
 
       <div className="space-y-6">
         <div className="flex items-center gap-2 justify-end">
-          <Label>Toggle Hidden:</Label>
+          <Label className="text-sm">Toggle Hidden:</Label>
           <Button
             variant={visibilityFilter === "hidden" ? "default" : "outline"}
             size="icon"

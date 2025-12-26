@@ -1,0 +1,11 @@
+
+version = 1
+project_id = "f76b3827-3289-41bb-a094-8e566484d45d"
+name = "portfolio-2026"
+
+default_remote = "origin"
+
+[remotes]
+origin = "https://envoy-cli.vercel.app/api"
+
+

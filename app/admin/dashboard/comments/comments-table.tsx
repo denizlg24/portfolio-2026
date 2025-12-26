@@ -54,7 +54,7 @@ export function CommentsTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
-  // Merge initial comments with local updates and filter out deleted
+ 
   const comments = initialComments
     .map((comment) => {
       const update = localUpdates.get(comment._id);

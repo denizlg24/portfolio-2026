@@ -14,7 +14,7 @@ import Image from "next/image";
 import { Suspense } from "react";
 import CurrentAge from "@/components/current-age";
 import { FeaturedProjectsSection } from "@/components/featured-projects-section";
-import InstagramSection from "@/components/instagram-section";
+//import InstagramSection from "@/components/instagram-section";
 import { StyledLink } from "@/components/styled-link";
 import { Timeline } from "@/components/timeline";
 import TimelineTabsContent from "@/components/timeline-tabs-content";
@@ -54,7 +54,7 @@ export default function Home() {
           />
         </h2>
       </section>
-      <Suspense
+      {/* <Suspense
         fallback={
           <div className="sm:h-[300px] xs:h-[250px] h-[150px] w-full flex items-center justify-center text-accent">
             <Loader2Icon className="w-6 h-6 animate-spin" />
@@ -62,7 +62,7 @@ export default function Home() {
         }
       >
         <InstagramSection />
-      </Suspense>
+      </Suspense> */}
       <section className="w-full max-w-5xl mx-auto px-4 md:grid flex flex-col-reverse grid-cols-5 gap-6 mt-6 items-center">
         <article className="col-span-3 flex flex-col items-start gap-6 w-full">
           <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">

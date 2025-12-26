@@ -24,7 +24,7 @@ export default async function ProjectsPage() {
   if (!projects || projects.length === 0) {
     return (
       <div className="w-full flex flex-col gap-6">
-        <h1 className="text-3xl font-bold">Projects</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Projects</h1>
         <div>
           <Empty>
             <EmptyHeader className="max-w-lg!">

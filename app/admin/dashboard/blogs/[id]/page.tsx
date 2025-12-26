@@ -32,7 +32,7 @@ export default async function EditBlogPage({
             <ArrowLeft className="w-4 h-4" />
           </Link>
         </Button>
-        <h1 className="text-3xl font-bold">Edit Blog Post</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Edit Blog Post</h1>
       </div>
 
       <BlogForm mode="edit" blog={blog} />

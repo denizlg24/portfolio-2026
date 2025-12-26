@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   description: "View and manage contact form submissions",
 };
 
-export const dynamic = "force-dynamic";
 
 export default async function ContactsPage() {
   const [contacts, stats] = await Promise.all([
@@ -18,8 +17,8 @@ export default async function ContactsPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-3xl font-bold">Contact Submissions</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl sm:text-3xl font-bold">Contact Submissions</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
           View and manage contact form submissions
         </p>
       </div>

@@ -36,8 +36,8 @@ export default async function EditTimelinePage({
         </Button>
 
         <div>
-          <h1 className="text-3xl font-bold mb-2">Edit Timeline Item</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Edit Timeline Item</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
             Update your timeline card details.
           </p>
         </div>
