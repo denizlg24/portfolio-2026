@@ -14,6 +14,7 @@ export interface IProject extends Document {
   markdown: string;
   tags: string[];
   isActive: boolean;
+  isFeatured: boolean;
   order: number;
   createdAt: Date;
   updatedAt: Date;
@@ -34,6 +35,7 @@ export interface ILeanProject {
   markdown: string;
   tags: string[];
   isActive: boolean;
+  isFeatured: boolean;
   order: number;
   createdAt: Date;
   updatedAt: Date;
@@ -91,6 +93,10 @@ const ProjectSchema = new Schema<IProject>(
       type: Boolean,
       default: true,
     },
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
     order: {
       type: Number,
       default: 0,
@@ -103,6 +109,7 @@ const ProjectSchema = new Schema<IProject>(
 
 ProjectSchema.index({ order: 1 });
 ProjectSchema.index({ isActive: 1 });
+ProjectSchema.index({ isFeatured: 1 });
 ProjectSchema.index({ tags: 1 });
 
 export const Project: mongoose.Model<IProject> =

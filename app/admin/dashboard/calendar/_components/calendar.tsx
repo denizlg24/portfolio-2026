@@ -129,9 +129,9 @@ export function Calendar({ onEventChange }: { onEventChange?: () => void }) {
                       <div
                         className={cn(
                           "w-1.5 h-1.5 rounded-full shrink-0",
-                          event.status === "scheduled" && "bg-blue-500",
-                          event.status === "completed" && "bg-green-500",
-                          event.status === "canceled" && "bg-gray-400"
+ event.status === "scheduled" && "bg-muted",
+                          event.status === "completed" && "bg-accent-strong",
+                          event.status === "canceled" && "bg-red-900"
                         )}
                       />
                       <span className="overflow-hidden whitespace-nowrap text-foreground/50 font-medium">

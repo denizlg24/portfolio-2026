@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, subtitle, images, media, links, markdown, tags, isActive } =
+    const { title, subtitle, images, media, links, markdown, tags, isActive, isFeatured } =
       body;
 
     await connectDB();
@@ -48,6 +48,7 @@ export async function POST(request: NextRequest) {
       markdown: markdown || "",
       tags: tags || [],
       isActive: isActive !== undefined ? isActive : true,
+      isFeatured: isFeatured !== undefined ? isFeatured : false,
       order,
     });
     revalidatePath("/");

@@ -14,6 +14,13 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -25,6 +32,77 @@ import { toast } from "sonner";
 import { Plus, X, Link as LinkIcon, Loader2, CalendarIcon } from "lucide-react";
 import { fetchFavicon } from "@/lib/fetch-favicon";
 
+
+function getSmartNotificationOptions(eventTime: string): Array<{ value: string; label: string }> {
+  const [hours, minutes] = eventTime.split(":").map(Number);
+  const eventMinutes = hours * 60 + minutes; 
+  
+  const options: Array<{ value: string; label: string }> = [];
+  const addedValues = new Set<string>(); 
+  
+  const addOption = (value: string, label: string) => {
+    if (!addedValues.has(value)) {
+      options.push({ value, label });
+      addedValues.add(value);
+    }
+  };
+  
+  
+  if (hours < 12) {
+    addOption("0", "At time of event");
+    addOption("5", "5 minutes before");
+    addOption("15", "15 minutes before");
+    addOption("30", "30 minutes before");
+    addOption("60", "1 hour before");
+    
+    
+    if (hours >= 9) {
+      const minutesToDayBefore9AM = eventMinutes + (24 * 60 - 9 * 60);
+      addOption(minutesToDayBefore9AM.toString(), "Day before at 9 AM");
+    }
+  }
+  
+  else if (hours < 18) {
+    addOption("0", "At time of event");
+    addOption("15", "15 minutes before");
+    addOption("30", "30 minutes before");
+    addOption("60", "1 hour before");
+    addOption("120", "2 hours before");
+    
+    
+    if (hours >= 11) {
+      const minutesToSameDay9AM = eventMinutes - 9 * 60;
+      if (minutesToSameDay9AM > 0) {
+        addOption(minutesToSameDay9AM.toString(), "Same day at 9 AM");
+      }
+    }
+  }
+  
+  else {
+    addOption("0", "At time of event");
+    addOption("30", "30 minutes before");
+    addOption("60", "1 hour before");
+    addOption("120", "2 hours before");
+    
+    
+    const minutesToSameDay9AM = eventMinutes - 9 * 60;
+    addOption(minutesToSameDay9AM.toString(), "Same day at 9 AM");
+    
+    
+    const minutesToSameDay5PM = eventMinutes - 17 * 60;
+    if (minutesToSameDay5PM > 0) {
+      addOption(minutesToSameDay5PM.toString(), "Same day at 5 PM");
+    }
+  }
+  
+  
+  addOption("1440", "1 day before");
+  addOption("2880", "2 days before");
+  addOption("10080", "1 week before");
+  
+  return options;
+}
+
 interface EventLink {
   label: string;
   icon?: string;
@@ -33,6 +111,7 @@ interface EventLink {
 
 interface EventFormData {
   title: string;
+  place?: string;
   date: Date;
   time: string;
   links: EventLink[];
@@ -50,6 +129,7 @@ export const AddEventDialog = ({
 
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
+    place: "",
     date: new Date(),
     time: "09:00",
     links: [],
@@ -117,6 +197,7 @@ export const AddEventDialog = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           title: formData.title,
+          place: formData.place,
           date: eventDate,
           links: formData.links,
           status: "scheduled",
@@ -131,6 +212,7 @@ export const AddEventDialog = ({
       
       setFormData({
         title: "",
+        place: "",
         date: new Date(),
         time: "09:00",
         links: [],
@@ -155,7 +237,7 @@ export const AddEventDialog = ({
           Add Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto w-[calc(100%-16px)]">
         <DialogHeader>
           <DialogTitle>Add New Event</DialogTitle>
           <DialogDescription>
@@ -164,15 +246,27 @@ export const AddEventDialog = ({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="title">Event Title *</Label>
+            <Label htmlFor="add-title">Event Title *</Label>
             <Input
-              id="title"
+              id="add-title"
               value={formData.title}
               onChange={(e) =>
                 setFormData({ ...formData, title: e.target.value })
               }
               placeholder="Team meeting, deadline, etc."
               required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="add-place">Place</Label>
+            <Input
+              id="add-place"
+              value={formData.place ?? ""}
+              onChange={(e) =>
+                setFormData({ ...formData, place: e.target.value })
+              }
+              placeholder="Office, Zoom, etc."
             />
           </div>
 
@@ -184,13 +278,13 @@ export const AddEventDialog = ({
                   <Button
                     variant="outline"
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start text-left font-normal truncate ",
                       !formData.date && "text-muted-foreground"
                     )}
                   >
-                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    <CalendarIcon />
                     {formData.date ? (
-                      format(formData.date, "PPP")
+                      format(formData.date, "dd/MM/yy")
                     ) : (
                       <span>Pick a date</span>
                     )}
@@ -300,23 +394,36 @@ export const AddEventDialog = ({
             </div>
 
             {formData.notifyBySlack && (
-              <div className="space-y-2 pl-6">
+              <div className="space-y-2">
                 <Label htmlFor="notifyBeforeMinutes" className="text-sm">
-                  Notify before (minutes)
+                  Notify me
                 </Label>
-                <Input
-                  id="notifyBeforeMinutes"
-                  type="number"
-                  min="1"
-                  value={formData.notifyBeforeMinutes ?? 15}
-                  onChange={(e) =>
+                <Select
+                  value={(() => {
+                    const options = getSmartNotificationOptions(formData.time);
+                    const currentValue = formData.notifyBeforeMinutes?.toString();
+                    
+                    const valueExists = options.some(opt => opt.value === currentValue);
+                    return valueExists ? currentValue : options[0]?.value || "15";
+                  })()}
+                  onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      notifyBeforeMinutes: Number.parseInt(e.target.value) || 15,
+                      notifyBeforeMinutes: Number.parseInt(value),
                     })
                   }
-                  className="text-sm max-w-xs"
-                />
+                >
+                  <SelectTrigger className="text-sm max-w-xs min-w-3xs!">
+                    <SelectValue placeholder="Select time " />
+                  </SelectTrigger>
+                  <SelectContent className="z-99">
+                    {getSmartNotificationOptions(formData.time).map((option, idx) => (
+                      <SelectItem key={`${option.value}-${idx}`} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             )}
           </div>

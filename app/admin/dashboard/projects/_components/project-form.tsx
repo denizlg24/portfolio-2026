@@ -50,6 +50,7 @@ const projectSchema = z.object({
     )
     .optional(),
   isActive: z.boolean(),
+  isFeatured: z.boolean(),
 });
 
 type ProjectFormData = z.infer<typeof projectSchema>;
@@ -85,6 +86,7 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
       markdown: project?.markdown || "",
       links: project?.links || [],
       isActive: project?.isActive !== undefined ? project.isActive : true,
+      isFeatured: project?.isFeatured !== undefined ? project.isFeatured : false,
     },
   });
 
@@ -510,7 +512,7 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
                     className="shrink-0"
                   >
                     {copiedUrl === url ? (
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-accent" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}
@@ -587,6 +589,26 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
           />
           <FieldLabel htmlFor="isActive" className="cursor-pointer">
             Active (visible on website)
+          </FieldLabel>
+        </div>
+      </Field>
+
+      <Field>
+        <div className="flex items-center gap-2">
+          <Controller
+            name="isFeatured"
+            control={control}
+            render={({ field: { value, onChange, ...field } }) => (
+              <Checkbox
+                {...field}
+                id="isFeatured"
+                checked={value}
+                onCheckedChange={onChange}
+              />
+            )}
+          />
+          <FieldLabel htmlFor="isFeatured" className="cursor-pointer">
+            Featured (displayed on homepage)
           </FieldLabel>
         </div>
       </Field>

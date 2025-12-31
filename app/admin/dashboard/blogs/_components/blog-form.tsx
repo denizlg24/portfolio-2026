@@ -276,7 +276,7 @@ export function BlogForm({ blog, mode }: BlogFormProps) {
                     className="shrink-0"
                   >
                     {copiedUrl === url ? (
-                      <Check className="w-4 h-4 text-green-500" />
+                      <Check className="w-4 h-4 text-accent" />
                     ) : (
                       <Copy className="w-4 h-4" />
                     )}

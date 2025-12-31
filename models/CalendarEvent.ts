@@ -4,6 +4,7 @@ export interface ICalendarEvent {
   _id: unknown;
   date: Date;
   title: string;
+  place?: string;
   links: {
     _id: unknown;
     label: string;
@@ -21,6 +22,7 @@ export interface ILeanCalendarEvent {
   _id: string;
   date: Date;
   title: string;
+  place?: string;
   links: {
     _id: string;
     label: string;
@@ -43,6 +45,7 @@ const LinkSchema = new mongoose.Schema({
 const CalendarEventSchema = new mongoose.Schema<ICalendarEvent>({
   date: { type: Date, required: true },
   title: { type: String, required: true },
+  place: { type: String },
   links: [LinkSchema],
   status: {
     type: String,

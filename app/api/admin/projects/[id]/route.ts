@@ -58,6 +58,31 @@ export async function PATCH(
       );
     }
 
+    if (body.toggleFeatured) {
+      await connectDB();
+      const existingProject = await Project.findById(id).lean().exec();
+      if (!existingProject) {
+        return NextResponse.json(
+          { error: "Project not found" },
+          { status: 404 },
+        );
+      }
+      const project = await Project.findByIdAndUpdate(
+        id,
+        { isFeatured: !existingProject.isFeatured },
+        { new: true, runValidators: true },
+      )
+        .lean()
+        .exec();
+      revalidatePath("/");
+      revalidatePath("/projects");
+      revalidatePath(`/projects/${project?._id.toString()}`);
+      return NextResponse.json(
+        { message: "Project featured status toggled successfully", project },
+        { status: 200 },
+      );
+    }
+
     await connectDB();
     const project = await Project.findByIdAndUpdate(id, body, {
       new: true,

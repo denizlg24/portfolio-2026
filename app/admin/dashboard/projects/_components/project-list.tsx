@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, GripVertical, Pencil, Trash2 } from "lucide-react";
+import { Eye, EyeOff, GripVertical, Pencil, Star, Trash2 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
@@ -41,6 +41,25 @@ export function ProjectList({
     } catch (error) {
       console.error("Error toggling project visibility:", error);
       alert("Failed to toggle project visibility. Please try again.");
+    }
+  };
+
+  const handleToggleFeatured = async (id: string) => {
+    try {
+      const response = await fetch(`/api/admin/projects/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ toggleFeatured: true }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to toggle featured status");
+      }
+
+      onRefresh();
+    } catch (error) {
+      console.error("Error toggling featured status:", error);
+      alert("Failed to toggle featured status. Please try again.");
     }
   };
 
@@ -102,9 +121,17 @@ export function ProjectList({
                   </div>
 
                   <div className="flex-1 min-w-0 w-full sm:w-auto">
-                    <h3 className="font-semibold text-base sm:text-lg truncate">
-                      {project.title}
-                    </h3>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-base sm:text-lg truncate">
+                        {project.title}
+                      </h3>
+                      {project.isFeatured && (
+                        <Badge variant="default" className="text-xs shrink-0">
+                          <Star className="w-3 h-3 mr-1 fill-current" />
+                          Featured
+                        </Badge>
+                      )}
+                    </div>
                     <p className="text-sm text-muted-foreground line-clamp-2 mb-2">
                       {project.subtitle}
                     </p>
@@ -130,6 +157,14 @@ export function ProjectList({
                     <SortableItemHandle className="sm:hidden block cursor-grab active:cursor-grabbing shrink-0 mr-auto">
                       <GripVertical className="w-5 h-5 text-muted-foreground" />
                     </SortableItemHandle>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleToggleFeatured(project._id)}
+                      title={project.isFeatured ? "Remove from featured" : "Add to featured"}
+                    >
+                      <Star className={`w-4 h-4 ${project.isFeatured ? "fill-yellow-500 text-yellow-500" : ""}`} />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="icon"

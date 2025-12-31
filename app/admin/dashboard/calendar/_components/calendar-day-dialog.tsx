@@ -16,6 +16,13 @@ import { Badge } from "@/components/ui/badge";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { TimePicker } from "@/components/ui/time-picker";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Popover,
   PopoverContent,
   PopoverTrigger,
@@ -36,11 +43,11 @@ import {
   CalendarIcon,
   Bell,
   BellRing,
+  MapPin,
 } from "lucide-react";
 import { ILeanCalendarEvent } from "@/models/CalendarEvent";
 import { fetchFavicon } from "@/lib/fetch-favicon";
 
-// Helper function to format notification time in human-readable format
 function formatNotificationTime(minutes: number): string {
   if (minutes < 60) {
     return `${minutes}min`;
@@ -53,6 +60,85 @@ function formatNotificationTime(minutes: number): string {
   return days === 1 ? "1 day" : `${days} days`;
 }
 
+type NotificationOption = { 
+  value: string;
+  label: string; 
+  description?: string;
+};
+
+function getSmartNotificationOptions(eventTime: string): NotificationOption[] {
+  const [hours, minutes] = eventTime.split(":").map(Number);
+  const eventMinutes = hours * 60 + minutes;
+
+  const optionsMap = new Map<number, NotificationOption>();
+
+  const safeAdd = (minutesBefore: number, label: string, type: 'standard' | 'smart' | 'longterm') => {
+    if (minutesBefore < 0) return;
+
+    const existing = optionsMap.get(minutesBefore);
+    
+    if (!existing) {
+      optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+      return;
+    }
+
+    if (type === 'longterm') {
+       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    } 
+    else if (type === 'standard' && minutesBefore <= 180) {
+       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    }
+    else if (type === 'smart' && minutesBefore > 180) {
+       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    }
+  };
+
+  const standardOffsets = [0, 10, 30, 60, 120]; 
+  standardOffsets.forEach(min => {
+    const label = min === 0 ? "At time of event" 
+      : min < 60 ? `${min} minutes before` 
+      : `${min / 60} hour${min === 60 ? '' : 's'} before`;
+    safeAdd(min, label, 'standard');
+  });
+
+
+  const dayInMins = 24 * 60;
+  
+  const anchors = [
+    { time: 9 * 60, label: "Start of day (9 AM)" },
+    { time: 13 * 60, label: "At lunch (1 PM)" },
+    { time: 17 * 60, label: "End of workday (5 PM)" },
+    
+    { time: 20 * 60, label: "Night before (8 PM)", prevDay: true },
+    { time: 17 * 60, label: "Previous afternoon (5 PM)", prevDay: true },
+  ];
+
+  anchors.forEach(anchor => {
+    let offset: number;
+    
+    if (anchor.prevDay) {
+      offset = eventMinutes + (dayInMins - anchor.time);
+    } else {
+      offset = eventMinutes - anchor.time;
+    }
+
+    if (offset >= 90) {
+      safeAdd(offset, anchor.label, 'smart');
+    }
+  });
+
+
+  const longTerm = [
+    { val: 1440, label: "1 day before" },
+    { val: 2880, label: "2 days before" },
+    { val: 10080, label: "1 week before" }
+  ];
+
+  longTerm.forEach(opt => safeAdd(opt.val, opt.label, 'longterm'));
+
+  return Array.from(optionsMap.values())
+    .sort((a, b) => Number(a.value) - Number(b.value));
+}
 interface EventLink {
   _id?: string;
   label: string;
@@ -62,6 +148,7 @@ interface EventLink {
 
 interface EventFormData {
   title: string;
+  place?: string;
   date: Date;
   time: string;
   links: EventLink[];
@@ -96,6 +183,7 @@ export const CalendarDayDialog = ({
 
   const [formData, setFormData] = useState<EventFormData>({
     title: "",
+    place: "",
     date: date,
     time: "09:00",
     links: [],
@@ -190,6 +278,7 @@ export const CalendarDayDialog = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
+            place: formData.place,
             date: eventDate,
             links: formData.links,
             notifyBySlack: formData.notifyBySlack,
@@ -206,6 +295,7 @@ export const CalendarDayDialog = ({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             title: formData.title,
+            place: formData.place,
             date: eventDate,
             links: formData.links,
             status: "scheduled",
@@ -221,6 +311,7 @@ export const CalendarDayDialog = ({
       
       setFormData({
         title: "",
+        place: "",
         date: date,
         time: "09:00",
         links: [],
@@ -244,6 +335,7 @@ export const CalendarDayDialog = ({
     const eventDate = new Date(event.date);
     setFormData({
       title: event.title,
+      place: event.place,
       date: eventDate,
       time: eventDate.toTimeString().split(" ")[0].substring(0, 5),
       links: event.links,
@@ -321,9 +413,9 @@ export const CalendarDayDialog = ({
                   <div
                     className={cn(
                       "w-1.5 h-1.5 rounded-full shrink-0",
-                      event.status === "scheduled" && "bg-blue-500",
-                      event.status === "completed" && "bg-green-500",
-                      event.status === "canceled" && "bg-gray-400"
+                      event.status === "scheduled" && "bg-muted",
+                          event.status === "completed" && "bg-accent-strong",
+                          event.status === "canceled" && "bg-red-900"
                     )}
                   />
                   <span className="truncate font-medium">
@@ -365,6 +457,7 @@ export const CalendarDayDialog = ({
             setEditingEventData(null);
             setFormData({
               title: "",
+              place: "",
               date: date,
               time: "09:00",
               links: [],
@@ -426,6 +519,21 @@ export const CalendarDayDialog = ({
                   placeholder="Team meeting, deadline, etc."
                   className="text-sm"
                   required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="place" className="text-sm">
+                  Place
+                </Label>
+                <Input
+                  id="place"
+                  value={formData.place ?? ""}
+                  onChange={(e) =>
+                    setFormData({ ...formData, place: e.target.value })
+                  }
+                  placeholder="Office, Zoom, etc."
+                  className="text-sm"
                 />
               </div>
 
@@ -525,24 +633,37 @@ export const CalendarDayDialog = ({
                 </div>
 
                 {formData.notifyBySlack && (
-                  <div className="space-y-2 pl-6">
+                  <div className="space-y-2">
                     <Label htmlFor="notifyBeforeMinutes" className="text-xs sm:text-sm">
-                      Notify before (minutes)
+                      Notify me
                     </Label>
-                    <Input
-                      id="notifyBeforeMinutes"
-                      type="number"
-                      min="1"
-                      value={formData.notifyBeforeMinutes ?? 15}
-                      disabled={editingEventData?.isNotificationSent}
-                      onChange={(e) =>
+                    <Select
+                      value={(() => {
+                        const options = getSmartNotificationOptions(formData.time);
+                        const currentValue = formData.notifyBeforeMinutes?.toString();
+                        
+                        const valueExists = options.some(opt => opt.value === currentValue);
+                        return valueExists ? currentValue : options[0]?.value || "15";
+                      })()}
+                      onValueChange={(value) =>
                         setFormData({
                           ...formData,
-                          notifyBeforeMinutes: Number.parseInt(e.target.value) || 15,
+                          notifyBeforeMinutes: Number.parseInt(value),
                         })
                       }
-                      className="text-sm max-w-xs"
-                    />
+                      disabled={editingEventData?.isNotificationSent}
+                    >
+                      <SelectTrigger className="text-sm max-w-xs">
+                        <SelectValue className="min-w-3xs" placeholder="Select time" />
+                      </SelectTrigger>
+                      <SelectContent className="z-99">
+                        {getSmartNotificationOptions(formData.time).map((option, idx) => (
+                          <SelectItem key={`${option.value}-${idx}`} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 )}
               </div>
@@ -557,6 +678,7 @@ export const CalendarDayDialog = ({
                       setEditingEventData(null);
                       setFormData({
                         title: "",
+                        place: "",
                         date: date,
                         time: "09:00",
                         links: [],
@@ -720,7 +842,7 @@ function EventCard({
           </Button>
         </div>
       ) : (
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-muted-foreground w-full">
           <div className="flex items-center gap-1">
             <Calendar className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
             <span>{new Date(event.date).toLocaleDateString()}</span>
@@ -734,14 +856,20 @@ function EventCard({
               })}
             </span>
           </div>
-          <Button
+          {event.place && (
+            <div className="flex items-center gap-1 truncate max-w-30">
+              <MapPin className="w-3 h-3 sm:w-4 sm:h-4 shrink-0" />
+              <span className="truncate">{event.place}</span>
+            </div>
+          )}
+          {/* <Button
             size="sm"
             variant="ghost"
             className="h-6 px-2 text-xs -ml-2"
             onClick={() => setIsEditingTime(true)}
           >
             Change Time
-          </Button>
+          </Button> */}
         </div>
       )}
 

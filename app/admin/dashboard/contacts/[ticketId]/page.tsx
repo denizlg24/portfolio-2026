@@ -45,7 +45,7 @@ export default async function ContactDetailsPage({
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        {/* Main Content */}
+        
         <Card className="md:col-span-2 border-0 shadow-none gap-4">
           <div className="border-b pb-4">
             <h2 className="text-base sm:text-lg font-semibold mb-4">Contact Information</h2>
@@ -79,7 +79,7 @@ export default async function ContactDetailsPage({
           </div>
         </Card>
 
-        {/* Sidebar */}
+        
         <div className="space-y-4">
           <Card className="p-4 space-y-4">
             <div>

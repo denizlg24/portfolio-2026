@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { ILeanCalendarEvent } from "@/models/CalendarEvent";
 import { Badge } from "@/components/ui/badge";
-import { Clock, ExternalLink, Loader2 } from "lucide-react";
+import { Ban, Check, Clock, ExternalLink, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 export function TodaysEvents() {
   const [events, setEvents] = useState<ILeanCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
+  const [changingStatus, setChangingStatus] = useState<string | false>(false);
 
   const fetchTodaysEvents = async () => {
     try {
@@ -29,8 +31,7 @@ export function TodaysEvents() {
 
   useEffect(() => {
     fetchTodaysEvents();
-    
-    
+
     const interval = setInterval(fetchTodaysEvents, 60000);
     return () => clearInterval(interval);
   }, []);
@@ -68,8 +69,8 @@ export function TodaysEvents() {
                   event.status === "completed"
                     ? "default"
                     : event.status === "canceled"
-                      ? "destructive"
-                      : "secondary"
+                    ? "destructive"
+                    : "secondary"
                 }
                 className="text-xs shrink-0"
               >
@@ -86,6 +87,13 @@ export function TodaysEvents() {
                 minute: "2-digit",
               })}
             </span>
+            {event.place && (
+              <>
+                <span>•</span>
+                <MapPin className="w-3 h-3 shrink-0" />
+                <span>{event.place}</span>
+              </>
+            )}
           </div>
 
           {event.links.length > 0 && (
@@ -119,12 +127,70 @@ export function TodaysEvents() {
               ))}
             </div>
           )}
-
-          {event.notifyBySlack && (
-            <Badge variant="outline" className="text-xs">
-              📢 Slack
-            </Badge>
-          )}
+          <div className="w-full flex flex-row items-center gap-2">
+            <Button
+              disabled={!!changingStatus || event.status == 'completed'}
+              size={"sm"}
+              className="text-sm"
+              onClick={async () => {
+                setChangingStatus("complete");
+                await fetch(`/api/admin/calendar/${event._id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ status: "completed" }),
+                });
+                setEvents((events) =>
+                  events.map((_e) =>
+                    _e._id == event._id ? { ..._e, status: "completed" } : _e
+                  )
+                );
+                setChangingStatus(false);
+              }}
+            >
+              {changingStatus == "complete" ? (
+                <>
+                  <Loader2 className="animate-spin" />
+                  Completing...
+                </>
+              ) : (
+                <>
+                  <Check />
+                  {event.status == 'completed' ? "Completed": "Complete"}
+                </>
+              )}
+            </Button>
+            <Button
+              disabled={!!changingStatus || event.status == 'canceled'}
+              variant={"secondary"}
+              size={"sm"}
+              className="text-sm"
+              onClick={async () => {
+                setChangingStatus("cancel");
+                await fetch(`/api/admin/calendar/${event._id}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ status: "canceled" }),
+                });
+                setEvents((events) =>
+                  events.map((_e) =>
+                    _e._id == event._id ? { ..._e, status: "canceled" } : _e
+                  )
+                );
+                setChangingStatus(false);
+              }}
+            >
+              {changingStatus == "cancel" ? (
+                <>
+                  <Loader2 className="animate-spin" /> Cancelling...
+                </>
+              ) : (
+                <>
+                  <Ban />
+                   {event.status == 'canceled' ? "Canceled": "Cancel"}
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       ))}
     </div>

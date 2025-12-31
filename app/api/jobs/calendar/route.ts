@@ -55,6 +55,14 @@ async function sendEventToSlack(event: ICalendarEvent) {
           event.date.getTime() / 1000
         )}^{date_long} at {time}|${event.date.toISOString()}>`,
       },
+      ...(event.place
+        ? [
+            {
+              type: "mrkdwn",
+              text: `📍 ${event.place}`,
+            },
+          ]
+        : []),
     ],
   },
   ...(event.links?.length

@@ -8,7 +8,7 @@ export async function FeaturedProjectsSection({
 } = {}) {
   const projects = await getActiveProjects();
 
-  return projects.slice(0, count ?? 3).map((project) => (
+  return projects.filter((project) => project.isFeatured).map((project) => (
     <ProjectCard
       key={project._id.toString()}
       className="max-w-full col-span-1"
