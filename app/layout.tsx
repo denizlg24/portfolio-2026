@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Calistoga, Inter } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 import { Footer } from "@/components/footer";
 import { Header } from "@/components/header";
@@ -79,6 +80,7 @@ export default function RootLayout({
         {children}
         <Footer />
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );
