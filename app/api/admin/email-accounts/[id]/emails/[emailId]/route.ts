@@ -28,10 +28,7 @@ export async function GET(
 
     const account = await EmailAccountModel.findById(id).lean();
     if (!account) {
-      return NextResponse.json(
-        { error: "Account not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
     const password = decryptPassword(
@@ -51,7 +48,6 @@ export async function GET(
     let lock = await client.getMailboxLock(account.inboxName || "INBOX");
 
     try {
-      
       const msg = await client.fetchOne(
         email.uid,
         {
@@ -62,10 +58,12 @@ export async function GET(
       );
 
       if (!msg) {
-        return NextResponse.json({ error: "Email not found on server" }, { status: 404 });
+        return NextResponse.json(
+          { error: "Email not found on server" },
+          { status: 404 }
+        );
       }
 
-      
       if (!email.seen) {
         await client.messageFlagsAdd(msg.uid, ["\\Seen"], { uid: true });
       }
@@ -94,7 +92,6 @@ export async function GET(
         );
       }
 
-      
       if (!email.seen) {
         await EmailModel.findByIdAndUpdate(emailId, { seen: true });
       }
