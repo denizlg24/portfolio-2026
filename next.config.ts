@@ -11,6 +11,13 @@ const nextConfig: NextConfig = {
       new URL("https://rose-acceptable-bee-887.mypinata.cloud/**"),
     ],
   },
+  serverExternalPackages: [
+    "imapflow",
+    "mailparser",
+    "pino",
+    "thread-stream",
+    "pino-pretty",
+  ],
 };
 
 export default nextConfig;
