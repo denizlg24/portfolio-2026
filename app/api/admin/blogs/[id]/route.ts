@@ -8,7 +8,7 @@ import { Blog } from "@/models/Blog";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -26,14 +26,14 @@ export async function GET(
     console.error("Error fetching blog:", error);
     return NextResponse.json(
       { error: "Failed to fetch blog" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -49,7 +49,7 @@ export async function PATCH(
       }
       return NextResponse.json(
         { message: "Blog visibility toggled successfully", blog },
-        { status: 200 },
+        { status: 200 }
       );
     }
     await connectDB();
@@ -69,7 +69,8 @@ export async function PATCH(
     if (!blog) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidatePath(`/blogs/${blog.slug}`, "layout");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
     return NextResponse.json(
       {
         message: "Blog updated successfully",
@@ -78,20 +79,20 @@ export async function PATCH(
           _id: blog._id.toString(),
         },
       },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error updating blog:", error);
     return NextResponse.json(
       { error: "Failed to update blog" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> },
+  { params }: { params: Promise<{ id: string }> }
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -105,16 +106,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
 
-    revalidatePath(`/blogs/${blog.slug}`);
+    revalidatePath(`/blogs/${blog.slug}`, "layout");
+    revalidatePath(`/blogs/${blog.slug}`, "page");
     return NextResponse.json(
       { message: "Blog deleted successfully" },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error deleting blog:", error);
     return NextResponse.json(
       { error: "Failed to delete blog" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
