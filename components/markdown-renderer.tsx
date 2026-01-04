@@ -67,7 +67,6 @@ const MediumStyleComponents = {
 
     return (
       <StyledLink
-        className=" underline decoration-1 underline-offset-2 hover:decoration-2"
         type="anchor"
         {...props}
       >

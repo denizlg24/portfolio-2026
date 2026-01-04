@@ -37,9 +37,6 @@ export const InboxMobileDropdown = () => {
     if (pathname === "/admin/dashboard/inbox") {
       return "All Accounts";
     }
-    if (pathname === "/admin/dashboard/inbox/settings") {
-      return "Settings";
-    }
     
     const accountMatch = pathname.match(/\/account\/([^/]+)/);
     if (accountMatch) {
@@ -74,14 +71,7 @@ export const InboxMobileDropdown = () => {
           <Inbox className="mr-2 h-4 w-4" />
           All Accounts
         </DropdownMenuItem>
-        <DropdownMenuItem
-          onClick={() => router.push("/admin/dashboard/inbox/settings")}
-          className="cursor-pointer text-sm"
-        >
-          <Settings className="mr-2 h-4 w-4" />
-          Settings
-        </DropdownMenuItem>
-        
+
         {accounts.length > 0 && (
           <>
             <DropdownMenuSeparator />

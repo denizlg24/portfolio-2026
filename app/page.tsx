@@ -13,14 +13,16 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import { Suspense } from "react";
 import CurrentAge from "@/components/current-age";
+import { FadeInImage } from "@/components/fade-in-image";
 import { FeaturedProjectsSection } from "@/components/featured-projects-section";
-//import InstagramSection from "@/components/instagram-section";
+import { InstagramGridServer } from "@/components/instagram-grid-server";
 import { StyledLink } from "@/components/styled-link";
 import { Timeline } from "@/components/timeline";
 import TimelineTabsContent from "@/components/timeline-tabs-content";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
@@ -54,15 +56,6 @@ export default function Home() {
           />
         </h2>
       </section>
-      {/* <Suspense
-        fallback={
-          <div className="sm:h-[300px] xs:h-[250px] h-[150px] w-full flex items-center justify-center text-accent">
-            <Loader2Icon className="w-6 h-6 animate-spin" />
-          </div>
-        }
-      >
-        <InstagramSection />
-      </Suspense> */}
       <section className="w-full max-w-5xl mx-auto px-4 md:grid flex flex-col-reverse grid-cols-5 gap-6 mt-6 items-center">
         <article className="col-span-3 flex flex-col items-start gap-6 w-full">
           <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
@@ -111,7 +104,7 @@ export default function Home() {
         </article>
         <div className="col-span-2 w-full flex flex-col items-center gap-2">
           <div className="rounded-t-full h-auto aspect-[0.8] bg-accent w-full overflow-hidden sm:max-w-2xs max-w-3xs border shadow flex flex-col items-center justify-end group">
-            <Image
+            <FadeInImage
               src="/headshot-square.png"
               alt="Deniz profile picture"
               width={512}
@@ -213,6 +206,31 @@ export default function Home() {
             }
           >
             <FeaturedProjectsSection count={3} />
+          </Suspense>
+        </div>
+      </section>
+      <section className="w-full max-w-5xl px-4 mx-auto flex flex-col gap-12 mt-16">
+        <div className="w-full flex flex-col gap-0.5 items-center">
+          <h1 className="sm:text-4xl text-3xl text-balance font-calistoga w-full text-center">
+            outside the computer
+          </h1>
+          <a
+            href="https://www.instagram.com/denizlg24"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex gap-1 text-sm text-accent hover:text-foreground transition-colors items-center"
+          >
+            @denizlg24
+          </a>
+        </div>
+
+        <div className="grid grid-cols-4 xs:gap-3 gap-1 auto-rows-[120px] sm:auto-rows-[140px]">
+          <Suspense
+            fallback={Array.from({ length: 7 }).map((_, i) => (
+              <Skeleton key={i} className="sm:rounded-xl xs:rounded-lg rounded" />
+            ))}
+          >
+            <InstagramGridServer count={7} />
           </Suspense>
         </div>
       </section>

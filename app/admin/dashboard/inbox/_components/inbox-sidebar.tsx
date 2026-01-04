@@ -40,17 +40,6 @@ export const InboxSidebar = () => {
             <span className="text-sm">All Accounts</span>
           </Link>
         </Button>
-        <Button
-          variant={pathname === "/admin/dashboard/inbox/settings" ? "secondary" : "ghost"}
-          size="sm"
-          asChild
-          className="justify-start gap-2"
-        >
-          <Link href="/admin/dashboard/inbox/settings">
-            <Settings className="w-4 h-4" />
-            <span className="text-sm">Settings</span>
-          </Link>
-        </Button>
       </nav>
 
       <div className="flex-1 overflow-y-auto p-2">
