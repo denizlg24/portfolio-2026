@@ -15,7 +15,7 @@ export async function PATCH(request: NextRequest) {
     if (!Array.isArray(items)) {
       return NextResponse.json(
         { error: "Invalid items array" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -29,17 +29,19 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await Project.bulkWrite(bulkOps);
-    revalidatePath("/");
-    revalidatePath("/projects");
+    revalidatePath("/", "layout");
+    revalidatePath("/projects", "layout");
+    revalidatePath("/", "page");
+    revalidatePath("/projects", "page");
     return NextResponse.json(
       { message: "Projects reordered successfully" },
-      { status: 200 },
+      { status: 200 }
     );
   } catch (error) {
     console.error("Error reordering projects:", error);
     return NextResponse.json(
       { error: "Failed to reorder projects" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

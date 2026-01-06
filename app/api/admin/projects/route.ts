@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching projects:", error);
     return NextResponse.json(
       { error: "Failed to fetch projects" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
@@ -27,8 +27,17 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { title, subtitle, images, media, links, markdown, tags, isActive, isFeatured } =
-      body;
+    const {
+      title,
+      subtitle,
+      images,
+      media,
+      links,
+      markdown,
+      tags,
+      isActive,
+      isFeatured,
+    } = body;
 
     await connectDB();
 
@@ -51,8 +60,10 @@ export async function POST(request: NextRequest) {
       isFeatured: isFeatured !== undefined ? isFeatured : false,
       order,
     });
-    revalidatePath("/");
-    revalidatePath("/projects");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
+    revalidatePath("/projects", "layout");
+    revalidatePath("/projects", "page");
     return NextResponse.json(
       {
         message: "Project created successfully",
@@ -61,13 +72,13 @@ export async function POST(request: NextRequest) {
           _id: project._id.toString(),
         },
       },
-      { status: 201 },
+      { status: 201 }
     );
   } catch (error) {
     console.error("Error creating project:", error);
     return NextResponse.json(
       { error: "Failed to create project" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }

@@ -86,19 +86,10 @@ export default function Home() {
           </p>
           <p className="sm:text-base text-sm">
             Today, I&apos;m completing my degree in Computing and Informatics
-            Engineering at FEUP while building real-world products as the
-            co-founder and sole developer at{" "}
-            <StyledLink
-              type="anchor"
-              href="https://oceaninformatix.com"
-              target="_blank"
-            >
-              Ocean Informatix
-            </StyledLink>
-            . I work across the full stack, creating web applications, custom
-            software, and modern digital experiences for clients. I enjoy
+            Engineering at FEUP while building real-world products. I specialize in fullstack development, creating web applications, but also have developed custom
+            software solutions, and modern digital experiences for clients. I enjoy
             designing systems end-to-end, experimenting with new technologies,
-            and building products that feel simple, reliable, and meaningful to
+            and building products that feel simple, reliable, and are safe to
             use.
           </p>
         </article>

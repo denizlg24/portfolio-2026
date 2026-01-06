@@ -29,7 +29,8 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await TimelineItem.bulkWrite(bulkOps);
-    revalidatePath("/");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
     console.error("Error reordering timeline items:", error);

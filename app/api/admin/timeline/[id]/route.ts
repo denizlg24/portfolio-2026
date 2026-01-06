@@ -64,7 +64,8 @@ export async function PATCH(
         { status: 404 },
       );
     }
-    revalidatePath("/");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
     return NextResponse.json({ item }, { status: 200 });
   } catch (error: any) {
     console.error("Error updating timeline item:", error);
@@ -86,7 +87,8 @@ export async function DELETE(
     const { id } = await params;
 
     await deleteTimelineItem(id);
-    revalidatePath("/");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
     console.error("Error deleting timeline item:", error);
