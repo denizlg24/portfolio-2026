@@ -1,8 +1,8 @@
 export const revalidate = 2592000; // Revalidate every 30 days
 
-import { Fullscreen } from "lucide-react";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { ImageZoomButton } from "@/components/image-zoom-button";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -17,14 +17,6 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getActiveProjects, getProjectById } from "@/lib/projects";
 import { iconMap } from "@/lib/utils";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 
 export async function generateStaticParams() {
   const projects = await getActiveProjects();
@@ -71,12 +63,12 @@ export default async function ProjectPage({
     notFound();
   }
   return (
-    <main className="flex flex-col items-center justify-center">
+    <main className="flex flex-col items-center justify-center animate-in fade-in duration-500">
       <section className="w-full max-w-5xl mx-auto px-4 items-center mt-6">
         <h1 className="sm:text-4xl xs:text-3xl text-2xl font-calistoga text-balance text-center">
           {project.title}
         </h1>
-        <div className="mt-6 flex items-center justify-center w-full h-auto overflow-hidden rounded-lg drop-shadow-xl">
+        <div className="mt-6 flex items-center justify-center overflow-hidden rounded-lg drop-shadow-xl w-full h-auto aspect-video">
           <Carousel>
             <CarouselContent>
               {project.images.map((image, index) => (
@@ -88,31 +80,7 @@ export default async function ProjectPage({
                     height={1080}
                     className="object-cover w-full h-auto aspect-video rounded-lg border-2"
                   />
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button
-                        size="icon-sm"
-                        className="absolute right-2 bottom-2"
-                      >
-                        <Fullscreen />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="w-[calc(100vw-16px)] max-w-full! mx-auto bg-surface">
-                      <DialogHeader className="text-center items-center">
-                        <DialogTitle>{project.title}</DialogTitle>
-                        <DialogDescription className="italic text-accent">
-                          {"{"}{image}{"}"}
-                        </DialogDescription>
-                      </DialogHeader>
-                      <Image
-                        src={image}
-                        alt={project.title}
-                        width={1920}
-                        height={1080}
-                        className="object-cover w-full h-auto max-h-[80vh] aspect-video rounded-lg border-2"
-                      />
-                    </DialogContent>
-                  </Dialog>
+                  <ImageZoomButton src={image} alt={project.title} />
                 </CarouselItem>
               ))}
             </CarouselContent>

@@ -1,4 +1,5 @@
 import ReactMarkdown from "react-markdown";
+import rehypeHighlight from "rehype-highlight";
 import rehypeRaw from "rehype-raw";
 import remarkGfm from "remark-gfm";
 import { cn } from "@/lib/utils";
@@ -98,20 +99,19 @@ const MediumStyleComponents = {
     <li className="mb-[10px] pl-[5px]" {...props} />
   ),
 
-  code: ({ node, inline, className, children, ...props }: any) => {
-    if (!inline) {
+  code: ({ node, className, children, ...props }: any) => {
+    // Check if this is inside a pre tag (code block) - rehype-pretty-code handles these
+    const isCodeBlock = className?.includes("language-");
+    
+    if (isCodeBlock) {
       return (
-        <code
-          className={cn(
-            "bg-muted/50 text-foreground px-[6px] py-[3px]",
-            className,
-          )}
-          {...props}
-        >
+        <code className={className} {...props}>
           {children}
         </code>
       );
     }
+    
+    // Inline code styling
     return (
       <code
         className="bg-muted/50 text-foreground px-[6px] py-[3px] rounded-[3px] text-[16px] sm:text-[17px] md:text-[18px] font-mono border border-border/40"
@@ -122,11 +122,13 @@ const MediumStyleComponents = {
     );
   },
 
-  pre: ({ node, ...props }: any) => (
+  pre: ({ node, children, ...props }: any) => (
     <pre
-      className="bg-muted/30 border border-border/40 p-[20px] rounded-[4px] overflow-x-auto text-[14px] sm:text-[15px] md:text-[16px] leading-[22px] sm:leading-[23px] md:leading-[24px] my-[29px] font-mono"
+      className="bg-muted/30 border border-border/40 rounded-lg overflow-x-auto my-[29px] text-[14px] sm:text-[15px] md:text-[16px] leading-[1.6] [&>code]:block [&>code]:p-4 [&>code]:overflow-x-auto"
       {...props}
-    />
+    >
+      {children}
+    </pre>
   ),
 
   img: ({ node, ...props }: any) => (
@@ -186,7 +188,7 @@ export function MarkdownRenderer({
     <article className={`w-full max-w-full mx-auto ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeRaw]}
+        rehypePlugins={[rehypeRaw, rehypeHighlight]}
         components={MediumStyleComponents}
       >
         {content}
