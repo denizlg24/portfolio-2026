@@ -65,7 +65,7 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
           {value || "Select time"}
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-4" align="start">
+      <PopoverContent side="bottom" className="w-auto p-4" align="start">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-2">

@@ -290,7 +290,7 @@ export const AddEventDialog = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent side="bottom" className="w-auto p-0" align="start">
                   <CalendarComponent
                     mode="single"
                     selected={formData.date}
