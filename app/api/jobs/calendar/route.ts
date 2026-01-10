@@ -1,14 +1,28 @@
 import { connectDB } from "@/lib/mongodb";
 import { CalendarEvent, ICalendarEvent } from "@/models/CalendarEvent";
+import { subDays } from "date-fns";
 
 export async function GET(request: Request) {
   try {
-    if (request.headers.get('Authorization') !== `Bearer ${process.env.CALENDAR_API_BEARER_TOKEN}`) {
+    if (
+      request.headers.get("Authorization") !==
+      `Bearer ${process.env.CALENDAR_API_BEARER_TOKEN}`
+    ) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
       });
     }
     await connectDB();
+    const eventsCompleted = await CalendarEvent.updateMany(
+      {
+        status: "scheduled",
+        date: { $lte: subDays(new Date(), 1) },
+      },
+      { status: "completed" }
+    );
+    console.log(
+      `Completed ${eventsCompleted.modifiedCount} events that are passed their date.`
+    );
     const events = await CalendarEvent.find({
       notifyBySlack: true,
       isNotificationSent: false,
@@ -38,47 +52,47 @@ async function sendEventToSlack(event: ICalendarEvent) {
     event.date.getTime() / 1000
   )}^{date_long} at {time}|${event.date.toISOString()}>`;
 
- const blocks = [
-  {
-    type: "section",
-    text: {
-      type: "mrkdwn",
-      text: `⏰ *Reminder*: *${event.title}*`,
-    },
-  },
-  {
-    type: "context",
-    elements: [
-      {
+  const blocks = [
+    {
+      type: "section",
+      text: {
         type: "mrkdwn",
-        text: `🗓 <!date^${Math.floor(
-          event.date.getTime() / 1000
-        )}^{date_long} at {time}|${event.date.toISOString()}>`,
+        text: `⏰ *Reminder*: *${event.title}*`,
       },
-      ...(event.place
-        ? [
-            {
-              type: "mrkdwn",
-              text: `📍 ${event.place}`,
-            },
-          ]
-        : []),
-    ],
-  },
-  ...(event.links?.length
-    ? [
+    },
+    {
+      type: "context",
+      elements: [
         {
-          type: "section",
-          text: {
-            type: "mrkdwn",
-            text: `*Links*\n${event.links
-              .map(link => `• <${link.url}|${link.label}>`)
-              .join("\n")}`,
-          },
+          type: "mrkdwn",
+          text: `🗓 <!date^${Math.floor(
+            event.date.getTime() / 1000
+          )}^{date_long} at {time}|${event.date.toISOString()}>`,
         },
-      ]
-    : []),
-];
+        ...(event.place
+          ? [
+              {
+                type: "mrkdwn",
+                text: `📍 ${event.place}`,
+              },
+            ]
+          : []),
+      ],
+    },
+    ...(event.links?.length
+      ? [
+          {
+            type: "section",
+            text: {
+              type: "mrkdwn",
+              text: `*Links*\n${event.links
+                .map((link) => `• <${link.url}|${link.label}>`)
+                .join("\n")}`,
+            },
+          },
+        ]
+      : []),
+  ];
 
   await fetch(slackWebhookUrl, {
     method: "POST",

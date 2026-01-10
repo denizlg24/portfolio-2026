@@ -18,7 +18,7 @@ export default async function Page() {
 
   return (
     <>
-      <main className="w-full flex flex-col items-center relative min-h-screen">
+      <main className="w-full flex flex-col items-center relative min-h-screen animate-in fade-in duration-300">
         <InboxSidebar />
         <div className="border-t grow w-full lg:pl-64 h-full max-h-screen overflow-y-auto p-4 sm:p-6">
           <div className="lg:hidden mb-4">

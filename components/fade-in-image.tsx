@@ -21,6 +21,7 @@ export function FadeInImage({
       <Image
         {...props}
         alt={alt}
+        loading="eager"
         className={cn(
           "transition-all duration-500 ease-out",
           isLoaded ? "opacity-100" : "opacity-0 translate-y-12!",

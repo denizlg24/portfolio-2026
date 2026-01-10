@@ -6,7 +6,6 @@ import { format } from "date-fns";
 import { Mail, MailOpen, RefreshCw, Loader2, X } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import {
@@ -124,16 +123,19 @@ export function EmailList({ accountId }: EmailListProps) {
 
   if (isLoading) {
     return (
-      <div className="p-6 space-y-3">
-        {[...Array(10)].map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full" />
-        ))}
+      <div className="h-full flex flex-col animate-in fade-in duration-300">
+        <div className="border-b p-3 sm:p-4 flex items-center justify-between gap-2">
+          <h1 className="text-xl sm:text-2xl font-semibold">Inbox</h1>
+        </div>
+        <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground animate-pulse">
+          Loading emails...
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col animate-in fade-in duration-300">
       <div className="border-b p-3 sm:p-4 flex items-center justify-between gap-2">
         <h1 className="text-xl sm:text-2xl font-semibold">Inbox</h1>
         <Button onClick={handleSync} disabled={syncing} size="sm">

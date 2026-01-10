@@ -12,7 +12,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface EmailAccount {
   _id: string;
@@ -51,7 +50,12 @@ export const InboxMobileDropdown = () => {
   };
 
   if (isLoading) {
-    return <Skeleton className="h-10 w-full max-w-[250px]" />;
+    return (
+      <Button variant="outline" className="w-full max-w-[250px] justify-between text-sm sm:text-base animate-pulse" disabled>
+        <span className="text-muted-foreground">Loading...</span>
+        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+      </Button>
+    );
   }
 
   return (

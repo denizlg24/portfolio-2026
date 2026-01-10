@@ -6,7 +6,6 @@ import { Mail, MoreVertical, Trash2, RefreshCw, Plus } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -120,19 +119,20 @@ export function AccountsList() {
 
   if (isLoading) {
     return (
-      <div className="space-y-3 pl-2">
-        {[...Array(3)].map((_, i) => (
-          <Card key={i} className="p-3 sm:p-4">
-            <Skeleton className="h-20 w-full" />
-          </Card>
-        ))}
+      <div className="space-y-4 pl-2 animate-in fade-in duration-300">
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="text-xl sm:text-2xl font-semibold">Email Accounts</h2>
+        </div>
+        <div className="flex items-center justify-center py-12 text-sm text-muted-foreground animate-pulse">
+          Loading accounts...
+        </div>
       </div>
     );
   }
 
   return (
     <>
-      <div className="space-y-4 pl-2">
+      <div className="space-y-4 pl-2 animate-in fade-in duration-300">
         <div className="flex items-center justify-between gap-2">
           <h2 className="text-xl sm:text-2xl font-semibold">Email Accounts</h2>
           <Button onClick={() => setAddDialogOpen(true)} size="sm">

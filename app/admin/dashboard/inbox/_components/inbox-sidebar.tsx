@@ -1,12 +1,11 @@
 "use client";
 
 import useSWR from "swr";
-import { Inbox, Settings, Mail } from "lucide-react";
+import { Inbox, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface EmailAccount {
   _id: string;
@@ -50,10 +49,8 @@ export const InboxSidebar = () => {
         </div>
 
         {isLoading ? (
-          <div className="space-y-2">
-            {[...Array(3)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full" />
-            ))}
+          <div className="px-2 py-4 text-center text-sm text-muted-foreground animate-pulse">
+            Loading accounts...
           </div>
         ) : accounts.length === 0 ? (
           <div className="px-2 py-4 text-center text-sm text-muted-foreground">
