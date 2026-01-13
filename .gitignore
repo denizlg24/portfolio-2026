@@ -44,9 +44,9 @@ next-env.d.ts
 
 # Envoy
 
-!.envoy/
 
-.envoy/cache/
-.envoy/*.blob
+.envoy/*
+!.envoy/config.toml
+
 
 

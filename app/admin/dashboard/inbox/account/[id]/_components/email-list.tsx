@@ -135,7 +135,7 @@ export function EmailList({ accountId }: EmailListProps) {
   }
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in duration-300">
+    <div className="h-full flex flex-col animate-in fade-in duration-300 overflow-hidden">
       <div className="border-b p-3 sm:p-4 flex items-center justify-between gap-2">
         <h1 className="text-xl sm:text-2xl font-semibold">Inbox</h1>
         <Button onClick={handleSync} disabled={syncing} size="sm">
@@ -151,7 +151,7 @@ export function EmailList({ accountId }: EmailListProps) {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden">
         {emails.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8 sm:p-12">
             <div className="rounded-full bg-muted p-3 sm:p-4 mb-3 sm:mb-4">
@@ -173,14 +173,14 @@ export function EmailList({ accountId }: EmailListProps) {
             </Button>
           </div>
         ) : (
-          <div className="divide-y">
+          <div className="divide-y w-full">
             {emails.map((email: Email) => (
               <div
                 key={email._id}
-                className="p-3 sm:p-4 hover:bg-muted/50 cursor-pointer transition-colors"
+                className="p-3 sm:p-4 hover:bg-muted/50 cursor-pointer transition-colors w-full"
                 onClick={() => handleEmailClick(email)}
               >
-                <div className="flex items-start gap-2 sm:gap-3">
+                <div className="flex items-start gap-2 sm:gap-3 w-full">
                   <div className="shrink-0 mt-1">
                     {email.seen ? (
                       <MailOpen className="w-4 h-4 sm:w-5 sm:h-5 text-muted-foreground" />
@@ -189,17 +189,15 @@ export function EmailList({ accountId }: EmailListProps) {
                     )}
                   </div>
 
-                  <div className="flex-1 min-w-0">
+                  <div className="min-w-0 flex-1 overflow-hidden">
                     <div className="flex items-start justify-between gap-2 mb-1">
-                      <div className="flex-1 min-w-0">
-                        <p
-                          className={`text-xs sm:text-sm truncate ${
-                            email.seen ? "font-normal" : "font-semibold"
-                          }`}
-                        >
-                          {email.from[0]?.name || email.from[0]?.address}
-                        </p>
-                      </div>
+                      <p
+                        className={`text-xs sm:text-sm truncate ${
+                          email.seen ? "font-normal" : "font-semibold"
+                        }`}
+                      >
+                        {email.from[0]?.name || email.from[0]?.address}
+                      </p>
                       <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0" suppressHydrationWarning>
                         {format(new Date(email.date), "MMM d, h:mm a")}
                       </span>
@@ -218,7 +216,7 @@ export function EmailList({ accountId }: EmailListProps) {
                     {!email.seen && (
                       <Badge
                         variant="default"
-                        className="mt-1 sm:mt-2 text-[10px] sm:text-xs"
+                        className="mt-1 sm:mt-2 text-[10px] sm:text-xs w-fit"
                       >
                         Unread
                       </Badge>
