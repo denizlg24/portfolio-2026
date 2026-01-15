@@ -106,7 +106,7 @@ export default function Home() {
           <div className="flex justify-between w-full sm:max-w-2xs max-w-3xs gap-4 items-center mx-auto">
             <Button variant={"secondary"} className="w-fit" asChild>
               <a
-                href="/assets/DenizGunesCV2025.pdf"
+                href="/assets/DenizGunesCV2026.pdf"
                 target="_blank"
                 rel="noopener"
               >
