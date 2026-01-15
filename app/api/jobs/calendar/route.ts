@@ -1,6 +1,6 @@
 import { connectDB } from "@/lib/mongodb";
 import { CalendarEvent, ICalendarEvent } from "@/models/CalendarEvent";
-import { subDays } from "date-fns";
+import { format, subDays } from "date-fns";
 
 export async function GET(request: Request) {
   try {
@@ -46,11 +46,9 @@ export async function GET(request: Request) {
 async function sendEventToSlack(event: ICalendarEvent) {
   const slackWebhookUrl = process.env.EVENTS_SLACK_WEBHOOK_URL;
   if (!slackWebhookUrl) return;
-  const headerText = `⏰ *Reminder: ${
-    event.title
-  }* is scheduled for <!date^${Math.floor(
-    event.date.getTime() / 1000
-  )}^{date_long} at {time}|${event.date.toISOString()}>`;
+  const headerText = `⏰ Reminder: ${event.title} is scheduled for ${new Date(
+    event.date
+  ).toLocaleDateString()}`;
 
   const blocks = [
     {
