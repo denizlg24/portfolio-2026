@@ -1,42 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { ILeanCalendarEvent } from "@/models/CalendarEvent";
 import { Badge } from "@/components/ui/badge";
 import { Ban, Check, Clock, ExternalLink, Loader2, MapPin } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useState } from "react";
+import { useCalendar } from "./calendar-context";
 
 export function TodaysEvents() {
-  const [events, setEvents] = useState<ILeanCalendarEvent[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { getTodaysEvents, loading, updateEventStatus } = useCalendar();
   const [changingStatus, setChangingStatus] = useState<string | false>(false);
 
-  const fetchTodaysEvents = async () => {
-    try {
-      const today = new Date();
-      const response = await fetch(
-        `/api/admin/calendar?date=${today.toISOString()}`
-      );
-      if (response.ok) {
-        const data = await response.json();
-        setEvents(data.events || []);
-      }
-    } catch (error) {
-      console.error("Failed to fetch today's events:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const events = getTodaysEvents();
 
-  useEffect(() => {
-    fetchTodaysEvents();
-
-    const interval = setInterval(fetchTodaysEvents, 60000);
-    return () => clearInterval(interval);
-  }, []);
-
-  if (loading) {
+  if (loading && events.length === 0) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="w-6 h-6 animate-spin" />
@@ -51,6 +29,20 @@ export function TodaysEvents() {
       </div>
     );
   }
+
+  const handleStatusChange = async (event: ILeanCalendarEvent, status: "completed" | "canceled") => {
+    setChangingStatus(status === "completed" ? "complete" : "cancel");
+    try {
+      await fetch(`/api/admin/calendar/${event._id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status }),
+      });
+      updateEventStatus(event._id, status);
+    } finally {
+      setChangingStatus(false);
+    }
+  };
 
   return (
     <div className="space-y-2">
@@ -132,20 +124,7 @@ export function TodaysEvents() {
               disabled={!!changingStatus || event.status == 'completed'}
               size={"sm"}
               className="text-sm"
-              onClick={async () => {
-                setChangingStatus("complete");
-                await fetch(`/api/admin/calendar/${event._id}`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ status: "completed" }),
-                });
-                setEvents((events) =>
-                  events.map((_e) =>
-                    _e._id == event._id ? { ..._e, status: "completed" } : _e
-                  )
-                );
-                setChangingStatus(false);
-              }}
+              onClick={() => handleStatusChange(event, "completed")}
             >
               {changingStatus == "complete" ? (
                 <>
@@ -164,20 +143,7 @@ export function TodaysEvents() {
               variant={"secondary"}
               size={"sm"}
               className="text-sm"
-              onClick={async () => {
-                setChangingStatus("cancel");
-                await fetch(`/api/admin/calendar/${event._id}`, {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ status: "canceled" }),
-                });
-                setEvents((events) =>
-                  events.map((_e) =>
-                    _e._id == event._id ? { ..._e, status: "canceled" } : _e
-                  )
-                );
-                setChangingStatus(false);
-              }}
+              onClick={() => handleStatusChange(event, "canceled")}
             >
               {changingStatus == "cancel" ? (
                 <>

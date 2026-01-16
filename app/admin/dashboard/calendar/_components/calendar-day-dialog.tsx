@@ -191,6 +191,10 @@ export const CalendarDayDialog = ({
     notifyBeforeMinutes: 15,
   });
 
+  useEffect(() => {
+    setFormData((prev) => ({ ...prev, date: date }));
+  }, [date]);
+
   const [newLink, setNewLink] = useState<EventLink>({
     label: "",
     url: "",
