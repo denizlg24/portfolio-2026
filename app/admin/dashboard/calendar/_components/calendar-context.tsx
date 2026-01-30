@@ -57,14 +57,6 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     fetchMonthEvents(currentMonth);
   }, [currentMonth, fetchMonthEvents]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetchMonthEvents(currentMonth);
-    }, 60000);
-
-    return () => clearInterval(interval);
-  }, [currentMonth, fetchMonthEvents]);
-
   const refreshEvents = useCallback(async () => {
     await fetchMonthEvents(currentMonth);
   }, [currentMonth, fetchMonthEvents]);
