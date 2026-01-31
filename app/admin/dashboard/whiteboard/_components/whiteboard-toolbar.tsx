@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MousePointer2, Hand, Pencil, Plus, Loader2 } from "lucide-react";
+import { MousePointer2, Hand, Pencil, Plus, Loader2, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Tooltip,
@@ -46,6 +46,8 @@ export function WhiteboardToolbar() {
     addElement,
     saving,
     viewState,
+    undo,
+    canUndo,
   } = useWhiteboard();
 
   const [addPopoverOpen, setAddPopoverOpen] = useState(false);
@@ -98,6 +100,21 @@ export function WhiteboardToolbar() {
           </Tooltip>
         ))}
       </div>
+
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={undo}
+            disabled={!currentWhiteboard || !canUndo}
+            className="mr-2"
+          >
+            <Undo2 className="size-4" />
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent>Undo</TooltipContent>
+      </Tooltip>
 
       {tool === "draw" && currentWhiteboard && (
         <Popover>

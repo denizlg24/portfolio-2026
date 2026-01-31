@@ -39,6 +39,10 @@ export const Header = () => {
     };
   }, []);
 
+  if(pathname.includes("admin")){
+    return null;
+  }
+
   return (
     <header
       className={cn(

@@ -5,6 +5,7 @@ import {
   IWhiteboardElement,
 } from "@/models/Whiteboard";
 import { connectDB } from "./mongodb";
+import { Types } from "mongoose";
 
 function serializeWhiteboard(whiteboard: any): ILeanWhiteboard {
   return {
@@ -37,7 +38,7 @@ export async function getAllWhiteboards(): Promise<ILeanWhiteboardMeta[]> {
 }
 
 export async function getWhiteboardById(
-  id: string
+  id: string,
 ): Promise<ILeanWhiteboard | null> {
   try {
     await connectDB();
@@ -80,7 +81,7 @@ export async function updateWhiteboard(
     elements: IWhiteboardElement[];
     viewState: { x: number; y: number; zoom: number };
     order: number;
-  }>
+  }>,
 ): Promise<ILeanWhiteboard | null> {
   try {
     await connectDB();
@@ -106,13 +107,13 @@ export async function deleteWhiteboard(id: string): Promise<boolean> {
 }
 
 export async function reorderWhiteboards(
-  orderedIds: string[]
+  orderedIds: string[],
 ): Promise<boolean> {
   try {
     await connectDB();
     const bulkOps = orderedIds.map((id, index) => ({
       updateOne: {
-        filter: { _id: id },
+        filter: { _id: new Types.ObjectId(id) } as any,
         update: { order: index },
       },
     }));

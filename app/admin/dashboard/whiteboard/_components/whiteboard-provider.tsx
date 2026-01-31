@@ -36,9 +36,12 @@ interface WhiteboardContextType {
   tool: Tool;
   drawSettings: DrawSettings;
   viewState: ViewState;
+  selectedElementId: string | null;
+  canUndo: boolean;
   setTool: (tool: Tool) => void;
   setDrawSettings: (settings: Partial<DrawSettings>) => void;
   setViewState: (state: ViewState) => void;
+  setSelectedElementId: (id: string | null) => void;
   loadWhiteboard: (id: string) => Promise<void>;
   createWhiteboard: (name: string) => Promise<ILeanWhiteboard | null>;
   deleteWhiteboard: (id: string) => Promise<boolean>;
@@ -46,6 +49,7 @@ interface WhiteboardContextType {
   addElement: (element: Omit<IWhiteboardElement, "id">) => void;
   updateElement: (id: string, data: Partial<IWhiteboardElement>) => void;
   removeElement: (id: string) => void;
+  undo: () => void;
   refreshWhiteboards: () => Promise<void>;
 }
 
@@ -67,6 +71,8 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
     y: 0,
     zoom: 1,
   });
+  const [selectedElementId, setSelectedElementId] = useState<string | null>(null);
+  const [history, setHistory] = useState<IWhiteboardElement[][]>([]);
 
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingSaveRef = useRef<Partial<ILeanWhiteboard> | null>(null);
@@ -138,6 +144,8 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
         setViewStateInternal(
           data.whiteboard.viewState || { x: 0, y: 0, zoom: 1 }
         );
+        setHistory([]);
+        setSelectedElementId(null);
       }
     } catch (error) {
       console.error("Failed to load whiteboard:", error);
@@ -232,6 +240,8 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
         id: crypto.randomUUID(),
       };
 
+      setHistory((prev) => [...prev, currentWhiteboard.elements]);
+
       setCurrentWhiteboard((prev) => {
         if (!prev) return null;
         const updated = { ...prev, elements: [...prev.elements, newElement] };
@@ -263,16 +273,35 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
     (id: string) => {
       setCurrentWhiteboard((prev) => {
         if (!prev) return null;
+        setHistory((h) => [...h, prev.elements]);
         const updated = {
           ...prev,
           elements: prev.elements.filter((el) => el.id !== id),
         };
         debouncedSave({ elements: updated.elements });
+        if (selectedElementId === id) {
+          setSelectedElementId(null);
+        }
         return updated;
       });
     },
-    [debouncedSave]
+    [debouncedSave, selectedElementId]
   );
+
+  const undo = useCallback(() => {
+    if (history.length === 0) return;
+
+    const previousElements = history[history.length - 1];
+    setHistory((prev) => prev.slice(0, -1));
+
+    setCurrentWhiteboard((prev) => {
+      if (!prev) return null;
+      const updated = { ...prev, elements: previousElements };
+      debouncedSave({ elements: updated.elements });
+      return updated;
+    });
+    setSelectedElementId(null);
+  }, [history, debouncedSave]);
 
   return (
     <WhiteboardContext.Provider
@@ -284,9 +313,12 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
         tool,
         drawSettings,
         viewState,
+        selectedElementId,
+        canUndo: history.length > 0,
         setTool,
         setDrawSettings,
         setViewState,
+        setSelectedElementId,
         loadWhiteboard,
         createWhiteboard: createWhiteboardFn,
         deleteWhiteboard: deleteWhiteboardFn,
@@ -294,6 +326,7 @@ export function WhiteboardProvider({ children }: { children: ReactNode }) {
         addElement,
         updateElement,
         removeElement,
+        undo,
         refreshWhiteboards: fetchWhiteboards,
       }}
     >

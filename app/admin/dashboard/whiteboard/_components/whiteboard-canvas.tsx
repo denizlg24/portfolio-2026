@@ -24,6 +24,11 @@ export function WhiteboardCanvas() {
     viewState,
     setViewState,
     addElement,
+    selectedElementId,
+    setSelectedElementId,
+    removeElement,
+    undo,
+    canUndo,
   } = useWhiteboard();
 
   const [isDrawing, setIsDrawing] = useState(false);
@@ -43,7 +48,7 @@ export function WhiteboardCanvas() {
         y: (clientY - rect.top - viewState.y) / viewState.zoom,
       };
     },
-    [viewState]
+    [viewState],
   );
 
   const drawStroke = useCallback(
@@ -52,7 +57,7 @@ export function WhiteboardCanvas() {
       stroke: Stroke,
       offsetX: number,
       offsetY: number,
-      zoom: number
+      zoom: number,
     ) => {
       if (stroke.points.length < 2) return;
 
@@ -72,7 +77,75 @@ export function WhiteboardCanvas() {
 
       ctx.stroke();
     },
-    []
+    [],
+  );
+
+  const getStrokeBounds = useCallback((points: Point[]) => {
+    if (points.length === 0) return { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+    let minX = points[0].x,
+      minY = points[0].y;
+    let maxX = points[0].x,
+      maxY = points[0].y;
+    for (const p of points) {
+      minX = Math.min(minX, p.x);
+      minY = Math.min(minY, p.y);
+      maxX = Math.max(maxX, p.x);
+      maxY = Math.max(maxY, p.y);
+    }
+    return { minX, minY, maxX, maxY };
+  }, []);
+
+  const isPointNearStroke = useCallback(
+    (point: Point, strokePoints: Point[], threshold: number) => {
+      for (let i = 0; i < strokePoints.length - 1; i++) {
+        const a = strokePoints[i];
+        const b = strokePoints[i + 1];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        if (len === 0) continue;
+        const t = Math.max(
+          0,
+          Math.min(
+            1,
+            ((point.x - a.x) * dx + (point.y - a.y) * dy) / (len * len),
+          ),
+        );
+        const nearestX = a.x + t * dx;
+        const nearestY = a.y + t * dy;
+        const dist = Math.sqrt(
+          (point.x - nearestX) ** 2 + (point.y - nearestY) ** 2,
+        );
+        if (dist <= threshold) return true;
+      }
+      return false;
+    },
+    [],
+  );
+
+  const drawSelectionBox = useCallback(
+    (
+      ctx: CanvasRenderingContext2D,
+      points: Point[],
+      offsetX: number,
+      offsetY: number,
+      zoom: number,
+    ) => {
+      const bounds = getStrokeBounds(points);
+      const padding = 8;
+      ctx.save();
+      ctx.strokeStyle = "#3b82f6";
+      ctx.lineWidth = 2;
+      ctx.setLineDash([5, 5]);
+      ctx.strokeRect(
+        bounds.minX * zoom + offsetX - padding,
+        bounds.minY * zoom + offsetY - padding,
+        (bounds.maxX - bounds.minX) * zoom + padding * 2,
+        (bounds.maxY - bounds.minY) * zoom + padding * 2,
+      );
+      ctx.restore();
+    },
+    [getStrokeBounds],
   );
 
   const render = useCallback(() => {
@@ -82,7 +155,6 @@ export function WhiteboardCanvas() {
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid
     ctx.save();
     ctx.strokeStyle = "#e5e7eb";
     ctx.lineWidth = 1;
@@ -106,12 +178,15 @@ export function WhiteboardCanvas() {
     }
     ctx.restore();
 
-    // Draw saved strokes from whiteboard elements
     if (currentWhiteboard) {
       currentWhiteboard.elements
         .filter((el) => el.type === "drawing")
         .forEach((el) => {
-          const strokeData = el.data as { points: Point[]; color: string; width: number };
+          const strokeData = el.data as {
+            points: Point[];
+            color: string;
+            width: number;
+          };
           if (strokeData.points) {
             drawStroke(
               ctx,
@@ -122,23 +197,33 @@ export function WhiteboardCanvas() {
               },
               viewState.x,
               viewState.y,
-              viewState.zoom
+              viewState.zoom,
             );
+
+            if (el.id === selectedElementId) {
+              drawSelectionBox(
+                ctx,
+                strokeData.points,
+                viewState.x,
+                viewState.y,
+                viewState.zoom,
+              );
+            }
           }
         });
     }
 
-    // Draw current stroke
     if (currentStroke) {
-      drawStroke(
-        ctx,
-        currentStroke,
-        viewState.x,
-        viewState.y,
-        viewState.zoom
-      );
+      drawStroke(ctx, currentStroke, viewState.x, viewState.y, viewState.zoom);
     }
-  }, [currentWhiteboard, currentStroke, viewState, drawStroke]);
+  }, [
+    currentWhiteboard,
+    currentStroke,
+    viewState,
+    drawStroke,
+    selectedElementId,
+    drawSelectionBox,
+  ]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -196,9 +281,39 @@ export function WhiteboardCanvas() {
           color: drawSettings.color,
           width: drawSettings.width,
         });
+      } else if (tool === "select" && e.button === 0) {
+        const point = getCanvasPoint(e.clientX, e.clientY);
+        const drawings = currentWhiteboard.elements.filter(
+          (el) => el.type === "drawing",
+        );
+
+        let foundId: string | null = null;
+        for (let i = drawings.length - 1; i >= 0; i--) {
+          const el = drawings[i];
+          const strokeData = el.data as { points: Point[]; width: number };
+          if (
+            strokeData.points &&
+            isPointNearStroke(
+              point,
+              strokeData.points,
+              (strokeData.width || 3) + 5,
+            )
+          ) {
+            foundId = el.id;
+            break;
+          }
+        }
+        setSelectedElementId(foundId);
       }
     },
-    [currentWhiteboard, tool, drawSettings, getCanvasPoint]
+    [
+      currentWhiteboard,
+      tool,
+      drawSettings,
+      getCanvasPoint,
+      isPointNearStroke,
+      setSelectedElementId,
+    ],
   );
 
   const handlePointerMove = useCallback(
@@ -220,7 +335,14 @@ export function WhiteboardCanvas() {
         });
       }
     },
-    [isPanning, isDrawing, currentStroke, viewState, setViewState, getCanvasPoint]
+    [
+      isPanning,
+      isDrawing,
+      currentStroke,
+      viewState,
+      setViewState,
+      getCanvasPoint,
+    ],
   );
 
   const handlePointerUp = useCallback(
@@ -251,14 +373,37 @@ export function WhiteboardCanvas() {
       }
       setIsDrawing(false);
     },
-    [isPanning, isDrawing, currentStroke, addElement]
+    [isPanning, isDrawing, currentStroke, addElement],
   );
 
-  // Store viewState in a ref so wheel handler doesn't need to be recreated
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const activeEl = document.activeElement;
+      if (
+        activeEl &&
+        (activeEl.tagName === "INPUT" || activeEl.tagName === "TEXTAREA")
+      ) {
+        return;
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && selectedElementId) {
+        e.preventDefault();
+        removeElement(selectedElementId);
+      }
+
+      if ((e.ctrlKey || e.metaKey) && e.key === "z" && canUndo) {
+        e.preventDefault();
+        undo();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedElementId, removeElement, undo, canUndo]);
+
   const viewStateRef = useRef(viewState);
   viewStateRef.current = viewState;
 
-  // Non-passive wheel handler for proper scroll prevention
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !currentWhiteboard) return;
