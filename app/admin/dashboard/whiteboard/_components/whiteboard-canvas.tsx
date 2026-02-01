@@ -1,6 +1,8 @@
 "use client";
 
-import { useRef, useEffect, useCallback, useState } from "react";
+import { useRef, useEffect, useCallback, useState, useMemo } from "react";
+import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useWhiteboard } from "./whiteboard-provider";
 
 interface Point {
@@ -36,6 +38,11 @@ export function WhiteboardCanvas() {
   const [currentStroke, setCurrentStroke] = useState<Stroke | null>(null);
   const lastPanPoint = useRef<Point | null>(null);
   const animationFrameRef = useRef<number | null>(null);
+  const touchStateRef = useRef<{
+    lastDistance: number;
+    lastCenter: Point;
+    isTwoFinger: boolean;
+  } | null>(null);
 
   const getCanvasPoint = useCallback(
     (clientX: number, clientY: number): Point => {
@@ -433,11 +440,114 @@ export function WhiteboardCanvas() {
     return () => canvas.removeEventListener("wheel", handleWheel);
   }, [currentWhiteboard, setViewState]);
 
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !currentWhiteboard) return;
+
+    const getTouchDistance = (touches: TouchList) => {
+      if (touches.length < 2) return 0;
+      const dx = touches[0].clientX - touches[1].clientX;
+      const dy = touches[0].clientY - touches[1].clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    };
+
+    const getTouchCenter = (touches: TouchList): Point => {
+      if (touches.length < 2) {
+        return { x: touches[0].clientX, y: touches[0].clientY };
+      }
+      return {
+        x: (touches[0].clientX + touches[1].clientX) / 2,
+        y: (touches[0].clientY + touches[1].clientY) / 2,
+      };
+    };
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        touchStateRef.current = {
+          lastDistance: getTouchDistance(e.touches),
+          lastCenter: getTouchCenter(e.touches),
+          isTwoFinger: true,
+        };
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 2 && touchStateRef.current?.isTwoFinger) {
+        e.preventDefault();
+        const newDistance = getTouchDistance(e.touches);
+        const newCenter = getTouchCenter(e.touches);
+        const rect = canvas.getBoundingClientRect();
+
+        const vs = viewStateRef.current;
+        const scale = newDistance / touchStateRef.current.lastDistance;
+        const newZoom = Math.min(Math.max(vs.zoom * scale, 0.1), 5);
+
+        const centerX = newCenter.x - rect.left;
+        const centerY = newCenter.y - rect.top;
+
+        const panDx = newCenter.x - touchStateRef.current.lastCenter.x;
+        const panDy = newCenter.y - touchStateRef.current.lastCenter.y;
+
+        const newX = centerX - (centerX - vs.x) * (newZoom / vs.zoom) + panDx;
+        const newY = centerY - (centerY - vs.y) * (newZoom / vs.zoom) + panDy;
+
+        setViewState({
+          x: newX,
+          y: newY,
+          zoom: newZoom,
+        });
+
+        touchStateRef.current = {
+          lastDistance: newDistance,
+          lastCenter: newCenter,
+          isTwoFinger: true,
+        };
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      if (e.touches.length < 2) {
+        touchStateRef.current = null;
+      }
+    };
+
+    canvas.addEventListener("touchstart", handleTouchStart, { passive: false });
+    canvas.addEventListener("touchmove", handleTouchMove, { passive: false });
+    canvas.addEventListener("touchend", handleTouchEnd);
+
+    return () => {
+      canvas.removeEventListener("touchstart", handleTouchStart);
+      canvas.removeEventListener("touchmove", handleTouchMove);
+      canvas.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [currentWhiteboard, setViewState]);
+
   const getCursor = () => {
     if (tool === "pan" || isPanning) return "grab";
     if (tool === "draw") return "crosshair";
     return "default";
   };
+
+  const deleteButtonPosition = useMemo(() => {
+    if (!selectedElementId || !currentWhiteboard) return null;
+
+    const selectedElement = currentWhiteboard.elements.find(
+      (el) => el.id === selectedElementId && el.type === "drawing",
+    );
+    if (!selectedElement) return null;
+
+    const strokeData = selectedElement.data as { points: Point[] };
+    if (!strokeData.points || strokeData.points.length === 0) return null;
+
+    const bounds = getStrokeBounds(strokeData.points);
+    const padding = 8;
+
+    return {
+      x: bounds.maxX * viewState.zoom + viewState.x + padding,
+      y: bounds.minY * viewState.zoom + viewState.y - padding - 28,
+    };
+  }, [selectedElementId, currentWhiteboard, viewState, getStrokeBounds]);
 
   if (!currentWhiteboard) {
     return (
@@ -461,6 +571,21 @@ export function WhiteboardCanvas() {
         onPointerUp={handlePointerUp}
         onPointerLeave={handlePointerUp}
       />
+
+      {deleteButtonPosition && tool === "select" && (
+        <Button
+          variant="destructive"
+          size="icon-sm"
+          className="absolute shadow-md"
+          style={{
+            left: deleteButtonPosition.x,
+            top: deleteButtonPosition.y,
+          }}
+          onClick={() => removeElement(selectedElementId!)}
+        >
+          <X className="size-4" />
+        </Button>
+      )}
     </div>
   );
 }

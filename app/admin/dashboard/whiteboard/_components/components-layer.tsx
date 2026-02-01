@@ -28,44 +28,63 @@ export function ComponentsLayer() {
   const componentElements =
     currentWhiteboard?.elements.filter((el) => el.type === "component") || [];
 
-  const handleMouseDown = useCallback(
-    (e: React.MouseEvent, element: IWhiteboardElement) => {
-      if (tool !== "select") return;
+  const startDrag = useCallback(
+    (clientX: number, clientY: number, element: IWhiteboardElement, target: HTMLElement) => {
+      if (tool !== "select") return false;
 
       // Don't start drag if clicking on interactive elements
-      const target = e.target as HTMLElement;
       const isInteractive = target.closest('input, button, textarea, [data-no-drag], [role="checkbox"]');
-      if (isInteractive) return;
-
-      e.preventDefault();
-      e.stopPropagation();
+      if (isInteractive) return false;
 
       const rect = containerRef.current?.getBoundingClientRect();
-      if (!rect) return;
+      if (!rect) return false;
 
       setDragState({
         elementId: element.id,
         startX: element.x,
         startY: element.y,
-        offsetX: e.clientX - rect.left - element.x * viewState.zoom - viewState.x,
-        offsetY: e.clientY - rect.top - element.y * viewState.zoom - viewState.y,
+        offsetX: clientX - rect.left - element.x * viewState.zoom - viewState.x,
+        offsetY: clientY - rect.top - element.y * viewState.zoom - viewState.y,
       });
+      return true;
     },
     [tool, viewState]
   );
 
-  const handleMouseMove = useCallback(
-    (e: MouseEvent) => {
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent, element: IWhiteboardElement) => {
+      if (startDrag(e.clientX, e.clientY, element, e.target as HTMLElement)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    },
+    [startDrag]
+  );
+
+  const handleTouchStart = useCallback(
+    (e: React.TouchEvent, element: IWhiteboardElement) => {
+      if (e.touches.length === 1) {
+        const touch = e.touches[0];
+        if (startDrag(touch.clientX, touch.clientY, element, e.target as HTMLElement)) {
+          e.stopPropagation();
+        }
+      }
+    },
+    [startDrag]
+  );
+
+  const handleMove = useCallback(
+    (clientX: number, clientY: number) => {
       if (!dragState) return;
 
       const rect = containerRef.current?.getBoundingClientRect();
       if (!rect) return;
 
       const newX =
-        (e.clientX - rect.left - dragState.offsetX - viewState.x) /
+        (clientX - rect.left - dragState.offsetX - viewState.x) /
         viewState.zoom;
       const newY =
-        (e.clientY - rect.top - dragState.offsetY - viewState.y) /
+        (clientY - rect.top - dragState.offsetY - viewState.y) /
         viewState.zoom;
 
       updateElement(dragState.elementId, { x: newX, y: newY });
@@ -73,20 +92,39 @@ export function ComponentsLayer() {
     [dragState, viewState, updateElement]
   );
 
-  const handleMouseUp = useCallback(() => {
+  const handleMouseMove = useCallback(
+    (e: MouseEvent) => handleMove(e.clientX, e.clientY),
+    [handleMove]
+  );
+
+  const handleTouchMove = useCallback(
+    (e: TouchEvent) => {
+      if (e.touches.length === 1) {
+        e.preventDefault();
+        handleMove(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    },
+    [handleMove]
+  );
+
+  const handleEnd = useCallback(() => {
     setDragState(null);
   }, []);
 
   useEffect(() => {
     if (dragState) {
       window.addEventListener("mousemove", handleMouseMove);
-      window.addEventListener("mouseup", handleMouseUp);
+      window.addEventListener("mouseup", handleEnd);
+      window.addEventListener("touchmove", handleTouchMove, { passive: false });
+      window.addEventListener("touchend", handleEnd);
       return () => {
         window.removeEventListener("mousemove", handleMouseMove);
-        window.removeEventListener("mouseup", handleMouseUp);
+        window.removeEventListener("mouseup", handleEnd);
+        window.removeEventListener("touchmove", handleTouchMove);
+        window.removeEventListener("touchend", handleEnd);
       };
     }
-  }, [dragState, handleMouseMove, handleMouseUp]);
+  }, [dragState, handleMouseMove, handleTouchMove, handleEnd]);
 
   const handleDataChange = useCallback(
     (elementId: string, newData: Record<string, unknown>) => {
@@ -136,6 +174,7 @@ export function ComponentsLayer() {
             key={element.id}
             style={style}
             onMouseDown={(e) => handleMouseDown(e, element)}
+            onTouchStart={(e) => handleTouchStart(e, element)}
           >
             <div
               style={{
