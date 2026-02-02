@@ -24,6 +24,7 @@ export const POST = async (request: NextRequest) => {
         { status: 400 },
       );
     }
+    
   } catch (error) {
     console.error("Error creating folder:", error);
     return NextResponse.json(
