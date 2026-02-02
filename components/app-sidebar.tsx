@@ -2,6 +2,7 @@ import {
   Briefcase,
   Calendar,
   Contact,
+  Folder,
   FolderGit2,
   Home,
   Inbox,
@@ -68,6 +69,11 @@ const items = [
     title: "Projects",
     url: "/admin/dashboard/projects",
     icon: FolderGit2,
+  },
+  {
+    title: "Notes",
+    url: "/admin/dashboard/notes",
+    icon: Folder,
   },
   {
     title: "Instagram Tokens",
