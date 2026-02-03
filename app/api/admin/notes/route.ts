@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Folder } from "@/models/Folder";
+import { INote, Note } from "@/models/Notes";
 import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -10,26 +11,31 @@ export const POST = async (request: NextRequest) => {
     if (authError) return authError;
     const body = await request.json();
     const { name, parentId } = body;
-    const parentObjectId =
-      parentId && parentId !== "null"
-        ? new mongoose.Types.ObjectId(parentId)
-        : null;
     await connectDB();
-    const foundFolder = await Folder.findOne({
-      name,
-      parentFolder: parentObjectId,
-    });
-    if (foundFolder) {
+    const foundFolder = await Folder.findById(parentId).populate<{
+      notes: INote[];
+    }>("notes");
+    if (!foundFolder) {
       return NextResponse.json(
-        { error: "Folder with the same name already exists in this location." },
+        { error: "Folder doesn't exist" },
         { status: 400 },
       );
     }
-    const newFolder = await Folder.create({
-      name,
-      parentFolder: parentObjectId ?? undefined,
+    const foundNote = foundFolder.notes.find((note) => note.title === name);
+    if (foundNote) {
+      return NextResponse.json(
+        { error: "Note with the same name already exists in this folder." },
+        { status: 400 },
+      );
+    }
+    const newNote = await Note.create({
+      title: name,
+      content: "New note",
     });
-    return NextResponse.json({_id: newFolder._id.toString()}, { status: 201 });
+    await Folder.findByIdAndUpdate(foundFolder._id, {
+      $push: { notes: newNote._id },
+    });
+    return NextResponse.json({ _id: newNote._id.toString() }, { status: 201 });
   } catch (error) {
     console.error("Error creating folder:", error);
     return NextResponse.json(

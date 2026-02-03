@@ -13,36 +13,36 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DialogClose } from "@radix-ui/react-dialog";
-import { FolderPlus, Loader2 } from "lucide-react";
+import { FilePlus2, Loader2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-export const CreateFolderButton = () => {
+export const CreateNoteButton = () => {
   const pathname = usePathname();
 
   const parentId = useMemo(() => pathname.split("/").pop(), [pathname]);
 
-  const [folderName, setFolderName] = useState("");
+  const [noteName, setNoteName] = useState("");
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
   const handleCreateFolder = async () => {
-    if (!folderName) return;
+    if (!noteName || parentId === "notes") return;
     try {
       setLoading(true);
-      const response = await fetch("/api/admin/folders", {
+      const response = await fetch("/api/admin/notes", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          name: folderName,
-          parentId: parentId === "notes" ? null : parentId,
+          name: noteName,
+          parentId: parentId,
         }),
       });
       const data = await response.json();
-      router.push(`/admin/dashboard/notes/${data._id}`);
+      router.push(`/admin/dashboard/notes/${parentId}/${data._id}`);
     } catch (error) {
       console.error("Error creating folder:", error);
     } finally {
@@ -54,22 +54,22 @@ export const CreateFolderButton = () => {
     <Dialog>
       <DialogTrigger asChild>
         <Button variant="outline" size="icon-lg">
-          <FolderPlus />
+          <FilePlus2 />
         </Button>
       </DialogTrigger>
       <DialogContent className="w-full">
         <DialogHeader>
-          <DialogTitle>Create New Folder</DialogTitle>
+          <DialogTitle>Create New Note</DialogTitle>
           <DialogDescription>
-            Create a new folder on the current directory
+            Create a new note on the current directory
           </DialogDescription>
         </DialogHeader>
         <div className="w-full flex flex-col gap-2 items-start">
-          <Label htmlFor="folder-name">Folder Name</Label>
+          <Label htmlFor="note-name">Note Name</Label>
           <Input
-            value={folderName}
-            onChange={(e) => setFolderName(e.target.value)}
-            placeholder="Folder Name"
+            value={noteName}
+            onChange={(e) => setNoteName(e.target.value)}
+            placeholder="Note Name"
             className="w-full"
           />
         </div>
@@ -84,7 +84,7 @@ export const CreateFolderButton = () => {
                 Creating... <Loader2 className="animate-spin" />
               </>
             ) : (
-              "Create Folder"
+              "Create Note"
             )}
           </Button>
           <DialogClose asChild>

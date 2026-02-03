@@ -27,11 +27,18 @@ export interface ILeanFolderWithNotes {
   updatedAt: Date;
 }
 
-const FolderSchema = new mongoose.Schema<IFolder>({
-  name: { type: String, required: true },
-  parentFolder: { type: mongoose.Schema.Types.ObjectId, ref: "Folder",default: null },
-  notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Note" }],
-});
+const FolderSchema = new mongoose.Schema<IFolder>(
+  {
+    name: { type: String, required: true },
+    parentFolder: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Folder",
+      default: null,
+    },
+    notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Note" }],
+  },
+  { timestamps: true },
+);
 
 FolderSchema.index({ name: "text" });
 
