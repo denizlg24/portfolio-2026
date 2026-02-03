@@ -36,7 +36,7 @@ export default function Loading() {
         </BreadcrumbList>
       </Breadcrumb>
       <Separator className="my-1 w-full" />
-      <div className="w-full grid md:grid-cols-8 sm:grid-cols-6 grid-cols-4 pt-6">
+      <div className="w-full flex flex-col gap-0">
         {Array.from({ length: 16 }).map((_, index) => {
           return (
             <React.Fragment key={index}>
