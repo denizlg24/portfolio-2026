@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const page = await browser.newPage();
 
-    await page.setViewport({ width: 1200, height: 800 });
+    await page.setViewport({ width: 2400, height: 1600 });
 
     await page.goto(previewUrl, {
       waitUntil: "networkidle0",
@@ -62,12 +62,6 @@ export async function POST(request: NextRequest) {
     const pdfBuffer = await page.pdf({
       format: "A4",
       printBackground: true,
-      margin: {
-        top: "20mm",
-        right: "20mm",
-        bottom: "20mm",
-        left: "20mm",
-      },
     });
 
     await browser.close();

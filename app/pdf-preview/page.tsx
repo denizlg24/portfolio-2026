@@ -21,7 +21,7 @@ export default async function AdminNotesPdfPreviewPage({
           <div className="w-full max-w-7xl flex flex-row justify-between items-center gap-2">
             <Image src={logo} alt="Logo" width={64} height={64} />
             <p className="text-sm font-bold">{title}</p>
-            <p className="text-sm">{new Date().toLocaleDateString()}</p>
+            <p className="text-sm pr-3">{new Date().toLocaleDateString()}</p>
           </div>
           <Separator className="my-1 w-full" />
         </>
