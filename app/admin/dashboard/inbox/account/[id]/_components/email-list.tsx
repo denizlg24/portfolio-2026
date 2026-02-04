@@ -239,7 +239,7 @@ export function EmailList({ accountId }: EmailListProps) {
                   {selectedEmail?.subject || "(No Subject)"}
                 </DrawerTitle>
                 <div className="flex mx-auto w-full text-center items-center justify-center gap-2 text-xs text-muted-foreground mt-1">
-                  <span className="truncate max-w-[200px] sm:max-w-[300px]">
+                  <span className="truncate max-w-50 sm:max-w-75">
                     {selectedEmail?.from[0]?.name || selectedEmail?.from[0]?.address}
                   </span>
                   <span className="text-muted-foreground/50">•</span>

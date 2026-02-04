@@ -1,9 +1,15 @@
+"use client";
 import { Github, Instagram, Linkedin, Mail } from "lucide-react";
 import Link from "next/link";
 import { Suspense } from "react";
 import CurrentYear from "./current-year";
+import { usePathname } from "next/navigation";
 
 export const Footer = () => {
+  const pathname = usePathname();
+  if (pathname.includes("admin") || pathname.includes("pdf-preview")) {
+    return null;
+  }
   return (
     <footer className="w-full border-t py-8 mt-12">
       <div className="w-full mx-auto max-w-5xl flex xs:flex-row flex-col items-center justify-between gap-2 px-4 text-foreground fo">

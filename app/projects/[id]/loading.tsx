@@ -22,22 +22,6 @@ export default function ProjectLoading() {
 
         <Separator className="my-4" />
 
-        <div className="flex flex-col gap-0 bg-surface xs:p-4 p-3 rounded-lg mt-4">
-          <Skeleton className="h-4 w-28" />
-          <Separator className="mt-2" />
-          <div className="mt-2 space-y-2">
-            <Skeleton className="h-5 w-full" />
-            <Skeleton className="h-5 w-3/4" />
-          </div>
-
-          <Skeleton className="h-4 w-24 mt-4" />
-          <Separator className="mt-2" />
-          <div className="flex flex-row items-center flex-wrap justify-start gap-2 mt-2">
-            <Skeleton className="h-8 w-24 rounded-md" />
-            <Skeleton className="h-8 w-28 rounded-md" />
-          </div>
-        </div>
-
         <div className="mt-8 space-y-6">
           <Skeleton className="h-8 w-2/3" />
 
@@ -61,6 +45,11 @@ export default function ProjectLoading() {
             <Skeleton className="h-5 w-full" />
             <Skeleton className="h-5 w-5/6" />
           </div>
+        </div>
+        <Separator className="mt-2" />
+        <div className="flex flex-row items-center flex-wrap justify-start gap-2 mt-2">
+          <Skeleton className="h-8 w-24 rounded-md" />
+          <Skeleton className="h-8 w-28 rounded-md" />
         </div>
       </section>
     </main>

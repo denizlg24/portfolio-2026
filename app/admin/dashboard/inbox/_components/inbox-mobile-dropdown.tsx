@@ -51,7 +51,7 @@ export const InboxMobileDropdown = () => {
 
   if (isLoading) {
     return (
-      <Button variant="outline" className="w-full max-w-[250px] justify-between text-sm sm:text-base animate-pulse" disabled>
+      <Button variant="outline" className="w-full max-w-62.5 justify-between text-sm sm:text-base animate-pulse" disabled>
         <span className="text-muted-foreground">Loading...</span>
         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
       </Button>
@@ -61,12 +61,12 @@ export const InboxMobileDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full max-w-[250px] justify-between text-sm sm:text-base">
+        <Button variant="outline" className="w-full max-w-62.5 justify-between text-sm sm:text-base">
           <span className="truncate">{getCurrentLabel()}</span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-[250px]">
+      <DropdownMenuContent align="start" className="w-62.5">
         <DropdownMenuLabel className="text-xs sm:text-sm">Navigation</DropdownMenuLabel>
         <DropdownMenuItem
           onClick={() => router.push("/admin/dashboard/inbox")}

@@ -39,7 +39,7 @@ export const Header = () => {
     };
   }, []);
 
-  if(pathname.includes("admin")){
+  if(pathname.includes("admin") || pathname.includes("pdf-preview")) {
     return null;
   }
 

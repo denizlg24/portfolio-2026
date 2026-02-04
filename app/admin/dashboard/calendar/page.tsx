@@ -39,7 +39,7 @@ export default function CalendarPage() {
               </span>
             </Suspense>
           </h2>
-          <div className="w-full flex flex-col gap-2 overflow-y-auto max-h-[400px]">
+          <div className="w-full flex flex-col gap-2 overflow-y-auto max-h-100">
             <TodaysEvents />
           </div>
         </div>

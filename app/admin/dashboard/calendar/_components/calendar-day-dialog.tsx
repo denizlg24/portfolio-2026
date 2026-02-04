@@ -482,7 +482,7 @@ export const CalendarDayDialog = ({
           
           <TabsContent
             value="view"
-            className="w-full border rounded-lg p-2 sm:p-4 min-h-[200px] max-h-[500px] overflow-y-auto overflow-x-hidden"
+            className="w-full border rounded-lg p-2 sm:p-4 min-h-50 max-h-125 overflow-y-auto overflow-x-hidden"
           >
             {loading ? (
               <div className="flex items-center justify-center py-8">

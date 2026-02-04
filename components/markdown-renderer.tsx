@@ -67,10 +67,7 @@ const MediumStyleComponents = {
     }
 
     return (
-      <StyledLink
-        type="anchor"
-        {...props}
-      >
+      <StyledLink type="anchor" {...props}>
         {children}
       </StyledLink>
     );
@@ -102,7 +99,7 @@ const MediumStyleComponents = {
   code: ({ node, className, children, ...props }: any) => {
     // Check if this is inside a pre tag (code block) - rehype-pretty-code handles these
     const isCodeBlock = className?.includes("language-");
-    
+
     if (isCodeBlock) {
       return (
         <code className={className} {...props}>
@@ -110,7 +107,7 @@ const MediumStyleComponents = {
         </code>
       );
     }
-    
+
     // Inline code styling
     return (
       <code
@@ -185,7 +182,12 @@ export function MarkdownRenderer({
   className = "",
 }: MarkdownRendererProps) {
   return (
-    <article className={`w-full max-w-full mx-auto ${className}`}>
+    <article
+      className={cn(
+        "w-full max-w-full mx-auto [&>*:first-child]:mt-0",
+        className,
+      )}
+    >
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeRaw, rehypeHighlight]}

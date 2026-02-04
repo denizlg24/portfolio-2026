@@ -96,34 +96,26 @@ export default async function ProjectPage({
           ))}
         </div>
         <Separator className="my-4" />
-        <div className="flex flex-col gap-0 bg-surface xs:p-4 p-3 rounded-lg mt-4">
-          <Label className="">Project summary</Label>
-          <Separator className="mt-2" />
-          <h2 className="mt-2 sm:text-lg xs:text-base text-sm text-muted-foreground/75">
-            {project.subtitle}
-          </h2>
-          <Label className="mt-4">Project Links</Label>
-          <Separator className="mt-2" />
-          <div className="flex flex-row items-center flex-wrap justify-start gap-2 mt-2">
-            {project.links.map((link, linkIdx) => {
-              const Icon = iconMap[link.icon];
-              return (
-                <Button
-                  className="sm:text-sm text-xs"
-                  size={"sm"}
-                  asChild
-                  key={`${link}-${linkIdx}`}
-                  variant={"default"}
-                >
-                  <a href={link.url} target="_blank">
-                    {link.label} <Icon className="w-3 h-3" />
-                  </a>
-                </Button>
-              );
-            })}
-          </div>
-        </div>
         <MarkdownRenderer content={project.markdown} />
+        <Separator className="my-4" />
+        <div className="flex flex-row items-center flex-wrap justify-end gap-2 mt-2">
+          {project.links.map((link, linkIdx) => {
+            const Icon = iconMap[link.icon];
+            return (
+              <Button
+                className="sm:text-sm text-xs"
+                size={"sm"}
+                asChild
+                key={`${link}-${linkIdx}`}
+                variant={"default"}
+              >
+                <a href={link.url} target="_blank">
+                  {link.label} <Icon className="w-3 h-3" />
+                </a>
+              </Button>
+            );
+          })}
+        </div>
       </section>
     </main>
   );
