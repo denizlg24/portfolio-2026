@@ -1,7 +1,7 @@
-import { MarkdownRenderer } from "@/components/markdown-renderer";
 import Image from "next/image";
 import logo from "@/public/assets/logos/logo_rounded.png";
 import { Separator } from "@/components/ui/separator";
+import { PDFMarkdownRenderer } from "@/components/pdf-markdown-renderer";
 export default async function AdminNotesPdfPreviewPage({
   searchParams,
 }: {
@@ -27,7 +27,7 @@ export default async function AdminNotesPdfPreviewPage({
         </>
       )}
       <div className="w-full max-w-full! mx-auto bg-background p-6">
-        <MarkdownRenderer content={content} />
+        <PDFMarkdownRenderer content={content} />
       </div>
     </div>
   );

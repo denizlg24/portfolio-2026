@@ -129,7 +129,6 @@ export const ContentEditor = ({
         <div className="flex flex-row items-center gap-1">
           <Button
             disabled={content !== initialContent || loading}
-            asChild
             variant={"outline"}
             size={"icon"}
           >
