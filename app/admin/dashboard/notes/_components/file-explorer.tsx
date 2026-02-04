@@ -2,11 +2,10 @@
 
 import { format } from "date-fns";
 import {
-  Edit3,
   EllipsisVertical,
   FileTextIcon,
   FolderIcon,
-  Trash,
+  Loader2,
 } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
@@ -25,13 +24,27 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
+  Field,
+  FieldContent,
+  FieldDescription,
+  FieldGroup,
+  FieldLabel,
+  FieldTitle,
+} from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { DialogClose } from "@radix-ui/react-dialog";
 
 interface FileItem {
   type: "folder" | "note";
@@ -57,6 +70,11 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
   const [items, setItems] = useState<FileItem[]>([]);
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  const [dialogError, setDialogError] = useState<string | null>(null);
+  const [loadingUpdate,setLoadingUpdate] = useState(false);
+  const [newName, setNewName] = useState<string>("");
+  const dialogCloseRef = React.useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -196,34 +214,114 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                       {format(new Date(item.updatedAt), "Pp").replace(",", "")}
                     </p>
                   </a>
-                  <Popover>
-                    <PopoverTrigger
+                  <Dialog>
+                    <DialogTrigger
+                      onClick={() => {
+                        setNewName(item.name);
+                      }}
                       className="absolute -left-0.5 top-px"
                       asChild
                     >
                       <EllipsisVertical className="w-4 h-4" />
-                    </PopoverTrigger>
-                    <PopoverContent
-                      align="start"
-                      className="w-fit flex flex-col gap-1 p-0! rounded-none!"
-                    >
-                      <Button
-                        className="py-1! px-2 rounded-none text-xs h-fit!"
-                        variant="ghost"
-                      >
-                        <Edit3 />
-                        Rename {itemLabel}
-                      </Button>
-                      <Separator />
-                      <Button
-                        className="py-1! px-2 rounded-none text-xs h-fit!"
-                        variant="ghost"
-                      >
-                        <Trash />
-                        Delete {itemLabel}
-                      </Button>
-                    </PopoverContent>
-                  </Popover>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Edit {itemLabel}</DialogTitle>
+                        <DialogDescription className="hidden">
+                          Modify the name of the {itemLabel.toLowerCase()}{" "}
+                          below.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <Field>
+                        <FieldLabel htmlFor="name">{itemLabel} name</FieldLabel>
+                        <Input
+                          id="name"
+                          autoComplete="off"
+                          value={newName}
+                          onChange={(e) => setNewName(e.target.value)}
+                        />
+                        <FieldDescription>
+                          Rename{" "}
+                          <span className="bg-surface px-1 py-0.5">
+                            {item.name}
+                          </span>
+                          . Must be unique in the directory.
+                        </FieldDescription>
+                      </Field>
+                      <DialogFooter>
+                        <DialogClose ref={dialogCloseRef} asChild>
+                          <Button className="mr-auto" variant={"outline"}>
+                            Cancel
+                          </Button>
+                        </DialogClose>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              setLoadingUpdate(true);
+                              const url =
+                                item.type == "folder"
+                                  ? `/api/admin/folders/${item._id}/name`
+                                  : `/api/admin/notes/${item._id}/name`;
+                              await fetch(url, {
+                                method: "PUT",
+                                body: JSON.stringify({ name: newName }),
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                              });
+                              setItems((prevItems) =>
+                                prevItems.map((prevItem) =>
+                                  prevItem._id === item._id
+                                    ? { ...prevItem, name: newName }
+                                    : prevItem,
+                                ),
+                              );
+                            } catch (error) {
+                              setDialogError(
+                                "An error occurred while saving changes.",
+                              );
+                            }
+                            dialogCloseRef.current?.click();
+                          }}
+                          disabled={
+                            newName === item.name || newName.trim() === "" || loadingUpdate
+                          }
+                        >
+                          {loadingUpdate ? <>Processing <Loader2 className="animate-spin"/></> : `Save Changes`}
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            try {
+                              const url =
+                                item.type == "folder"
+                                  ? `/api/admin/folders/${item._id}`
+                                  : `/api/admin/notes/${item._id}`;
+                              await fetch(url, {
+                                method: "DELETE",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                              });
+                              setItems((prevItems) =>
+                                prevItems.filter((prevItem) =>
+                                  prevItem._id !== item._id
+                                ),
+                              );
+                            } catch (error) {
+                              setDialogError(
+                                "An error occurred while saving changes.",
+                              );
+                            }
+                            dialogCloseRef.current?.click();
+                          }}
+                          variant="destructive"
+                          disabled={loadingUpdate}
+                        >
+                          {loadingUpdate ? <>Processing <Loader2 className="animate-spin"/></> : `Delete ${itemLabel}`}
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
                 <Separator className="my-1 w-full" />
               </React.Fragment>
