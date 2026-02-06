@@ -1,10 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAllComments, getCommentStats } from "@/lib/comments";
 import { getAdminSession } from "@/lib/require-admin";
 
-export async function GET() {
+export async function GET(request:NextRequest) {
   try {
-    const session = await getAdminSession();
+    const session = await getAdminSession(request);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

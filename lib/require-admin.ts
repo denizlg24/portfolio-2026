@@ -1,9 +1,29 @@
 import { forbidden } from "next/navigation";
 import type { NextRequest } from "next/server";
 import { getServerSession } from "./get-server-session";
+import { connectDB } from "./mongodb";
+import crypto from "crypto";
+import ApiKey from "@/models/ApiKey";
 
-export async function requireAdmin(_request?: NextRequest) {
-  const session = await getServerSession();
+export async function requireAdmin(request?: NextRequest) {
+  const authorizationHeader = request?.headers.get("authorization");
+  if (authorizationHeader) {
+    const token = authorizationHeader.split("Bearer ")[1];
+    if (token) {
+      await connectDB();
+      const adminTokenHash = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+      const adminTokenDoc = await ApiKey.findOne({
+        key: adminTokenHash,
+      }).lean();
+      if (adminTokenDoc) {
+        return null;
+      }
+    }
+  }
+  const session = await getServerSession(request);
   if (!session) {
     forbidden();
   }
@@ -24,8 +44,31 @@ export async function requireAdmin(_request?: NextRequest) {
   return null;
 }
 
-export async function getAdminSession() {
-  const session = await getServerSession();
+export async function getAdminSession(request?: NextRequest) {
+  const authorizationHeader = request?.headers.get("authorization");
+  if (authorizationHeader) {
+    const token = authorizationHeader.split("Bearer ")[1];
+    if (token) {
+      await connectDB();
+      const adminTokenHash = crypto
+        .createHash("sha256")
+        .update(token)
+        .digest("hex");
+      const adminTokenDoc = await ApiKey.findOne({
+        key: adminTokenHash,
+      }).lean();
+      if (adminTokenDoc) {
+        return {
+          user: {
+            email: "admin-token",
+            role: "admin",
+            emailVerified: true,
+          },
+        };
+      }
+    }
+  }
+  const session = await getServerSession(request);
 
   if (!session?.user) {
     return null;
@@ -35,7 +78,7 @@ export async function getAdminSession() {
     return null;
   }
 
-  const userRole = (session.user as any).role;
+  const userRole = session.user.role;
   if (userRole !== "admin") {
     return null;
   }

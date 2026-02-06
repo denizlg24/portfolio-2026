@@ -10,6 +10,7 @@ import {
   MessageSquare,
   NotebookPen,
   PenTool,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -80,6 +81,11 @@ const items = [
     url: "/admin/dashboard/instagram-tokens",
     icon: Instagram,
   },
+  {
+    title: "API Tokens",
+    url: "/admin/dashboard/api-tokens",
+    icon: Settings,
+  }
 ];
 
 export function AppSidebar() {

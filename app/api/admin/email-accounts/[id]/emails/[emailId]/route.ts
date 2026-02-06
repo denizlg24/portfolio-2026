@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getAdminSession } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
 import { EmailAccountModel } from "@/models/EmailAccount";
@@ -9,11 +9,11 @@ import { decryptPassword } from "@/lib/safe-email-password";
 import { simpleParser } from "mailparser";
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string; emailId: string }> }
 ) {
   try {
-    const session = await getAdminSession();
+    const session = await getAdminSession(request);
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
