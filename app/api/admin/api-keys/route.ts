@@ -9,7 +9,7 @@ export const POST = async (request: NextRequest) => {
   if (authError) return authError;
   try {
     const { name } = await request.json();
-    const rawKey = `dlg4_${crypto.randomBytes(32).toString("hex")}`;
+    const rawKey = `dlg24_${crypto.randomBytes(32).toString("hex")}`;
     const hashedKey = crypto.createHash("sha256").update(rawKey).digest("hex");
     await connectDB();
     const apiKey = new ApiKey({

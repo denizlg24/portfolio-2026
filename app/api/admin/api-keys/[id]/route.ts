@@ -16,7 +16,7 @@ export const PUT = async (
   if (authError) return authError;
   try {
     await connectDB();
-    const rawKey = `dlg4_${crypto.randomBytes(32).toString("hex")}`;
+    const rawKey = `dlg24_${crypto.randomBytes(32).toString("hex")}`;
     const hashedKey = crypto.createHash("sha256").update(rawKey).digest("hex");
     const apiKey = await ApiKey.findByIdAndUpdate(
       id,
