@@ -44,8 +44,10 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       isActive: isActive !== undefined ? isActive : true,
     });
-    revalidatePath("/blogs", "layout");
-    revalidatePath("/blogs", "page");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
+    revalidatePath("/blog", "layout");
+    revalidatePath("/blog", "page");
     return NextResponse.json(
       {
         message: "Blog created successfully",

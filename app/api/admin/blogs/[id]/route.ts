@@ -47,6 +47,12 @@ export async function PATCH(
       if (!blog) {
         return NextResponse.json({ error: "Blog not found" }, { status: 404 });
       }
+      revalidatePath("/", "layout");
+      revalidatePath("/", "page");
+      revalidatePath("/blog", "layout");
+      revalidatePath("/blog", "page");
+      revalidatePath(`/blog/${blog.slug}`, "layout");
+      revalidatePath(`/blog/${blog.slug}`, "page");
       return NextResponse.json(
         { message: "Blog visibility toggled successfully", blog },
         { status: 200 }
@@ -69,8 +75,12 @@ export async function PATCH(
     if (!blog) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-    revalidatePath(`/blogs/${blog.slug}`, "layout");
-    revalidatePath(`/blogs/${blog.slug}`, "page");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
+    revalidatePath("/blog", "layout");
+    revalidatePath("/blog", "page");
+    revalidatePath(`/blog/${blog.slug}`, "layout");
+    revalidatePath(`/blog/${blog.slug}`, "page");
     return NextResponse.json(
       {
         message: "Blog updated successfully",
@@ -106,8 +116,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
 
-    revalidatePath(`/blogs/${blog.slug}`, "layout");
-    revalidatePath(`/blogs/${blog.slug}`, "page");
+    revalidatePath("/", "layout");
+    revalidatePath("/", "page");
+    revalidatePath("/blog", "layout");
+    revalidatePath("/blog", "page");
+    revalidatePath(`/blog/${blog.slug}`, "layout");
+    revalidatePath(`/blog/${blog.slug}`, "page");
     return NextResponse.json(
       { message: "Blog deleted successfully" },
       { status: 200 }

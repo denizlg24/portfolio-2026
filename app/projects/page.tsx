@@ -1,3 +1,5 @@
+export const revalidate = 2592000;
+
 import { ChevronsUpDown, Loader2 } from "lucide-react";
 import type { Metadata } from "next";
 import { Suspense } from "react";
