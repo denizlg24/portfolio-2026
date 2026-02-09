@@ -2,7 +2,7 @@
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -31,14 +31,17 @@ export const TagSelect = ({
   const [values, setValues] = useState(selected);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+
   useEffect(() => {
-    const newParams = new URLSearchParams(searchParams);
+    const newParams = new URLSearchParams(searchParamsRef.current.toString());
     newParams.delete("tags");
     values.forEach((val) => {
       newParams.append("tags", val);
     });
     router.push(`/${related}?${newParams.toString()}`);
-  }, [values, related, router.push, searchParams]);
+  }, [values, related, router]);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

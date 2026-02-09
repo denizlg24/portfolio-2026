@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "@/components/ui/input";
 
 export const SearchInput = ({
@@ -14,9 +14,12 @@ export const SearchInput = ({
   const [input, setInput] = useState(query);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const searchParamsRef = useRef(searchParams);
+  searchParamsRef.current = searchParams;
+
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const newParams = new URLSearchParams(searchParams);
+      const newParams = new URLSearchParams(searchParamsRef.current.toString());
       if (input) {
         newParams.set("query", input);
       } else {
@@ -26,7 +29,7 @@ export const SearchInput = ({
     }, 300);
 
     return () => clearTimeout(timeout);
-  }, [input, related, router.push, searchParams]);
+  }, [input, related, router]);
 
   return (
     <Input
