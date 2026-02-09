@@ -11,6 +11,8 @@ import {
 } from "./github-activity";
 import { Metadata } from "next";
 
+export const revalidate = 3600;
+
 export const metadata: Metadata = {
   title: {
     absolute: "Now | Deniz Lopes Güneş",
