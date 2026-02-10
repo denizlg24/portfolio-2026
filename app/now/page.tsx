@@ -1,15 +1,17 @@
+import { formatDistanceToNow } from "date-fns";
+import type { Metadata } from "next";
 import { Suspense } from "react";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { getNowPageContent } from "@/lib/now-page";
+import {
+  GitHubRecentCommits,
+  GitHubRecentCommitsSkeleton,
+} from "./github-activity";
 import {
   GitHubContributions,
   GitHubContributionsSkeleton,
 } from "./github-contributions";
-import {
-  GitHubRecentCommits,
-  GitHubRecentCommitsSkeleton,
-  GitHubRecentPRs,
-  GitHubRecentPRsSkeleton,
-} from "./github-activity";
-import { Metadata } from "next";
 
 export const revalidate = 3600;
 
@@ -27,6 +29,39 @@ export const metadata: Metadata = {
   },
 };
 
+async function NowPageContent() {
+  const doc = await getNowPageContent();
+
+  if (!doc || !doc.content) {
+    return null;
+  }
+
+  return (
+    <div className="mt-12 text-left">
+      <p className="text-xs text-muted-foreground mb-6">
+        updated{" "}
+        {formatDistanceToNow(new Date(doc.updatedAt), { addSuffix: true })}
+      </p>
+      <MarkdownRenderer content={doc.content} />
+    </div>
+  );
+}
+
+function NowPageContentSkeleton() {
+  return (
+    <div className="mt-12 text-left">
+      <Skeleton className="h-3 w-32 mb-6" />
+      <div className="space-y-4">
+        <Skeleton className="h-6 w-3/4" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-5/6" />
+        <Skeleton className="h-4 w-full" />
+        <Skeleton className="h-4 w-2/3" />
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
   return (
     <main className="flex flex-col items-center min-h-screen">
@@ -34,25 +69,22 @@ export default function Page() {
         <h1 className="sm:text-5xl text-4xl text-balance font-calistoga text-center">
           now.
         </h1>
-        <h2 className="text-sm font-medium sm:text-base text-center">check out what i've been working on lately</h2>
+        <h2 className="text-sm font-medium sm:text-base text-center">
+          check out what i've been working on lately
+        </h2>
         <div className="my-12"></div>
         <Suspense fallback={<GitHubContributionsSkeleton />}>
           <GitHubContributions />
         </Suspense>
+        <Suspense fallback={<NowPageContentSkeleton />}>
+          <NowPageContent />
+        </Suspense>
         <div className="mt-12">
           <h2 className="text-2xl font-calistoga text-left mb-4">
-            recent commits
+            recent contributions
           </h2>
           <Suspense fallback={<GitHubRecentCommitsSkeleton />}>
             <GitHubRecentCommits />
-          </Suspense>
-        </div>
-        <div className="mt-12">
-          <h2 className="text-2xl font-calistoga text-left mb-4">
-            pull requests
-          </h2>
-          <Suspense fallback={<GitHubRecentPRsSkeleton />}>
-            <GitHubRecentPRs />
           </Suspense>
         </div>
       </section>

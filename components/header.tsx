@@ -94,7 +94,7 @@ export const Header = () => {
           className={cn(
             "transition-all sm:w-fit w-full bg-surface border drop-shadow sm:rounded-full rounded-2xl mx-auto",
             isScrolled &&
-              "shadow w-full rounded-none mx-0 bg-background border-0 drop-shadow-none",
+              "shadow w-full! rounded-none! mx-0 bg-background! border-0 drop-shadow-none",
           )}
         >
           <div className="flex flex-row py-4 sm:px-8 px-4">

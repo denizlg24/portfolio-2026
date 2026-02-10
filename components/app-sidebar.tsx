@@ -1,6 +1,7 @@
 import {
   Briefcase,
   Calendar,
+  Clock,
   Contact,
   Folder,
   FolderGit2,
@@ -72,6 +73,11 @@ const items = [
     icon: FolderGit2,
   },
   {
+    title: "Now Page",
+    url: "/admin/dashboard/now-page",
+    icon: Clock,
+  },
+  {
     title: "Notes",
     url: "/admin/dashboard/notes",
     icon: Folder,
@@ -85,7 +91,7 @@ const items = [
     title: "API Tokens",
     url: "/admin/dashboard/api-tokens",
     icon: Settings,
-  }
+  },
 ];
 
 export function AppSidebar() {

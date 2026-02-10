@@ -8,44 +8,44 @@ import { StyledLink } from "./styled-link";
 const MediumStyleComponents = {
   p: ({ node, ...props }: any) => (
     <p
-      className=" text-[17px] sm:text-[19px] md:text-[21px] leading-[28px] sm:leading-[30px] md:leading-[32px] text-foreground/90 mb-[29px] tracking-[-0.003em] break-words"
+      className=" text-[15px] sm:text-[16px] md:text-[17px] leading-[24px] sm:leading-[26px] md:leading-[28px] text-foreground/90 mb-[24px] tracking-[-0.003em] break-words"
       {...props}
     />
   ),
 
   h1: ({ node, ...props }: any) => (
     <h1
-      className=" text-[32px] sm:text-[42px] md:text-[52px] font-bold text-foreground tracking-[-0.022em] leading-[1.1] mt-[42px] sm:mt-[48px] md:mt-[52px] mb-[8px]"
+      className=" text-[26px] sm:text-[32px] md:text-[38px] font-bold font-calistoga lowercase text-foreground tracking-[-0.022em] leading-[1.1] mt-[36px] sm:mt-[40px] md:mt-[44px] mb-[8px]"
       {...props}
     />
   ),
   h2: ({ node, ...props }: any) => (
     <h2
-      className=" text-[26px] sm:text-[32px] md:text-[40px] font-bold text-foreground tracking-[-0.022em] leading-[1.15] mt-[32px] sm:mt-[38px] md:mt-[42px] mb-[8px]"
+      className=" text-[22px] sm:text-[26px] md:text-[30px] font-bold font-calistoga lowercase text-foreground tracking-[-0.022em] leading-[1.15] mt-[28px] sm:mt-[32px] md:mt-[36px] mb-[8px]"
       {...props}
     />
   ),
   h3: ({ node, ...props }: any) => (
     <h3
-      className=" text-[22px] sm:text-[26px] md:text-[32px] font-bold text-foreground tracking-[-0.019em] leading-[1.2] mt-[26px] sm:text-[30px] md:mt-[32px] mb-[8px]"
+      className=" text-[19px] sm:text-[22px] md:text-[26px] font-bold font-calistoga lowercase text-foreground tracking-[-0.019em] leading-[1.2] mt-[24px] sm:mt-[26px] md:mt-[28px] mb-[8px]"
       {...props}
     />
   ),
   h4: ({ node, ...props }: any) => (
     <h4
-      className=" text-[19px] sm:text-[22px] md:text-[26px] font-bold text-foreground tracking-[-0.015em] leading-[1.22] mt-[20px] sm:mt-[22px] md:mt-[24px] mb-[8px]"
+      className=" text-[17px] sm:text-[19px] md:text-[22px] font-bold font-calistoga lowercase text-foreground tracking-[-0.015em] leading-[1.22] mt-[18px] sm:mt-[20px] md:mt-[22px] mb-[8px]"
       {...props}
     />
   ),
   h5: ({ node, ...props }: any) => (
     <h5
-      className=" text-[18px] sm:text-[19px] md:text-[20px] font-semibold text-foreground tracking-[-0.012em] leading-[1.25] mt-[18px] sm:mt-[19px] md:mt-[20px] mb-[8px]"
+      className=" text-[16px] sm:text-[17px] md:text-[18px] font-semibold font-calistoga lowercase text-foreground tracking-[-0.012em] leading-[1.25] mt-[16px] sm:mt-[17px] md:mt-[18px] mb-[8px]"
       {...props}
     />
   ),
   h6: ({ node, ...props }: any) => (
     <h6
-      className=" text-[16px] sm:text-[17px] md:text-[18px] font-semibold text-foreground tracking-[-0.01em] leading-[1.3] mt-[14px] sm:mt-[15px] md:mt-[16px] mb-[8px]"
+      className=" text-[15px] sm:text-[15px] md:text-[16px] font-semibold font-calistoga lowercase text-foreground tracking-[-0.01em] leading-[1.3] mt-[14px] sm:mt-[14px] md:mt-[16px] mb-[8px]"
       {...props}
     />
   ),
@@ -75,20 +75,20 @@ const MediumStyleComponents = {
 
   blockquote: ({ node, ...props }: any) => (
     <blockquote
-      className="border-l-[3px] border-foreground/80 pl-[23px] ml-0 mr-0 my-[29px] italic  text-[20px] sm:text-[22px] md:text-[24px] leading-[30px] sm:leading-[33px] md:leading-[36px] text-foreground/80"
+      className="border-l-[3px] border-foreground/80 pl-[23px] ml-0 mr-0 my-[24px] italic  text-[16px] sm:text-[17px] md:text-[18px] leading-[26px] sm:leading-[28px] md:leading-[30px] text-foreground/80"
       {...props}
     />
   ),
 
   ul: ({ node, ...props }: any) => (
     <ul
-      className="list-disc list-outside ml-[30px] mb-[29px]  text-[17px] sm:text-[19px] md:text-[21px] leading-[28px] sm:leading-[30px] md:leading-[32px] text-foreground/90"
+      className="list-disc list-outside ml-[30px] mb-[24px]  text-[15px] sm:text-[16px] md:text-[17px] leading-[24px] sm:leading-[26px] md:leading-[28px] text-foreground/90"
       {...props}
     />
   ),
   ol: ({ node, ...props }: any) => (
     <ol
-      className="list-decimal list-outside ml-[30px] mb-[29px]  text-[17px] sm:text-[19px] md:text-[21px] leading-[28px] sm:leading-[30px] md:leading-[32px] text-foreground/90"
+      className="list-decimal list-outside ml-[30px] mb-[24px]  text-[15px] sm:text-[16px] md:text-[17px] leading-[24px] sm:leading-[26px] md:leading-[28px] text-foreground/90"
       {...props}
     />
   ),
@@ -111,7 +111,7 @@ const MediumStyleComponents = {
     // Inline code styling
     return (
       <code
-        className="bg-muted/50 text-foreground px-[6px] py-[3px] rounded-[3px] text-[16px] sm:text-[17px] md:text-[18px] font-mono border border-border/40"
+        className="bg-muted/50 text-foreground px-[6px] py-[3px] rounded-[3px] text-[14px] sm:text-[15px] md:text-[15px] font-mono border border-border/40"
         {...props}
       >
         {children}
@@ -121,7 +121,7 @@ const MediumStyleComponents = {
 
   pre: ({ node, children, ...props }: any) => (
     <pre
-      className="bg-muted/30 border border-border/40 rounded-lg overflow-x-auto my-[29px] text-[14px] sm:text-[15px] md:text-[16px] leading-[1.6] [&>code]:block [&>code]:p-4 [&>code]:overflow-x-auto"
+      className="bg-muted/30 border border-border/40 rounded-lg overflow-x-auto my-[24px] text-[13px] sm:text-[14px] md:text-[14px] leading-[1.6] [&>code]:block [&>code]:p-4 [&>code]:overflow-x-auto"
       {...props}
     >
       {children}
@@ -147,7 +147,7 @@ const MediumStyleComponents = {
   table: ({ node, ...props }: any) => (
     <div className="overflow-x-auto my-[29px]">
       <table
-        className="min-w-full text-left text-[16px] sm:text-[17px] md:text-[18px] border-collapse"
+        className="min-w-full text-left text-[14px] sm:text-[15px] md:text-[16px] border-collapse"
         {...props}
       />
     </div>
