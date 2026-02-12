@@ -1,6 +1,7 @@
 import {
   Briefcase,
   Calendar,
+  CalendarDays,
   Clock,
   Contact,
   Folder,
@@ -46,6 +47,11 @@ const items = [
     title: "Calendar",
     url: "/admin/dashboard/calendar",
     icon: Calendar,
+  },
+  {
+    title: "Timetable",
+    url: "/admin/dashboard/timetable",
+    icon: CalendarDays,
   },
   {
     title: "Whiteboard",

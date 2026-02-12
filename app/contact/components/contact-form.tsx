@@ -10,7 +10,7 @@ import {
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { sendToSlack } from "@/app/actions/send-contact-to-slack";
+import { sendToSlack } from "@/lib/send-contact-to-slack";
 import { StyledLink } from "@/components/styled-link";
 import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
@@ -90,7 +90,7 @@ export const ContactForm = () => {
   if (status === "success" || status === "error") {
     return (
       <div
-        className="w-full min-h-[400px] flex items-center justify-center"
+        className="w-full min-h-100 flex items-center justify-center"
         role="status"
         aria-live="polite"
         aria-atomic="true"
