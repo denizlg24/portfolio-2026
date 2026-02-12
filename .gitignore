@@ -50,3 +50,14 @@ next-env.d.ts
 
 
 
+
+# Envoy - Local state
+.envoy/cache/
+.envoy/latest
+.envoy/HEAD
+.envoy/refs/
+
+# Envoy - Config
+!.envoy/config.json
+
+
