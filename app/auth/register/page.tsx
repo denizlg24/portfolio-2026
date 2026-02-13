@@ -9,7 +9,7 @@ export default async function Page({
 }) {
   const session = await getServerSession();
   if (session) {
-    redirect("/");
+     redirect("/admin/dashboard");
   }
   const { secret } = await searchParams;
   if (secret !== process.env.ADMIN_SECRET) {

@@ -7,9 +7,13 @@ import { MongoClient } from "mongodb";
 const client = new MongoClient(process.env.MONGODB_URI!);
 const db = client.db();
 export const auth = betterAuth({
-  advanced:{
-    cookiePrefix:'denizlg24',
-    useSecureCookies:!!process.env.VERCEL_URL,
+  advanced: {
+    cookiePrefix: "denizlg24",
+    useSecureCookies: !!process.env.VERCEL_URL,
+  },
+  session: {
+    expiresIn: 60 * 60 * 24 * 90,
+    updateAge: 60 * 60 * 24,
   },
   database: mongodbAdapter(db, {
     client,

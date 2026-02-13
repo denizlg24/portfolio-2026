@@ -1,23 +1,8 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { TagSelect as TagSelectUi } from "@/components/ui/tag-select";
 export const TagSelect = ({
   tags,
   selected,
@@ -27,7 +12,6 @@ export const TagSelect = ({
   selected: string[];
   related: "projects" | "blog";
 }) => {
-  const [open, setOpen] = useState(false);
   const [values, setValues] = useState(selected);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -43,56 +27,16 @@ export const TagSelect = ({
     router.push(`/${related}?${newParams.toString()}`);
   }, [values, related, router]);
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="xs:w-[200px] w-full justify-between"
-        >
-          {values.length > 0
-            ? `${values.length} topic(s) selected`
-            : "Filter by topic..."}
-          <ChevronsUpDown className="opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent side="bottom" className="w-full! max-w-full! p-0">
-        <Command>
-          <CommandInput placeholder="Search topic..." className="h-9" />
-          <CommandList>
-            <CommandEmpty>No topic found.</CommandEmpty>
-            <CommandGroup>
-              {tags.map((tag) => (
-                <CommandItem
-                  key={tag}
-                  value={tag}
-                  onSelect={(currentValue) => {
-                    const included = values.includes(currentValue);
-                    if (included) {
-                      setValues((prev) =>
-                        prev.filter((val) => val !== currentValue),
-                      );
-                      setOpen(false);
-                      return;
-                    }
-                    setValues((prev) => [...prev, currentValue]);
-                    setOpen(false);
-                  }}
-                >
-                  {tag}
-                  <Check
-                    className={cn(
-                      "ml-auto",
-                      values.includes(tag) ? "opacity-100" : "opacity-0",
-                    )}
-                  />
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <TagSelectUi
+      tags={tags}
+      values={values}
+      onChange={setValues}
+      buttonClassName="xs:w-[200px]"
+      placeholder="Filter by topic..."
+      searchPlaceholder="Search topic..."
+      emptyText="No topic found."
+      title="Filter by topic"
+      selectedLabel={(count) => `${count} topic(s) selected`}
+    />
   );
 };

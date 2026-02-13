@@ -237,7 +237,7 @@ export const AddEventDialog = ({
           Add Event
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-5xl! max-h-[90vh] overflow-y-auto w-[calc(100%-16px)]">
+      <DialogContent className="max-w-5xl!">
         <DialogHeader>
           <DialogTitle>Add New Event</DialogTitle>
           <DialogDescription>
