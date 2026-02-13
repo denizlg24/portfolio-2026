@@ -1,8 +1,8 @@
 "use client";
 
-import { Download, FileText, Loader2 } from "lucide-react";
+import { Download, FileText, Loader2, Sparkles } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +18,39 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import type { ILeanNote } from "@/models/Notes";
+import { toast } from "sonner";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+} from "@/components/ui/select";
+import { SelectValue } from "@radix-ui/react-select";
+import { Anthropic } from "@anthropic-ai/sdk/client";
+import { Separator } from "@/components/ui/separator";
+import { DialogClose } from "@radix-ui/react-dialog";
+
+export const AnthropicModels = [
+  "claude-opus-4-5",
+  "claude-3-7-sonnet-latest",
+  "claude-3-7-sonnet-20250219",
+  "claude-3-5-haiku-latest",
+  "claude-3-5-haiku-20241022",
+  "claude-haiku-4-5",
+  "claude-haiku-4-5-20251001",
+  "claude-sonnet-4-20250514",
+  "claude-sonnet-4-0",
+  "claude-4-sonnet-20250514",
+  "claude-sonnet-4-5",
+  "claude-sonnet-4-5-20250929",
+  "claude-opus-4-0",
+  "claude-opus-4-20250514",
+  "claude-4-opus-20250514",
+  "claude-opus-4-1-20250805",
+  "claude-3-opus-latest",
+  "claude-3-opus-20240229",
+  "claude-3-haiku-20240307",
+];
 
 export const ContentEditor = ({
   note,
@@ -34,6 +67,13 @@ export const ContentEditor = ({
   const [pdfDialogOpen, setPdfDialogOpen] = useState(false);
   const [showHeader, setShowHeader] = useState(true);
   const [exportingPdf, setExportingPdf] = useState(false);
+
+  const [enhancing, setEnhancing] = useState(false);
+  const [additionalInfo, setAdditionalInfo] = useState("");
+  const [model, setModel] = useState<(typeof AnthropicModels)[number]>(
+    "claude-sonnet-4-5-20250929",
+  );
+  const closeEnhanceDialogRef = useRef<HTMLButtonElement | null>(null);
 
   const handleSave = async () => {
     try {
@@ -102,8 +142,111 @@ export const ContentEditor = ({
     return () => clearTimeout(showPreviewTimeout);
   }, [content]);
 
+  const handleAIEnhance = async () => {
+    try {
+      setEnhancing(true);
+      const response = await fetch(`/api/admin/notes/${note._id}/enhance`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          ...(additionalInfo ? { additionalInfo } : {}),
+          model,
+          content,
+        }),
+      });
+      if (!response.ok) {
+        setEnhancing(false);
+        toast.error("Failed to enhance note");
+        return;
+      }
+      const data = await response.json();
+      setContent(data.enhancedContent);
+      setTogglePreview(true);
+      toast.success("Note enhanced successfully");
+    } catch (error) {
+      toast.error("An error occurred while enhancing the note");
+    } finally {
+      setEnhancing(false);
+      closeEnhanceDialogRef.current?.click();
+    }
+  };
+
   return (
-    <div className="w-full">
+    <div className="w-full relative">
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon-sm"
+            className="absolute top-2 right-2 z-10"
+          >
+            <Sparkles />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Enhance Note with AI</DialogTitle>
+
+            <DialogDescription>
+              Use AI to enhance your note by making it more detailed, clear, and
+              well-structured.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col items-start gap-1">
+              <Label htmlFor="model" className="w-32">
+                Model
+              </Label>
+              <Select
+                value={model}
+                onValueChange={(value) => setModel(value as Anthropic.Model)}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select model" />
+                </SelectTrigger>
+                <SelectContent className="z-99">
+                  {AnthropicModels.map((modelKey) => (
+                    <SelectItem key={modelKey} value={modelKey}>
+                      {modelKey}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <Separator />
+            <div className="flex flex-col items-start gap-1">
+              <Label htmlFor="info" className="w-32">
+                Additional Info
+              </Label>
+              <Textarea
+                value={additionalInfo}
+                onChange={(e) => setAdditionalInfo(e.target.value)}
+                id="info"
+                className="font-mono text-sm h-24 overflow-y-auto rounded-none resize-none"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose ref={closeEnhanceDialogRef} asChild>
+              <Button variant="outline" disabled={enhancing}>
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button onClick={handleAIEnhance} disabled={enhancing}>
+              {enhancing ? (
+                <>
+                  Enhancing... <Loader2 className="animate-spin" />
+                </>
+              ) : (
+                "Enhance Note"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {!togglePreview && (
         <Textarea
           value={content}
