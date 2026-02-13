@@ -15,37 +15,37 @@ const MediumStyleComponents = {
 
   h1: ({ node, ...props }: any) => (
     <h1
-      className=" text-[18px] font-bold text-foreground tracking-[-0.022em] leading-[1.1] mt-[16px] mb-[6px]"
+      className=" text-[18px] font-bold text-foreground font-calistoga tracking-[-0.022em] leading-[1.1] mt-[16px] mb-[6px]"
       {...props}
     />
   ),
   h2: ({ node, ...props }: any) => (
     <h2
-      className=" text-[16px] font-bold text-foreground tracking-[-0.022em] leading-[1.15] mt-[14px] mb-[6px]"
+      className=" text-[16px] font-bold text-foreground font-calistoga tracking-[-0.022em] leading-[1.15] mt-[14px] mb-[6px]"
       {...props}
     />
   ),
   h3: ({ node, ...props }: any) => (
     <h3
-      className=" text-[14px] font-bold text-foreground tracking-[-0.019em] leading-[1.2] mt-[12px] mb-[5px]"
+      className=" text-[14px] font-bold text-foreground font-calistoga tracking-[-0.019em] leading-[1.2] mt-[12px] mb-[5px]"
       {...props}
     />
   ),
   h4: ({ node, ...props }: any) => (
     <h4
-      className=" text-[13px] font-bold text-foreground tracking-[-0.015em] leading-[1.22] mt-[10px] mb-[5px]"
+      className=" text-[13px] font-bold text-foreground font-calistoga tracking-[-0.015em] leading-[1.22] mt-[10px] mb-[5px]"
       {...props}
     />
   ),
   h5: ({ node, ...props }: any) => (
     <h5
-      className=" text-[12px] font-semibold text-foreground tracking-[-0.012em] leading-[1.25] mt-[9px] mb-[5px]"
+      className=" text-[12px] font-semibold text-foreground font-calistoga tracking-[-0.012em] leading-[1.25] mt-[9px] mb-[5px]"
       {...props}
     />
   ),
   h6: ({ node, ...props }: any) => (
     <h6
-      className=" text-[11px] font-semibold text-foreground tracking-[-0.01em] leading-[1.3] mt-[8px] mb-[4px]"
+      className=" text-[11px] font-semibold text-foreground font-calistoga tracking-[-0.01em] leading-[1.3] mt-[8px] mb-[4px]"
       {...props}
     />
   ),
