@@ -1,4 +1,4 @@
-import { RefreshCw, Settings, Trash } from "lucide-react";
+import { Plus, RefreshCw, Settings, Trash } from "lucide-react";
 import { forbidden } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +57,13 @@ export default async function Page() {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      <h1 className="text-2xl sm:text-3xl font-bold">API Keys</h1>
+      <div className="w-full flex flex-row items-center justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold">API Keys</h1>
+        <CreateKeyDialog>
+          <Button variant="outline" size="icon-sm"><Plus/></Button>
+        </CreateKeyDialog>
+      </div>
+
       <div className="w-full flex flex-col gap-2">
         {tokens.map((token) => (
           <div
