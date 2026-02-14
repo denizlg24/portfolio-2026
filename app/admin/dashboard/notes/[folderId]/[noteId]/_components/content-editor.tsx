@@ -1,6 +1,17 @@
 "use client";
 
-import { Download, FileText, Loader2, Sparkles } from "lucide-react";
+import {
+  ChevronLeftCircle,
+  ChevronRightCircle,
+  ClipboardX,
+  Download,
+  Edit2,
+  Eye,
+  FileText,
+  Loader2,
+  Save,
+  Sparkles,
+} from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
@@ -73,6 +84,8 @@ export const ContentEditor = ({
   const [model, setModel] = useState<(typeof AnthropicModels)[number]>(
     "claude-sonnet-4-5-20250929",
   );
+  const [toolbarOpen, setToolbarOpen] = useState(false);
+
   const closeEnhanceDialogRef = useRef<HTMLButtonElement | null>(null);
 
   const handleSave = async () => {
@@ -134,14 +147,6 @@ export const ContentEditor = ({
     }
   };
 
-  useEffect(() => {
-    const showPreviewTimeout = setTimeout(() => {
-      setTogglePreview(true);
-    }, 5000);
-
-    return () => clearTimeout(showPreviewTimeout);
-  }, [content]);
-
   const handleAIEnhance = async () => {
     try {
       setEnhancing(true);
@@ -175,101 +180,84 @@ export const ContentEditor = ({
 
   return (
     <div className="w-full relative">
-      <Dialog>
-        <DialogTrigger asChild>
+      {toolbarOpen ? (
+        <div className="flex flex-col gap-1 items-center absolute sm:right-2 right-0 sm:top-4 z-10 px-1 py-2 border shadow rounded-full bg-surface">
           <Button
             variant="outline"
             size="icon-sm"
-            className="absolute top-2 right-2 z-10"
+            onClick={() => setTogglePreview((prev) => !prev)}
           >
-            <Sparkles />
+            {togglePreview ? <Edit2 /> : <Eye />}
           </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Enhance Note with AI</DialogTitle>
-
-            <DialogDescription>
-              Use AI to enhance your note by making it more detailed, clear, and
-              well-structured.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-4">
-            <div className="flex flex-col items-start gap-1">
-              <Label htmlFor="model" className="w-32">
-                Model
-              </Label>
-              <Select
-                value={model}
-                onValueChange={(value) => setModel(value as Anthropic.Model)}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select model" />
-                </SelectTrigger>
-                <SelectContent className="z-99">
-                  {AnthropicModels.map((modelKey) => (
-                    <SelectItem key={modelKey} value={modelKey}>
-                      {modelKey}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Separator />
-            <div className="flex flex-col items-start gap-1">
-              <Label htmlFor="info" className="w-32">
-                Additional Info
-              </Label>
-              <Textarea
-                value={additionalInfo}
-                onChange={(e) => setAdditionalInfo(e.target.value)}
-                id="info"
-                className="font-mono text-sm h-24 overflow-y-auto rounded-none resize-none"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose ref={closeEnhanceDialogRef} asChild>
-              <Button variant="outline" disabled={enhancing}>
-                Cancel
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" size="icon-sm" className="">
+                <Sparkles />
               </Button>
-            </DialogClose>
-            <Button onClick={handleAIEnhance} disabled={enhancing}>
-              {enhancing ? (
-                <>
-                  Enhancing... <Loader2 className="animate-spin" />
-                </>
-              ) : (
-                "Enhance Note"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Enhance Note with AI</DialogTitle>
 
-      {!togglePreview && (
-        <Textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          onBlur={() => {
-            setTogglePreview(true);
-          }}
-          id="content"
-          className="font-mono text-sm h-[calc(100vh-12rem)] overflow-y-auto rounded-none"
-        />
-      )}
-      {togglePreview && (
-        <div
-          onClick={() => {
-            setTogglePreview(false);
-          }}
-          className="h-[calc(100vh-12rem)] overflow-y-auto w-full max-w-full! mx-auto border bg-background p-6 border-muted shadow-xs"
-        >
-          <MarkdownRenderer content={content} />
-        </div>
-      )}
-      <div className="flex flex-row items-center justify-between gap-2 w-full mt-2">
-        <div className="flex flex-row items-center gap-1">
+                <DialogDescription>
+                  Use AI to enhance your note by making it more detailed, clear,
+                  and well-structured.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col items-start gap-1">
+                  <Label htmlFor="model" className="w-32">
+                    Model
+                  </Label>
+                  <Select
+                    value={model}
+                    onValueChange={(value) =>
+                      setModel(value as Anthropic.Model)
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select model" />
+                    </SelectTrigger>
+                    <SelectContent className="z-99">
+                      {AnthropicModels.map((modelKey) => (
+                        <SelectItem key={modelKey} value={modelKey}>
+                          {modelKey}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Separator />
+                <div className="flex flex-col items-start gap-1">
+                  <Label htmlFor="info" className="w-32">
+                    Additional Info
+                  </Label>
+                  <Textarea
+                    value={additionalInfo}
+                    onChange={(e) => setAdditionalInfo(e.target.value)}
+                    id="info"
+                    className="font-mono text-sm h-24 overflow-y-auto rounded-none resize-none"
+                  />
+                </div>
+              </div>
+              <DialogFooter>
+                <DialogClose ref={closeEnhanceDialogRef} asChild>
+                  <Button variant="outline" disabled={enhancing}>
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <Button onClick={handleAIEnhance} disabled={enhancing}>
+                  {enhancing ? (
+                    <>
+                      Enhancing... <Loader2 className="animate-spin" />
+                    </>
+                  ) : (
+                    "Enhance Note"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
           <Button
             disabled={content !== initialContent || loading}
             variant={"outline"}
@@ -328,18 +316,17 @@ export const ContentEditor = ({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-        </div>
-        <div className="flex flex-row items-center gap-1">
           <Button
             onClick={handleSave}
+            size="icon-sm"
             disabled={content === initialContent || loading}
           >
             {loading ? (
               <>
-                Saving... <Loader2 className="animate-spin" />
+                <Loader2 className="animate-spin" />
               </>
             ) : (
-              "Save file"
+              <Save />
             )}
           </Button>
           <Button
@@ -348,11 +335,45 @@ export const ContentEditor = ({
             }}
             disabled={content === initialContent || loading}
             variant="secondary"
+            size="icon-sm"
           >
-            Discard changes
+            <ClipboardX />
+          </Button>
+          <Button
+            variant={"outline"}
+            size={"icon-sm"}
+            className="rounded-full"
+            onClick={() => setToolbarOpen(false)}
+          >
+            <ChevronRightCircle />
           </Button>
         </div>
-      </div>
+      ) : (
+        <Button
+          variant={"outline"}
+          size={"icon-sm"}
+          className="absolute sm:top-4 sm:right-2 right-0 rounded-full"
+          onClick={() => setToolbarOpen(true)}
+        >
+          <ChevronLeftCircle />
+        </Button>
+      )}
+
+      {!togglePreview && (
+        <Textarea
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          id="content"
+          className="font-mono text-sm h-[calc(100vh-8rem)] overflow-y-auto rounded-none border-none! outline-none! ring-0! shadow-none!"
+        />
+      )}
+      {togglePreview && (
+        <div
+          className="h-[calc(100vh-8rem)] overflow-y-auto w-full max-w-full! mx-auto bg-background px-3 py-2"
+        >
+          <MarkdownRenderer content={content} />
+        </div>
+      )}
     </div>
   );
 };
