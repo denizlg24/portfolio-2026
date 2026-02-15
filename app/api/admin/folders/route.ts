@@ -29,7 +29,10 @@ export const POST = async (request: NextRequest) => {
       name,
       parentFolder: parentObjectId ?? undefined,
     });
-    return NextResponse.json({_id: newFolder._id.toString()}, { status: 201 });
+    return NextResponse.json(
+      { _id: newFolder._id.toString() },
+      { status: 201 },
+    );
   } catch (error) {
     console.error("Error creating folder:", error);
     return NextResponse.json(

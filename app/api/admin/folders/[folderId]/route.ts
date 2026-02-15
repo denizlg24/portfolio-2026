@@ -20,6 +20,16 @@ export const DELETE = async (
     if (!folder) {
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
+    let childFolders = await Folder.find({ parentFolder: folder._id });
+    while (childFolders.length > 0) {
+      const childFolder = childFolders.pop();
+      if (childFolder) {
+        await Folder.findByIdAndDelete(childFolder._id);
+        childFolders = childFolders.concat(
+          await Folder.find({ parentFolder: childFolder._id })
+        );
+      }
+    }
     await Note.deleteMany({ _id: { $in: folder.notes } });
     return NextResponse.json(
       { message: "Folder deleted successfully", folder },

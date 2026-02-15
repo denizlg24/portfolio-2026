@@ -2,7 +2,6 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Folder } from "@/models/Folder";
 import { INote, Note } from "@/models/Notes";
-import mongoose from "mongoose";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (request: NextRequest) => {
@@ -40,6 +39,22 @@ export const POST = async (request: NextRequest) => {
     console.error("Error creating folder:", error);
     return NextResponse.json(
       { error: "Failed to create folder" },
+      { status: 500 },
+    );
+  }
+};
+
+export const GET = async (request: NextRequest) => {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+  try {
+    await connectDB();
+    const notes = await Note.find();
+    return NextResponse.json(notes, { status: 200 });
+  } catch (error) {
+    console.error("Error fetching notes:", error);
+    return NextResponse.json(
+      { error: "Failed to fetch notes" },
       { status: 500 },
     );
   }
