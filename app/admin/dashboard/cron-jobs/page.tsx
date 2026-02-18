@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
 import { CustomApi } from "@/models/CustomApi";
-import { type BodyFieldType } from "@/models/CustomApiEndpoint";
+import { CustomApiEndpoint, type BodyFieldType } from "@/models/CustomApiEndpoint";
 import { CronJobsManager, type ApiWithEndpoints } from "./_components/cron-jobs-manager";
 
 type LeanEndpoint = {
