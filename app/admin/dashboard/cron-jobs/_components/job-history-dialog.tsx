@@ -60,7 +60,7 @@ export function JobHistoryDialog({ open, onOpenChange, apiId, jobId, jobName }: 
         <DialogTitle>Execution History</DialogTitle>
         <DialogDescription>{jobName} — last 50 runs, newest first.</DialogDescription>
 
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1  max-h-[70vh] overflow-y-auto">
           {loading && (
             <div className="flex items-center justify-center py-12">
               <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
@@ -77,8 +77,8 @@ export function JobHistoryDialog({ open, onOpenChange, apiId, jobId, jobName }: 
 
           {!loading && !error && history.length > 0 && (
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-xs text-muted-foreground">
+              <thead className="sticky top-0 bg-background border-b">
+                <tr className=" text-xs text-muted-foreground">
                   <th className="text-left py-2 pr-3 font-medium">Started</th>
                   <th className="text-left py-2 pr-3 font-medium">Status</th>
                   <th className="text-left py-2 pr-3 font-medium">Duration</th>
