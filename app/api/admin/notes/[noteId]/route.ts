@@ -3,6 +3,7 @@ import { requireAdmin } from "@/lib/require-admin";
 import { Note } from "@/models/Notes";
 import { Folder } from "@/models/Folder";
 import { NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 
 export const GET = async (
   request: NextRequest,
@@ -78,10 +79,14 @@ export const PATCH = async (
     if (authError) return authError;
     const body = await request.json();
     const { parentId } = body;
+    const parentObjectId =
+      parentId && parentId !== "null"
+        ? new mongoose.Types.ObjectId(parentId)
+        : null;
     await connectDB();
     const note = await Note.findByIdAndUpdate(
       noteId,
-      { folder: parentId },
+      { folder: parentObjectId },
       { new: true },
     );
     if (!note) {
