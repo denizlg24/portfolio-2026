@@ -13,6 +13,7 @@ import {
   NotebookPen,
   PenTool,
   Settings,
+  Webhook,
 } from "lucide-react";
 
 import {
@@ -97,6 +98,11 @@ const items = [
     title: "API Tokens",
     url: "/admin/dashboard/api-tokens",
     icon: Settings,
+  },
+  {
+    title: "Cron Jobs",
+    url: "/admin/dashboard/cron-jobs",
+    icon: Webhook,
   },
 ];
 
