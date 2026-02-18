@@ -35,7 +35,7 @@ export default async function CronJobsPage() {
   await connectDB();
 
   const apisRaw = await CustomApi.find()
-    .populate<{ endpoints: LeanEndpoint[] }>("endpoints")
+    .populate<{ endpoints: LeanEndpoint[] }>({ path: "endpoints", model: CustomApiEndpoint })
     .lean<LeanApi[]>();
 
   const apis: ApiWithEndpoints[] = apisRaw.map((api) => ({
