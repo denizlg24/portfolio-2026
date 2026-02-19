@@ -20,6 +20,15 @@ export const metadata: Metadata = {
     description:
       "Explore a curated selection of software projects developed by Deniz Lopes Güneş, showcasing expertise in fullstack applications, open-source contributions, and innovative solutions.",
     url: "https://denizlg24.com/projects",
+    type: "website",
+    locale: "en_US",
+    siteName: "Deniz Lopes Güneş Portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Projects | Deniz Lopes Güneş",
+    description:
+      "Explore a curated selection of software projects developed by Deniz Lopes Güneş, showcasing expertise in fullstack applications, open-source contributions, and innovative solutions.",
   },
 };
 

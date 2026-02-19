@@ -9,7 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { getActiveBlogs, getBlogBySlug } from "@/lib/blog";
 import { BlogViewCounter } from "./components/blog-view-counter";
 import { CommentsSection } from "./components/comments-section";
-
+import { ShareButton } from "./components/share-button";
 export async function generateStaticParams() {
   const blogs = await getActiveBlogs();
 
@@ -40,6 +40,14 @@ export async function generateMetadata({
       title: `${blog.title} | Deniz Lopes Güneş`,
       description: blog.excerpt,
       url: `https://denizlg24.com/blog/${blog.slug}`,
+      type: "article",
+      locale: "en_US",
+      siteName: "Deniz Lopes Güneş Portfolio",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${blog.title} | Deniz Lopes Güneş`,
+      description: blog.excerpt,
     },
   };
 }
@@ -89,6 +97,10 @@ export default async function BlogPostPage({
               {blog.timeToRead} min read
             </span>
             <BlogViewCounter blogId={blog._id} />
+            <ShareButton
+              url={`https://denizlg24.com/blog/${blog.slug}`}
+              title={`I've just read "${blog.title}" on Deniz Lopes Güneş's blog and I think you should check it out too!\n\nCheck it out here: `}
+            />
           </div>
 
           {blog.tags && blog.tags.length > 0 && (

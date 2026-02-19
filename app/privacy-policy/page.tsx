@@ -5,7 +5,22 @@ import { StyledLink } from "@/components/styled-link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Learn how we handle your information on this portfolio website",
+  description: "Learn how we handle your information on this portfolio website.",
+  openGraph: {
+    title: "Privacy Policy | Deniz Lopes Güneş",
+    description:
+      "Learn how we handle your information on this portfolio website.",
+    url: "https://denizlg24.com/privacy-policy",
+    type: "website",
+    locale: "en_US",
+    siteName: "Deniz Lopes Güneş Portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Privacy Policy | Deniz Lopes Güneş",
+    description:
+      "Learn how we handle your information on this portfolio website.",
+  },
 };
 
 export default function PrivacyPolicyPage() {

@@ -1,11 +1,19 @@
 "use client";
 
-import { Clock, Eye, EyeOff, MessageSquare,  Pencil, Trash2 } from "lucide-react";
+import {
+  Clock,
+  Eye,
+  EyeOff,
+  MessageSquare,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { ILeanBlog } from "@/models/Blog";
+import { ShareButton } from "@/app/blog/[slug]/components/share-button";
 
 interface BlogListProps {
   blogs: ILeanBlog[];
@@ -56,7 +64,9 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
   if (blogs.length === 0) {
     return (
       <div className="text-center py-12">
-        <p className="text-sm sm:text-base text-muted-foreground">No blogs found</p>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          No blogs found
+        </p>
       </div>
     );
   }
@@ -92,9 +102,13 @@ export function BlogList({ blogs, onRefresh }: BlogListProps) {
             </div>
 
             <div className="flex items-center justify-end gap-2 w-full shrink-0 pt-2 border-t">
+              <ShareButton
+                url={`https://denizlg24.com/blog/${blog.slug}`}
+                title={`${blog.excerpt}\n\nRead the full articles here: `}
+              />
               <Button asChild size={"icon"} variant={"ghost"}>
                 <Link href={`/admin/dashboard/blogs/${blog._id}/comments`}>
-                  <MessageSquare/>
+                  <MessageSquare />
                 </Link>
               </Button>
               <Button

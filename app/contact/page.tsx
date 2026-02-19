@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     locale: "en_US",
   },
   twitter: {
-    card: "summary",
+    card: "summary_large_image",
     title: "Contact | Deniz Lopes Güneş",
     description:
       "Get in touch with Deniz Lopes Güneş for collaborations, consulting, speaking, or general inquiries.",

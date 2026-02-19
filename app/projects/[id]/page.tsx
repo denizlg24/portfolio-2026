@@ -48,6 +48,14 @@ export async function generateMetadata({
       title: `${project.title} | Deniz Lopes Güneş`,
       description: project.subtitle,
       url: `https://denizlg24.com/projects/${project._id}`,
+      type: "article",
+      locale: "en_US",
+      siteName: "Deniz Lopes Güneş Portfolio",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: `${project.title} | Deniz Lopes Güneş`,
+      description: project.subtitle,
     },
   };
 }

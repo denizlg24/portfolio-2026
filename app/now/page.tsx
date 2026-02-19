@@ -26,6 +26,15 @@ export const metadata: Metadata = {
     description:
       "Discover what I'm up to right now, including my latest projects, learning endeavors, and real-time updates on my software development journey.",
     url: "https://denizlg24.com/now",
+    type: "website",
+    locale: "en_US",
+    siteName: "Deniz Lopes Güneş Portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Now | Deniz Lopes Güneş",
+    description:
+      "Discover what I'm up to right now, including my latest projects, learning endeavors, and real-time updates on my software development journey.",
   },
 };
 

@@ -20,6 +20,7 @@ const calistoga = Calistoga({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://denizlg24.com"),
   title: {
     default: "Deniz Lopes Güneş | Software Engineer",
     template: "%s | Deniz Lopes Güneş",
@@ -45,6 +46,7 @@ export const metadata: Metadata = {
     description:
       "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix, building modern web applications and digital experiences.",
     siteName: "Deniz Lopes Güneş Portfolio",
+    images: ["/assets/logos/logo.png"],
   },
   twitter: {
     card: "summary_large_image",
@@ -52,6 +54,7 @@ export const metadata: Metadata = {
     description:
       "Software engineer from Portugal with a background in competitive sports. Co-founder and developer at Ocean Informatix.",
     creator: "@denizlg24",
+    images: ["/assets/logos/logo.png"],
   },
   robots: {
     index: true,

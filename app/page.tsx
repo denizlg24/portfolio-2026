@@ -35,6 +35,15 @@ export const metadata: Metadata = {
     description:
       "Hi, I'm Deniz, a 21 year old software engineer from Portugal. Co-founder and sole developer at Ocean Informatix.",
     url: "https://denizlg24.com",
+    type: "website",
+    locale: "en_US",
+    siteName: "Deniz Lopes Güneş Portfolio",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Home | Deniz Lopes Güneş",
+    description:
+      "Hi, I'm Deniz, a 21 year old software engineer from Portugal. Co-founder and sole developer at Ocean Informatix.",
   },
 };
 
