@@ -31,7 +31,7 @@
   --accent-foreground: var(--foreground);
 
   --destructive: #c0352b;
-  --input: var(--surface);
+  --input: var(--border);
   --border: var(--muted);
   --ring: var(--accent-strong);
 

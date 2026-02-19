@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getUptimeData } from "@/lib/health-check";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
 
@@ -10,25 +11,35 @@ export async function GET(request: NextRequest) {
   await connectDB();
   const resources = await Resource.find().sort({ createdAt: -1 }).lean();
 
+  const resourceIds = resources.map((r) => r._id.toString());
+  const thresholds = new Map(
+    resources.map((r) => [r._id.toString(), r.healthCheck?.responseTimeThresholdMs ?? 1000]),
+  );
+  const uptimeMap = await getUptimeData(resourceIds, thresholds);
+
   return NextResponse.json({
-    resources: resources.map((r) => ({
-      _id: r._id.toString(),
-      name: r.name,
-      description: r.description,
-      url: r.url,
-      type: r.type,
-      isActive: r.isActive,
-      healthCheck: r.healthCheck,
-      capabilities: r.capabilities.map((c) => ({
-        _id: c._id.toString(),
-        type: c.type,
-        label: c.label,
-        config: c.config,
-        isActive: c.isActive,
-      })),
-      createdAt: r.createdAt?.toISOString?.() ?? r.createdAt,
-      updatedAt: r.updatedAt?.toISOString?.() ?? r.updatedAt,
-    })),
+    resources: resources.map((r) => {
+      const id = r._id.toString();
+      return {
+        _id: id,
+        name: r.name,
+        description: r.description,
+        url: r.url,
+        type: r.type,
+        isActive: r.isActive,
+        healthCheck: r.healthCheck,
+        capabilities: r.capabilities.map((c) => ({
+          _id: c._id.toString(),
+          type: c.type,
+          label: c.label,
+          config: c.config,
+          isActive: c.isActive,
+        })),
+        uptime: uptimeMap.get(id) ?? null,
+        createdAt: r.createdAt?.toISOString?.() ?? r.createdAt,
+        updatedAt: r.updatedAt?.toISOString?.() ?? r.updatedAt,
+      };
+    }),
   });
 }
 

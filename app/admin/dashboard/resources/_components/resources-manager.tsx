@@ -1,11 +1,15 @@
 "use client";
 
-import { Plus } from "lucide-react";
+import { Loader2, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useState } from "react";
+import useSWR from "swr";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import type { IHealthCheck, ILeanCapability } from "@/models/Resource";
+import type { ResourceUptimeData } from "@/lib/health-check";
 import { CreateResourceDialog } from "./create-resource-dialog";
-import { ResourceCard } from "./resource-card";
+import { ResourceStatusCard } from "./resource-status-card";
+import { StatusSummary } from "./status-summary";
 
 export interface LeanResource {
   _id: string;
@@ -16,6 +20,7 @@ export interface LeanResource {
   isActive: boolean;
   healthCheck: IHealthCheck;
   capabilities: ILeanCapability[];
+  uptime: ResourceUptimeData | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -24,23 +29,67 @@ interface ResourcesManagerProps {
   initialResources: LeanResource[];
 }
 
-export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
-  const [resources, setResources] = useState<LeanResource[]>(initialResources);
-  const [createOpen, setCreateOpen] = useState(false);
+const fetcher = (url: string) =>
+  fetch(url, { cache: "no-store" }).then((r) => r.json());
 
-  const fetchResources = useCallback(async () => {
+export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
+  const [createOpen, setCreateOpen] = useState(false);
+  const [anyDialogOpen, setAnyDialogOpen] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { data, mutate } = useSWR("/api/admin/resources", fetcher, {
+    fallbackData: { resources: initialResources },
+    refreshInterval: anyDialogOpen || createOpen ? 0 : 60_000,
+    revalidateOnFocus: false,
+  });
+
+  const resources: LeanResource[] = data?.resources ?? initialResources;
+
+  const handleRefreshAll = useCallback(async () => {
+    setRefreshing(true);
     try {
-      const res = await fetch("/api/admin/resources", { cache: "no-store" });
-      if (!res.ok) return;
-      const data = await res.json();
-      setResources(data.resources);
-    } catch (error) {
-      console.error("Error fetching resources:", error);
+      const res = await fetch("/api/admin/resources/health-check", {
+        method: "POST",
+      });
+      if (!res.ok) throw new Error("Health check failed");
+      toast.success("Health checks completed");
+      await mutate();
+    } catch {
+      toast.error("Failed to run health checks");
+    } finally {
+      setRefreshing(false);
     }
+  }, [mutate]);
+
+  const onDialogChange = useCallback((open: boolean) => {
+    setAnyDialogOpen(open);
   }, []);
 
   return (
-    <div className="space-y-8 pb-8">
+    <div className="space-y-4 pb-8">
+      <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between">
+        {resources.length > 0 && <StatusSummary resources={resources} />}
+        <div className="flex flex-row items-center justify-end gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleRefreshAll}
+            disabled={refreshing}
+          >
+            {refreshing ? (
+              <Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-3.5 h-3.5 mr-1.5" />
+            )}
+            Refresh All
+          </Button>
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Plus className="w-3.5 h-3.5 mr-1.5" />
+            Add Resource
+          </Button>
+        </div>
+      </div>
+
       {resources.length === 0 && (
         <div className="text-center py-16 text-muted-foreground">
           <p className="text-lg font-medium mb-1">No resources configured</p>
@@ -55,34 +104,25 @@ export function ResourcesManager({ initialResources }: ResourcesManagerProps) {
       )}
 
       {resources.length > 0 && (
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {resources.map((resource) => (
-            <ResourceCard
+            <ResourceStatusCard
               key={resource._id}
               resource={resource}
-              onRefresh={fetchResources}
+              onRefresh={() => mutate()}
+              onDialogChange={onDialogChange}
             />
           ))}
         </div>
       )}
 
-      {resources.length > 0 && (
-        <div className="flex justify-start pt-2 border-t">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus className="w-3.5 h-3.5 mr-1.5" />
-            Add Resource
-          </Button>
-        </div>
-      )}
-
       <CreateResourceDialog
         open={createOpen}
-        onOpenChange={setCreateOpen}
-        onSuccess={fetchResources}
+        onOpenChange={(open) => {
+          setCreateOpen(open);
+          onDialogChange(open);
+        }}
+        onSuccess={() => mutate()}
       />
     </div>
   );

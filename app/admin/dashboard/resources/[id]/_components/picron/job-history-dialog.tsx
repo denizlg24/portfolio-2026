@@ -27,7 +27,7 @@ function StatusBadge({ status }: { status: number }) {
   if (status === 0)
     return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">ERR</Badge>;
   if (status >= 200 && status < 300)
-    return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100 font-mono">{status}</Badge>;
+    return <Badge className="bg-accent/20 text-accent-strong font-mono">{status}</Badge>;
   if (status >= 400 && status < 500)
     return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 font-mono">{status}</Badge>;
   return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">{status}</Badge>;

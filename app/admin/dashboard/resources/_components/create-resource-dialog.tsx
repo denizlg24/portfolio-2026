@@ -49,6 +49,7 @@ export function CreateResourceDialog({
   const [healthEnabled, setHealthEnabled] = useState(false);
   const [intervalMinutes, setIntervalMinutes] = useState(5);
   const [expectedStatus, setExpectedStatus] = useState(200);
+  const [responseTimeThresholdMs, setResponseTimeThresholdMs] = useState(1000);
 
   useEffect(() => {
     if (open && resource) {
@@ -60,6 +61,7 @@ export function CreateResourceDialog({
       setHealthEnabled(resource.healthCheck.enabled);
       setIntervalMinutes(resource.healthCheck.intervalMinutes);
       setExpectedStatus(resource.healthCheck.expectedStatus);
+      setResponseTimeThresholdMs(resource.healthCheck.responseTimeThresholdMs ?? 1000);
     } else if (open && !resource) {
       setName("");
       setUrl("");
@@ -69,6 +71,7 @@ export function CreateResourceDialog({
       setHealthEnabled(false);
       setIntervalMinutes(5);
       setExpectedStatus(200);
+      setResponseTimeThresholdMs(1000);
     }
   }, [open, resource]);
 
@@ -88,6 +91,7 @@ export function CreateResourceDialog({
         enabled: healthEnabled,
         intervalMinutes,
         expectedStatus,
+        responseTimeThresholdMs,
       },
     };
 
@@ -202,6 +206,19 @@ export function CreateResourceDialog({
                     value={expectedStatus}
                     onChange={(e) => setExpectedStatus(Number(e.target.value))}
                   />
+                </div>
+                <div className="space-y-1.5 col-span-2">
+                  <Label className="text-xs">Response Time Threshold (ms)</Label>
+                  <Input
+                    type="number"
+                    min={100}
+                    max={30000}
+                    value={responseTimeThresholdMs}
+                    onChange={(e) => setResponseTimeThresholdMs(Number(e.target.value))}
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Responses slower than this will be marked as degraded.
+                  </p>
                 </div>
               </div>
             )}

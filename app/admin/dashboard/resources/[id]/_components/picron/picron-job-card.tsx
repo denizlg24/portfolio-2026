@@ -19,7 +19,7 @@ import { JobFormDialog } from "./job-form-dialog";
 import { JobHistoryDialog } from "./job-history-dialog";
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
+  GET: "bg-accent/20 text-accent-strong",
   POST: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
   PUT: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
   PATCH: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
@@ -29,7 +29,7 @@ const METHOD_COLORS: Record<string, string> = {
 function LastStatus({ status }: { status: number | null }) {
   if (status === null) return <span className="text-xs text-muted-foreground">Never run</span>;
   if (status === 0) return <span className="text-xs text-destructive font-medium">Network error</span>;
-  const color = status >= 200 && status < 300 ? "text-green-600 dark:text-green-400" : "text-destructive";
+  const color = status >= 200 && status < 300 ? "text-accent-strong" : "text-destructive";
   return <span className={`text-xs font-mono font-medium ${color}`}>{status}</span>;
 }
 

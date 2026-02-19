@@ -20,6 +20,7 @@ export interface IHealthCheck {
   enabled: boolean;
   intervalMinutes: number;
   expectedStatus: number;
+  responseTimeThresholdMs: number;
   lastCheckedAt: Date | null;
   lastStatus: number | null;
   lastResponseTimeMs: number | null;
@@ -62,6 +63,7 @@ const HealthCheckSchema = new Schema({
   enabled: { type: Boolean, default: false },
   intervalMinutes: { type: Number, default: 5 },
   expectedStatus: { type: Number, default: 200 },
+  responseTimeThresholdMs: { type: Number, default: 1000 },
   lastCheckedAt: { type: Date, default: null },
   lastStatus: { type: Number, default: null },
   lastResponseTimeMs: { type: Number, default: null },

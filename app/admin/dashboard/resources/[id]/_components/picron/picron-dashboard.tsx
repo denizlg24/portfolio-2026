@@ -73,7 +73,7 @@ export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDash
         </div>
       )}
 
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 justify-end">
         <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
           <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
           Refresh

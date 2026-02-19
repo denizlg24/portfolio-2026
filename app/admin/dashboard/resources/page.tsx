@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getAdminSession } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
+import { getUptimeData } from "@/lib/health-check";
 import { Resource } from "@/models/Resource";
 import { ResourcesManager, type LeanResource } from "./_components/resources-manager";
 
@@ -11,24 +12,34 @@ export default async function ResourcesPage() {
   await connectDB();
   const raw = await Resource.find().sort({ createdAt: -1 }).lean();
 
-  const resources: LeanResource[] = raw.map((r) => ({
-    _id: r._id.toString(),
-    name: r.name,
-    description: r.description,
-    url: r.url,
-    type: r.type,
-    isActive: r.isActive,
-    healthCheck: r.healthCheck,
-    capabilities: r.capabilities.map((c) => ({
-      _id: c._id.toString(),
-      type: c.type,
-      label: c.label,
-      config: c.config,
-      isActive: c.isActive,
-    })),
-    createdAt: r.createdAt.toISOString(),
-    updatedAt: r.updatedAt.toISOString(),
-  }));
+  const resourceIds = raw.map((r) => r._id.toString());
+  const thresholds = new Map(
+    raw.map((r) => [r._id.toString(), r.healthCheck?.responseTimeThresholdMs ?? 1000]),
+  );
+  const uptimeMap = await getUptimeData(resourceIds, thresholds);
+
+  const resources: LeanResource[] = raw.map((r) => {
+    const id = r._id.toString();
+    return {
+      _id: id,
+      name: r.name,
+      description: r.description,
+      url: r.url,
+      type: r.type,
+      isActive: r.isActive,
+      healthCheck: r.healthCheck,
+      capabilities: r.capabilities.map((c) => ({
+        _id: c._id.toString(),
+        type: c.type,
+        label: c.label,
+        config: c.config,
+        isActive: c.isActive,
+      })),
+      uptime: uptimeMap.get(id) ?? null,
+      createdAt: r.createdAt.toISOString(),
+      updatedAt: r.updatedAt.toISOString(),
+    };
+  });
 
   return (
     <>

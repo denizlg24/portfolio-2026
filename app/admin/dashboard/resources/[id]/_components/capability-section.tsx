@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import type { ILeanCapability } from "@/models/Resource";
-import { PiCronDashboard } from "./picron-dashboard";
+import { PiCronDashboard } from "./picron/picron-dashboard";
 
 const TYPE_LABELS: Record<string, string> = {
   picron: "PiCron",

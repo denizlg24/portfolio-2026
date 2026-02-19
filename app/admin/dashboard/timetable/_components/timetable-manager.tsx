@@ -125,7 +125,7 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         onEntryClick={(entry) => setViewingEntry(entry)}
       />
 
-      {/* Create dialog */}
+      
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -142,7 +142,7 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Detail dialog */}
+      
       <Dialog
         open={!!viewingEntry}
         onOpenChange={(open) => !open && setViewingEntry(null)}
@@ -227,7 +227,7 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Edit dialog */}
+      
       <Dialog
         open={!!editingEntry}
         onOpenChange={(open) => !open && setEditingEntry(null)}
@@ -262,7 +262,7 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      {/* Delete confirmation */}
+      
       <Dialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
