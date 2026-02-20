@@ -190,9 +190,6 @@ export function CreateResourceDialog({
                 <div className="space-y-1.5">
                   <Label className="text-xs">Interval (minutes)</Label>
                   <Input
-                    type="number"
-                    min={1}
-                    max={1440}
                     value={intervalMinutes}
                     onChange={(e) => setIntervalMinutes(Number(e.target.value))}
                   />
@@ -200,9 +197,6 @@ export function CreateResourceDialog({
                 <div className="space-y-1.5">
                   <Label className="text-xs">Expected Status</Label>
                   <Input
-                    type="number"
-                    min={100}
-                    max={599}
                     value={expectedStatus}
                     onChange={(e) => setExpectedStatus(Number(e.target.value))}
                   />
@@ -210,9 +204,6 @@ export function CreateResourceDialog({
                 <div className="space-y-1.5 col-span-2">
                   <Label className="text-xs">Response Time Threshold (ms)</Label>
                   <Input
-                    type="number"
-                    min={100}
-                    max={30000}
                     value={responseTimeThresholdMs}
                     onChange={(e) => setResponseTimeThresholdMs(Number(e.target.value))}
                   />

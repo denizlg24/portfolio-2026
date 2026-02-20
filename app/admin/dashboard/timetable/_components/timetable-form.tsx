@@ -168,8 +168,8 @@ export function TimetableForm({
         </Field>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <Field data-invalid={!!errors.startTime}>
+      <div className="grid grid-cols-2 gap-4 w-full">
+        <Field data-invalid={!!errors.startTime} className="col-span-1 w-full">
           <FieldLabel htmlFor="startTime">Start Time</FieldLabel>
           <Controller
             name="startTime"
@@ -183,7 +183,7 @@ export function TimetableForm({
           )}
         </Field>
 
-        <Field data-invalid={!!errors.endTime}>
+        <Field data-invalid={!!errors.endTime} className="col-span-1 w-full">
           <FieldLabel htmlFor="endTime">End Time</FieldLabel>
           <Controller
             name="endTime"
