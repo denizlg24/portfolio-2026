@@ -8,7 +8,7 @@ const anthropic = new Anthropic({
 	apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const CHARS_PER_TOKEN = 3;
+const CHARS_PER_TOKEN = 1.5;
 
 function charsToTokens(chars: number): number {
 	return Math.ceil(chars / CHARS_PER_TOKEN);
