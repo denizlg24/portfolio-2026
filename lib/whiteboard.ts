@@ -31,9 +31,61 @@ export async function getAllWhiteboards(): Promise<ILeanWhiteboardMeta[]> {
       .select("name order createdAt updatedAt")
       .sort({ order: 1 })
       .lean();
-    return whiteboards.map(serializeWhiteboardMeta);
+    return whiteboards.filter((wb) => wb.name !== "Today").map(serializeWhiteboardMeta);
   } catch {
     return [];
+  }
+}
+
+export async function getTodayBoard() {
+  try {
+    await connectDB();
+    const foundTodayBoard = await Whiteboard.findOne({ name: "Today" }).lean();
+    if (foundTodayBoard) return serializeWhiteboard(foundTodayBoard);
+    if (foundTodayBoard === null) {
+      const todayBoard = await Whiteboard.create({
+        name: "Today",
+        elements: [],
+        viewState: { x: 0, y: 0, zoom: 1 },
+        order: 0,
+      });
+      return serializeWhiteboard(todayBoard);
+    }
+  } catch {
+    return null;
+  }
+}
+
+export async function updateTodayBoard(data: {
+  elements?: IWhiteboardElement[];
+  viewState?: { x: number; y: number; zoom: number };
+}): Promise<ILeanWhiteboard | null> {
+  try {
+    await connectDB();
+    const updated = await Whiteboard.findOneAndUpdate(
+      { name: "Today" },
+      data,
+      { new: true },
+    ).lean();
+    if (!updated) return null;
+    return serializeWhiteboard(updated);
+  } catch (err) {
+    console.error("Failed to update Today board:", err);
+    return null;
+  }
+}
+
+export async function clearTodayBoard(): Promise<boolean> {
+  try {
+    await connectDB();
+    await Whiteboard.findOneAndUpdate(
+      { name: "Today" },
+      { elements: [], viewState: { x: 0, y: 0, zoom: 1 } },
+    );
+    return true;
+  } catch (err) {
+    console.error("Failed to clear Today board:", err);
+    return false;
   }
 }
 
