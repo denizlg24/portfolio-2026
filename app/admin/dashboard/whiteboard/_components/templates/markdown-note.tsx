@@ -2,7 +2,7 @@
 
 import { Eye, Pencil } from "lucide-react";
 import { useState } from "react";
-import { MarkdownRenderer } from "@/components/markdown/markdown-renderer";
+import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Button } from "@/components/ui/button";
 import type { TemplateProps } from ".";
 
