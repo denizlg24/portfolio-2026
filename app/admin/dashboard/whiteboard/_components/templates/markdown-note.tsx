@@ -24,7 +24,7 @@ export const MarkdownTemplate = ({
         <span className="text-sm font-semibold">Markdown</span>
         <Button
           variant="ghost"
-          size="icon-xs"
+          size="icon-sm"
           onClick={() => setEditing(!editing)}
           title={editing ? "Preview" : "Edit"}
         >
