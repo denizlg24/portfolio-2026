@@ -14,13 +14,8 @@ interface DragState {
 }
 
 export function ComponentsLayer() {
-  const {
-    currentWhiteboard,
-    viewState,
-    updateElement,
-    removeElement,
-    tool,
-  } = useWhiteboard();
+  const { currentWhiteboard, viewState, updateElement, removeElement, tool } =
+    useWhiteboard();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const [dragState, setDragState] = useState<DragState | null>(null);
@@ -29,11 +24,18 @@ export function ComponentsLayer() {
     currentWhiteboard?.elements.filter((el) => el.type === "component") || [];
 
   const startDrag = useCallback(
-    (clientX: number, clientY: number, element: IWhiteboardElement, target: HTMLElement) => {
+    (
+      clientX: number,
+      clientY: number,
+      element: IWhiteboardElement,
+      target: HTMLElement,
+    ) => {
       if (tool !== "select") return false;
 
       // Don't start drag if clicking on interactive elements
-      const isInteractive = target.closest('input, button, textarea, [data-no-drag], [role="checkbox"]');
+      const isInteractive = target.closest(
+        'input, button, textarea, [data-no-drag], [role="checkbox"]',
+      );
       if (isInteractive) return false;
 
       const rect = containerRef.current?.getBoundingClientRect();
@@ -48,7 +50,7 @@ export function ComponentsLayer() {
       });
       return true;
     },
-    [tool, viewState]
+    [tool, viewState],
   );
 
   const handleMouseDown = useCallback(
@@ -58,19 +60,26 @@ export function ComponentsLayer() {
         e.stopPropagation();
       }
     },
-    [startDrag]
+    [startDrag],
   );
 
   const handleTouchStart = useCallback(
     (e: React.TouchEvent, element: IWhiteboardElement) => {
       if (e.touches.length === 1) {
         const touch = e.touches[0];
-        if (startDrag(touch.clientX, touch.clientY, element, e.target as HTMLElement)) {
+        if (
+          startDrag(
+            touch.clientX,
+            touch.clientY,
+            element,
+            e.target as HTMLElement,
+          )
+        ) {
           e.stopPropagation();
         }
       }
     },
-    [startDrag]
+    [startDrag],
   );
 
   const handleMove = useCallback(
@@ -84,17 +93,16 @@ export function ComponentsLayer() {
         (clientX - rect.left - dragState.offsetX - viewState.x) /
         viewState.zoom;
       const newY =
-        (clientY - rect.top - dragState.offsetY - viewState.y) /
-        viewState.zoom;
+        (clientY - rect.top - dragState.offsetY - viewState.y) / viewState.zoom;
 
       updateElement(dragState.elementId, { x: newX, y: newY });
     },
-    [dragState, viewState, updateElement]
+    [dragState, viewState, updateElement],
   );
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => handleMove(e.clientX, e.clientY),
-    [handleMove]
+    [handleMove],
   );
 
   const handleTouchMove = useCallback(
@@ -104,7 +112,7 @@ export function ComponentsLayer() {
         handleMove(e.touches[0].clientX, e.touches[0].clientY);
       }
     },
-    [handleMove]
+    [handleMove],
   );
 
   const handleEnd = useCallback(() => {
@@ -130,14 +138,14 @@ export function ComponentsLayer() {
     (elementId: string, newData: Record<string, unknown>) => {
       updateElement(elementId, { data: newData });
     },
-    [updateElement]
+    [updateElement],
   );
 
   const handleDelete = useCallback(
     (elementId: string) => {
       removeElement(elementId);
     },
-    [removeElement]
+    [removeElement],
   );
 
   if (!currentWhiteboard) return null;
@@ -176,19 +184,14 @@ export function ComponentsLayer() {
             onMouseDown={(e) => handleMouseDown(e, element)}
             onTouchStart={(e) => handleTouchStart(e, element)}
           >
-            <div
-              style={{
-                width: element.width || template.defaultSize.width,
-                height: element.height || template.defaultSize.height,
-              }}
-            >
-              <Component
-                id={element.id}
-                data={element.data}
-                onDataChange={(data) => handleDataChange(element.id, data)}
-                onDelete={() => handleDelete(element.id)}
-              />
-            </div>
+            <Component
+              id={element.id}
+              data={element.data}
+              width={element.width || template.defaultSize.width}
+              height={element.height || template.defaultSize.height}
+              onDataChange={(data) => handleDataChange(element.id, data)}
+              onDelete={() => handleDelete(element.id)}
+            />
           </div>
         );
       })}

@@ -1,19 +1,11 @@
 "use client";
 
+import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
-import { Trash2, GripVertical, Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Sortable,
-  SortableContent,
-  SortableItem,
-  SortableItemHandle,
-  SortableOverlay,
-} from "@/components/ui/sortable";
-import { cn } from "@/lib/utils";
-import type { TemplateProps } from "./index";
+import { Input } from "@/components/ui/input";
+import type { TemplateProps } from ".";
 
 interface TodoItem {
   id: string;
@@ -21,15 +13,14 @@ interface TodoItem {
   completed: boolean;
 }
 
-export function TodoListTemplate({
+export const TodoListTemplate = ({
   id,
+  width,
+  height,
   data,
   onDataChange,
   onDelete,
-}: TemplateProps) {
-  const [newItemText, setNewItemText] = useState("");
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-
+}: TemplateProps) => {
   const title = (data.title as string) || "Todo List";
   const items = (data.items as TodoItem[]) || [];
 
@@ -37,160 +28,129 @@ export function TodoListTemplate({
     onDataChange({ ...data, items: newItems });
   };
 
-  const addItem = () => {
-    if (!newItemText.trim()) return;
-    const newItem: TodoItem = {
-      id: crypto.randomUUID(),
-      text: newItemText.trim(),
-      completed: false,
-    };
-    updateItems([...items, newItem]);
-    setNewItemText("");
-  };
-
-  const toggleItem = (itemId: string) => {
-    updateItems(
-      items.map((item) =>
-        item.id === itemId ? { ...item, completed: !item.completed } : item
-      )
-    );
-  };
-
-  const deleteItem = (itemId: string) => {
-    updateItems(items.filter((item) => item.id !== itemId));
-  };
-
-  const updateTitle = (newTitle: string) => {
-    onDataChange({ ...data, title: newTitle });
-    setIsEditingTitle(false);
-  };
+  const [newTaskInput, setNewTaskInput] = useState("");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [newTitleInput, setNewTitleInput] = useState(title);
 
   return (
-    <div className="bg-background border rounded-lg shadow-md overflow-hidden h-full flex flex-col">
-      <div className="flex items-center justify-between p-3 border-b bg-muted/30">
-        {isEditingTitle ? (
-          <Input
-            className="h-7 text-sm font-medium"
-            defaultValue={title}
-            autoFocus
-            onBlur={(e) => updateTitle(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                updateTitle(e.currentTarget.value);
-              }
-              if (e.key === "Escape") {
-                setIsEditingTitle(false);
-              }
-            }}
-          />
-        ) : (
-          <h3
-            className="text-sm font-medium cursor-pointer hover:text-primary"
-            onClick={() => setIsEditingTitle(true)}
-          >
-            {title}
-          </h3>
-        )}
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          className="size-6 text-muted-foreground hover:text-destructive"
-          onClick={onDelete}
-        >
-          <X className="size-3.5" />
-        </Button>
-      </div>
-
-      <div className="flex-1 overflow-y-auto p-2" onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-        <Sortable
-          value={items}
-          onValueChange={updateItems}
-          getItemValue={(item) => item.id}
-        >
-          <SortableContent className="space-y-1">
-            {items.map((item) => (
-              <SortableItem
-                key={item.id}
-                value={item.id}
-                className="flex items-center gap-2 p-1.5 rounded hover:bg-muted/50 group"
-              >
-                <SortableItemHandle asChild>
-                  <button className="hidden group-hover:block touch-none">
-                    <GripVertical className="size-3.5 text-muted-foreground" />
-                  </button>
-                </SortableItemHandle>
-                <Checkbox
-                className="border-border"
-                  checked={item.completed}
-                  onCheckedChange={() => toggleItem(item.id)}
-                />
-                <span
-                  className={cn(
-                    "flex-1 text-sm",
-                    item.completed && "line-through text-muted-foreground"
-                  )}
-                >
-                  {item.text}
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  className="size-6 opacity-0 group-hover:opacity-100"
-                  onClick={() => deleteItem(item.id)}
-                >
-                  <Trash2 className="size-3 text-muted-foreground hover:text-destructive" />
-                </Button>
-              </SortableItem>
-            ))}
-          </SortableContent>
-          <SortableOverlay>
-            {({ value }) => {
-              const item = items.find((i) => i.id === value);
-              if (!item) return null;
-              return (
-                <div className="flex items-center gap-2 p-1.5 rounded bg-background border shadow-lg">
-                  <GripVertical className="size-3.5 text-muted-foreground" />
-                  <Checkbox checked={item.completed} disabled />
-                  <span
-                    className={cn(
-                      "flex-1 text-sm",
-                      item.completed && "line-through text-muted-foreground"
-                    )}
-                  >
-                    {item.text}
-                  </span>
-                </div>
-              );
-            }}
-          </SortableOverlay>
-        </Sortable>
-
-        {items.length === 0 && (
-          <p className="text-xs text-muted-foreground text-center py-4">
-            No items yet
+    <div
+      className="border border-border bg-background shadow-sm rounded-lg flex flex-col gap-3"
+      style={{ width, height }}
+    >
+      <div className="flex flex-col gap-0.5 w-full pt-3 px-3 pb-3 border-b bg-input/25 rounded-tl-lg rounded-tr-lg">
+        <div className="flex flex-row items-center justify-between">
+          {editingTitle ? (
+            <input
+              className="text-base font-semibold focus:outline-none bg-surface rounded"
+              value={newTitleInput}
+              onChange={(e) => setNewTitleInput(e.target.value)}
+              onBlur={() => {
+                onDataChange({ ...data, title: newTitleInput });
+                setEditingTitle(false);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  onDataChange({ ...data, title: newTitleInput });
+                  setEditingTitle(false);
+                }
+              }}
+              autoFocus
+            />
+          ) : (
+            <p
+              className="text-base font-semibold"
+              onClick={() => setEditingTitle(true)}
+            >
+              {title}
+            </p>
+          )}
+          <p className="text-accent text-sm">
+            {items.filter((item) => item.completed).length}/{items.length}
           </p>
-        )}
-      </div>
-
-      <div className="p-2 border-t" onMouseDown={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
-        <div className="flex gap-1">
-          <Input
-            placeholder="Add item..."
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && addItem()}
-            className="h-8 text-sm"
-          />
-          <Button
-            size="icon-sm"
-            variant="outline"
-            onClick={addItem}
-            disabled={!newItemText.trim()}
-          >
-            <Plus className="size-4" />
-          </Button>
         </div>
+        <div className="w-full relative border bg-surface rounded-full h-3 overflow-hidden">
+          <div
+            className="absolute top-0 left-0 h-full bg-primary transition-all duration-300 ease-in-out"
+            style={{
+              width: `${(items.filter((item) => item.completed).length / items.length) * 100}%`,
+            }}
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1 overflow-y-auto w-full">
+        {items.map((item) => (
+          <label
+            key={item.id}
+            className="group flex flex-row justify-start items-center gap-2 hover:bg-surface/50 rounded px-2 py-1"
+          >
+            <Checkbox
+              className="rounded-full shrink-0"
+              checked={item.completed}
+              onCheckedChange={(checked) => {
+                const newItems = items.map((i) =>
+                  i.id === item.id ? { ...i, completed: checked } : i,
+                );
+                updateItems(newItems as TodoItem[]);
+              }}
+            />
+            <span
+              className={
+                item.completed
+                  ? "line-through text-muted-foreground truncate grow"
+                  : "truncate grow"
+              }
+            >
+              {item.text}
+            </span>
+            <Button
+              onClick={() => {
+                const newItems = items.filter((i) => i.id !== item.id);
+                updateItems(newItems as TodoItem[]);
+              }}
+              variant={"outline"}
+              size={"icon-sm"}
+              className="hidden group-hover:flex ml-auto shrink-0"
+            >
+              <Trash2 />
+            </Button>
+          </label>
+        ))}
+      </div>
+      <div className="mt-auto w-full flex flex-row items-center gap-2 p-3 bg-input/25 border-t rounded-bl-lg rounded-br-lg">
+        <Input
+          onChange={(e) => {
+            setNewTaskInput(e.target.value);
+          }}
+          onKeyDown={(e) => {
+            if (e.key == "Enter") {
+              const newItem: TodoItem = {
+                id: Date.now().toString(),
+                text: newTaskInput,
+                completed: false,
+              };
+              updateItems([...items, newItem]);
+              setNewTaskInput("");
+              e.currentTarget.blur();
+            }
+          }}
+          placeholder="Add a new task..."
+          value={newTaskInput}
+        />
+        <Button
+          size={"icon-sm"}
+          onClick={() => {
+            const newItem: TodoItem = {
+              id: Date.now().toString(),
+              text: newTaskInput,
+              completed: false,
+            };
+            updateItems([...items, newItem]);
+            setNewTaskInput("");
+          }}
+        >
+          <Plus />
+        </Button>
       </div>
     </div>
   );
-}
+};
