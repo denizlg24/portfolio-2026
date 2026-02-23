@@ -20,6 +20,7 @@ export interface IWhiteboard {
   order: number;
   createdAt: Date;
   updatedAt: Date;
+  hasBeenCleared: boolean;
 }
 
 export interface ILeanWhiteboard {
@@ -52,7 +53,7 @@ const WhiteboardElementSchema = new mongoose.Schema(
     data: { type: mongoose.Schema.Types.Mixed, default: {} },
     zIndex: { type: Number, default: 0 },
   },
-  { _id: false }
+  { _id: false },
 );
 
 const WhiteboardSchema = new mongoose.Schema<IWhiteboard>(
@@ -65,8 +66,9 @@ const WhiteboardSchema = new mongoose.Schema<IWhiteboard>(
       zoom: { type: Number, default: 1 },
     },
     order: { type: Number, default: 0, index: true },
+    hasBeenCleared: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const Whiteboard: mongoose.Model<IWhiteboard> =

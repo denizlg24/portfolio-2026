@@ -1,3 +1,4 @@
+import { Zap } from "lucide-react";
 import { forbidden } from "next/navigation";
 import { getAdminSession } from "@/lib/require-admin";
 import { LlmUsageDashboard } from "./_components/llm-usage-dashboard";
@@ -10,14 +11,14 @@ export default async function Page() {
   }
 
   return (
-    <div className="w-full flex flex-col gap-6">
-      <div>
-        <h1 className="text-2xl sm:text-3xl font-bold">LLM Usage</h1>
-        <p className="text-sm sm:text-base text-muted-foreground mt-1">
-          Token consumption, costs, and request history.
-        </p>
+    <div className="flex flex-col gap-2 pb-8">
+      <div className="flex items-center gap-2 px-4 border-b h-12 shrink-0">
+        <Zap className="size-4 text-muted-foreground" />
+        <span className="text-sm font-semibold flex-1">Token Usage</span>
       </div>
-      <LlmUsageDashboard />
+      <div className="px-4">
+        <LlmUsageDashboard />
+      </div>
     </div>
   );
 }

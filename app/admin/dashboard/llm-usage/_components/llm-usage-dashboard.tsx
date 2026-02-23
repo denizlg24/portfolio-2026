@@ -1,21 +1,40 @@
 "use client";
 
+import {
+  type ColumnDef,
+  type SortingState,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import { ArrowDown, ArrowUp, ArrowUpDown, Zap } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
+import {
+  ChartContainer,
+  ChartTooltip,
+  type ChartConfig,
+} from "@/components/ui/chart";
+import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
-  AlertCircle,
-  ArrowDownRight,
-  ArrowUpRight,
-  Brain,
-  CircleDollarSign,
-  Hash,
-  Zap,
-} from "lucide-react";
-import { format, formatDistanceToNow } from "date-fns";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 
-interface AggBucket {
+interface UsageStats {
   totalRequests: number;
   totalInputTokens: number;
   totalOutputTokens: number;
@@ -38,7 +57,7 @@ interface SourceBreakdown {
   cost: number;
 }
 
-interface DailyPoint {
+interface DailyBreakdown {
   date: string;
   requests: number;
   inputTokens: number;
@@ -56,411 +75,540 @@ interface RecentRequest {
   createdAt: string;
 }
 
-interface UsageData {
-  allTime: AggBucket;
-  last30d: AggBucket;
-  last7d: AggBucket;
-  last24h: AggBucket;
+interface UsageResponse {
+  allTime: UsageStats;
+  last30d: UsageStats;
+  last7d: UsageStats;
+  last24h: UsageStats;
   byModel: ModelBreakdown[];
   bySource: SourceBreakdown[];
-  dailyBreakdown: DailyPoint[];
+  dailyBreakdown: DailyBreakdown[];
   recentRequests: RecentRequest[];
 }
 
+type TimePeriod = "allTime" | "last30d" | "last7d" | "last24h";
+
 function formatTokens(n: number): string {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
-  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
-  return String(n);
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toLocaleString();
 }
 
 function formatCost(n: number): string {
+  if (n === 0) return "$0.00";
   if (n < 0.01) return `$${n.toFixed(4)}`;
   return `$${n.toFixed(2)}`;
 }
 
-function BarSegment({
-  value,
-  max,
-  label,
-  sublabel,
-  color,
-}: {
-  value: number;
-  max: number;
-  label: string;
-  sublabel: string;
-  color: string;
-}) {
-  const pct = max > 0 ? (value / max) * 100 : 0;
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
+}
+
+function formatDateTime(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+const chartConfig = {
+  cost: {
+    label: "Cost",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
+
+const PERIOD_LABELS: Record<TimePeriod, string> = {
+  allTime: "All Time",
+  last30d: "30 Days",
+  last7d: "7 Days",
+  last24h: "24 Hours",
+};
+
+function SortHeader({ label, column }: { label: string; column: any }) {
+  const sorted = column.getIsSorted();
   return (
-    <div className="flex flex-col gap-1">
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-muted-foreground truncate mr-2">{label}</span>
-        <span className="font-medium tabular-nums shrink-0">{sublabel}</span>
+    <button
+      className="flex items-center gap-1 hover:text-foreground transition-colors"
+      onClick={() => column.toggleSorting(sorted === "asc")}
+    >
+      {label}
+      {sorted === "asc" ? (
+        <ArrowUp className="size-3" />
+      ) : sorted === "desc" ? (
+        <ArrowDown className="size-3" />
+      ) : (
+        <ArrowUpDown className="size-3 opacity-40" />
+      )}
+    </button>
+  );
+}
+
+const requestColumns: ColumnDef<RecentRequest>[] = [
+  {
+    accessorKey: "llmModel",
+    header: "Model",
+    cell: ({ row }) => (
+      <span className="font-mono">{row.getValue("llmModel")}</span>
+    ),
+  },
+  {
+    accessorKey: "source",
+    header: "Source",
+    cell: ({ row }) => (
+      <Badge variant="outline" className="font-mono text-xs">
+        {row.getValue("source")}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "inputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Input" column={column} />
       </div>
-      <div className="h-2 w-full rounded-full bg-muted/50 overflow-hidden">
-        <div
-          className={`h-full rounded-full transition-all duration-500 ${color}`}
-          style={{ width: `${Math.max(pct, 1)}%` }}
-        />
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {(row.getValue("inputTokens") as number).toLocaleString()}
       </div>
+    ),
+  },
+  {
+    accessorKey: "outputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Output" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {(row.getValue("outputTokens") as number).toLocaleString()}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "costUsd",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Cost" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums">
+        {formatCost(row.getValue("costUsd"))}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "createdAt",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Date" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right text-muted-foreground">
+        {formatDateTime(row.getValue("createdAt"))}
+      </div>
+    ),
+  },
+];
+
+const modelColumns: ColumnDef<ModelBreakdown>[] = [
+  {
+    accessorKey: "model",
+    header: "Model",
+    cell: ({ row }) => (
+      <span className="font-mono">{row.getValue("model")}</span>
+    ),
+  },
+  {
+    accessorKey: "requests",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Requests" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums">
+        {(row.getValue("requests") as number).toLocaleString()}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "inputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Input" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {formatTokens(row.getValue("inputTokens"))}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "outputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Output" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {formatTokens(row.getValue("outputTokens"))}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "cost",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Cost" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums">
+        {formatCost(row.getValue("cost"))}
+      </div>
+    ),
+  },
+];
+
+const sourceColumns: ColumnDef<SourceBreakdown>[] = [
+  {
+    accessorKey: "source",
+    header: "Source",
+    cell: ({ row }) => (
+      <Badge variant="secondary" className="font-mono text-xs">
+        {row.getValue("source")}
+      </Badge>
+    ),
+  },
+  {
+    accessorKey: "requests",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Requests" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums">
+        {(row.getValue("requests") as number).toLocaleString()}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "inputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Input" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {formatTokens(row.getValue("inputTokens"))}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "outputTokens",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Output" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums text-muted-foreground">
+        {formatTokens(row.getValue("outputTokens"))}
+      </div>
+    ),
+  },
+  {
+    accessorKey: "cost",
+    header: ({ column }) => (
+      <div className="text-right">
+        <SortHeader label="Cost" column={column} />
+      </div>
+    ),
+    cell: ({ row }) => (
+      <div className="text-right tabular-nums">
+        {formatCost(row.getValue("cost"))}
+      </div>
+    ),
+  },
+];
+
+function DataTable<TData>({
+  columns,
+  data,
+}: {
+  columns: ColumnDef<TData, any>[];
+  data: TData[];
+}) {
+  const [sorting, setSorting] = useState<SortingState>([]);
+
+  const table = useReactTable({
+    data,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+    onSortingChange: setSorting,
+    state: { sorting },
+  });
+
+  return (
+    <Table>
+      <TableHeader>
+        {table.getHeaderGroups().map((headerGroup) => (
+          <TableRow key={headerGroup.id}>
+            {headerGroup.headers.map((header) => (
+              <TableHead key={header.id} className="text-xs">
+                {header.isPlaceholder
+                  ? null
+                  : flexRender(
+                      header.column.columnDef.header,
+                      header.getContext(),
+                    )}
+              </TableHead>
+            ))}
+          </TableRow>
+        ))}
+      </TableHeader>
+      <TableBody>
+        {table.getRowModel().rows.length ? (
+          table.getRowModel().rows.map((row) => (
+            <TableRow key={row.id}>
+              {row.getVisibleCells().map((cell) => (
+                <TableCell key={cell.id} className="text-xs">
+                  {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))
+        ) : (
+          <TableRow>
+            <TableCell
+              colSpan={columns.length}
+              className="h-20 text-center text-muted-foreground"
+            >
+              No data
+            </TableCell>
+          </TableRow>
+        )}
+      </TableBody>
+    </Table>
+  );
+}
+
+function UsageLoadingSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 pt-3">
+      <Skeleton className="h-9 w-72 rounded-lg" />
+      <div className="flex gap-8">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="flex flex-col gap-1">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-6 w-20" />
+          </div>
+        ))}
+      </div>
+      <Skeleton className="h-48 w-full rounded-md" />
+      <Skeleton className="h-64 w-full rounded-md" />
     </div>
   );
 }
 
-function SparkLine({ data, height = 40 }: { data: number[]; height?: number }) {
-  if (data.length < 2) return null;
-  const max = Math.max(...data, 1);
-  const min = Math.min(...data, 0);
-  const range = max - min || 1;
-  const w = 200;
-  const points = data
-    .map((v, i) => {
-      const x = (i / (data.length - 1)) * w;
-      const y = height - ((v - min) / range) * (height - 4) - 2;
-      return `${x},${y}`;
-    })
-    .join(" ");
-
-  return (
-    <svg
-      viewBox={`0 0 ${w} ${height}`}
-      className="w-full"
-      style={{ height }}
-      preserveAspectRatio="none"
-    >
-      <polyline
-        points={points}
-        fill="none"
-        stroke="var(--color-accent)"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <polyline
-        points={`0,${height} ${points} ${w},${height}`}
-        fill="var(--color-accent)"
-        fillOpacity="0.08"
-        stroke="none"
-      />
-    </svg>
-  );
-}
-
 export function LlmUsageDashboard() {
-  const [data, setData] = useState<UsageData | null>(null);
+  const [data, setData] = useState<UsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
-  const [timeRange, setTimeRange] = useState<
-    "last24h" | "last7d" | "last30d" | "allTime"
-  >("last30d");
+  const [period, setPeriod] = useState<TimePeriod>("last30d");
 
   useEffect(() => {
-    fetchUsage();
+    (async () => {
+      try {
+        const response = await fetch("/api/admin/llm/usage");
+        if (response.ok) {
+          const json = await response.json();
+          setData(json);
+        }
+      } catch (error) {
+        console.error("Failed to fetch LLM usage:", error);
+      } finally {
+        setLoading(false);
+      }
+    })();
   }, []);
 
-  const fetchUsage = async () => {
-    try {
-      const response = await fetch("/api/admin/llm/usage");
-      if (response.ok) {
-        const json = await response.json();
-        setData(json);
-      }
-    } catch (error) {
-      console.error("Failed to fetch LLM usage:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (loading) {
-    return (
-      <div className="w-full flex flex-col gap-6">
-        <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-          {[...Array(4)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <Skeleton className="h-3 w-20 mb-3" />
-              <Skeleton className="h-7 w-24 mb-1" />
-              <Skeleton className="h-3 w-16" />
-            </Card>
-          ))}
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {[...Array(2)].map((_, i) => (
-            <Card key={i} className="p-6">
-              <Skeleton className="h-5 w-32 mb-4" />
-              <Skeleton className="h-40 w-full" />
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
+    return <UsageLoadingSkeleton />;
   }
 
   if (!data) {
     return (
-      <div className="text-center py-12">
-        <AlertCircle className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
-        <p className="text-muted-foreground">Failed to load usage data</p>
+      <div className="pt-12 text-center text-muted-foreground text-sm">
+        Failed to load usage data.
       </div>
     );
   }
 
-  const active = data[timeRange];
-  const rangeLabels = {
-    last24h: "24h",
-    last7d: "7d",
-    last30d: "30d",
-    allTime: "All",
-  } as const;
-
-  const maxModelCost = Math.max(...data.byModel.map((m) => m.cost), 0);
-  const maxSourceCost = Math.max(...data.bySource.map((s) => s.cost), 0);
+  const stats = data[period];
 
   return (
-    <div className="w-full flex flex-col gap-6">
-      {/* Time range selector */}
-      <div className="flex items-center gap-1 p-1 bg-muted/30 rounded-lg w-fit">
-        {(
-          ["last24h", "last7d", "last30d", "allTime"] as const
-        ).map((range) => (
-          <button
-            key={range}
-            onClick={() => setTimeRange(range)}
-            className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-              timeRange === range
-                ? "bg-background text-accent-strong shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {rangeLabels[range]}
-          </button>
-        ))}
+    <div className="flex flex-col gap-6 pt-3">
+      <Tabs
+        value={period}
+        onValueChange={(v) => setPeriod(v as TimePeriod)}
+      >
+        <TabsList>
+          {(Object.keys(PERIOD_LABELS) as TimePeriod[]).map((key) => (
+            <TabsTrigger key={key} value={key}>
+              {PERIOD_LABELS[key]}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </Tabs>
+
+      <div className="flex items-baseline gap-8 flex-wrap">
+        <Stat label="Requests" value={stats.totalRequests.toLocaleString()} />
+        <Stat label="Input Tokens" value={formatTokens(stats.totalInputTokens)} />
+        <Stat label="Output Tokens" value={formatTokens(stats.totalOutputTokens)} />
+        <Stat label="Total Cost" value={formatCost(stats.totalCost)} />
       </div>
 
-      {/* Summary cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Requests
+      {data.dailyBreakdown.length > 0 && (
+        <>
+          <Separator />
+          <div>
+            <h3 className="text-sm font-semibold">Daily Cost</h3>
+            <p className="text-xs text-muted-foreground mt-0.5 mb-3">
+              Last 30 days
             </p>
-            <Hash className="w-3.5 h-3.5 text-muted-foreground" />
+            <ChartContainer
+              config={chartConfig}
+              className="h-48 w-full"
+            >
+              <AreaChart
+                data={data.dailyBreakdown}
+                accessibilityLayer
+              >
+                <defs>
+                  <linearGradient
+                    id="costFill"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="var(--color-cost)"
+                      stopOpacity={0.3}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="var(--color-cost)"
+                      stopOpacity={0.02}
+                    />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={formatDate}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(v) => `$${v}`}
+                  width={50}
+                />
+                <ChartTooltip
+                  content={({ active, payload, label }) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload as DailyBreakdown;
+                    return (
+                      <div className="rounded-lg border bg-background px-3 py-2 text-xs shadow-xl">
+                        <p className="font-medium mb-1.5">
+                          {formatDate(String(label))}
+                        </p>
+                        <div className="flex flex-col gap-1 text-muted-foreground">
+                          <span>
+                            Cost:{" "}
+                            <span className="text-foreground font-mono tabular-nums">
+                              {formatCost(d.cost)}
+                            </span>
+                          </span>
+                          <span>
+                            Requests:{" "}
+                            <span className="text-foreground font-mono tabular-nums">
+                              {d.requests}
+                            </span>
+                          </span>
+                          <span>
+                            Tokens:{" "}
+                            <span className="text-foreground font-mono tabular-nums">
+                              {formatTokens(d.inputTokens + d.outputTokens)}
+                            </span>
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  }}
+                />
+                <Area
+                  dataKey="cost"
+                  type="monotone"
+                  fill="url(#costFill)"
+                  stroke="var(--color-cost)"
+                  strokeWidth={1.5}
+                />
+              </AreaChart>
+            </ChartContainer>
           </div>
-          <p className="text-2xl font-bold tabular-nums">
-            {active.totalRequests.toLocaleString()}
-          </p>
-          {timeRange !== "allTime" && data.allTime.totalRequests > 0 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              of {data.allTime.totalRequests.toLocaleString()} total
-            </p>
-          )}
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Input Tokens
-            </p>
-            <ArrowUpRight className="w-3.5 h-3.5 text-muted-foreground" />
-          </div>
-          <p className="text-2xl font-bold tabular-nums">
-            {formatTokens(active.totalInputTokens)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {active.totalInputTokens.toLocaleString()} exact
-          </p>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Output Tokens
-            </p>
-            <ArrowDownRight className="w-3.5 h-3.5 text-muted-foreground" />
-          </div>
-          <p className="text-2xl font-bold tabular-nums">
-            {formatTokens(active.totalOutputTokens)}
-          </p>
-          <p className="text-xs text-muted-foreground mt-1">
-            {active.totalOutputTokens.toLocaleString()} exact
-          </p>
-        </Card>
-
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              Total Cost
-            </p>
-            <CircleDollarSign className="w-3.5 h-3.5 text-muted-foreground" />
-          </div>
-          <p className="text-2xl font-bold tabular-nums">
-            {formatCost(active.totalCost)}
-          </p>
-          {timeRange !== "allTime" && data.allTime.totalCost > 0 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              of {formatCost(data.allTime.totalCost)} total
-            </p>
-          )}
-        </Card>
-      </div>
-
-      {/* Daily activity spark chart */}
-      {data.dailyBreakdown.length > 1 && (
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-sm font-semibold">Daily Activity</h3>
-              <p className="text-xs text-muted-foreground">
-                Last 30 days — requests per day
-              </p>
-            </div>
-            <Zap className="w-4 h-4 text-muted-foreground" />
-          </div>
-          <SparkLine
-            data={data.dailyBreakdown.map((d) => d.requests)}
-            height={56}
-          />
-          <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-            <span>
-              {format(
-                new Date(data.dailyBreakdown[0].date),
-                "MMM d",
-              )}
-            </span>
-            <span>
-              {format(
-                new Date(
-                  data.dailyBreakdown[data.dailyBreakdown.length - 1].date,
-                ),
-                "MMM d",
-              )}
-            </span>
-          </div>
-        </Card>
+        </>
       )}
 
-      {/* Breakdowns */}
-      <div className="grid gap-4 md:grid-cols-2">
-        {/* By Model */}
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">By Model</h3>
-            <Brain className="w-4 h-4 text-muted-foreground" />
-          </div>
-          {data.byModel.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No data yet
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {data.byModel.map((m) => (
-                <BarSegment
-                  key={m.model}
-                  label={m.model}
-                  sublabel={`${formatCost(m.cost)} · ${m.requests} req`}
-                  value={m.cost}
-                  max={maxModelCost}
-                  color="bg-accent"
-                />
-              ))}
-            </div>
-          )}
-        </Card>
+      <Separator />
 
-        {/* By Source */}
-        <Card className="p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-sm font-semibold">By Source</h3>
-            <Hash className="w-4 h-4 text-muted-foreground" />
-          </div>
-          {data.bySource.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-6">
-              No data yet
-            </p>
-          ) : (
-            <div className="flex flex-col gap-3">
-              {data.bySource.map((s) => (
-                <BarSegment
-                  key={s.source}
-                  label={s.source}
-                  sublabel={`${formatCost(s.cost)} · ${formatTokens(s.inputTokens + s.outputTokens)} tok`}
-                  value={s.cost}
-                  max={maxSourceCost}
-                  color="bg-accent-strong"
-                />
-              ))}
-            </div>
-          )}
-        </Card>
-      </div>
+      <Tabs defaultValue="requests">
+        <TabsList>
+          <TabsTrigger value="requests">Recent Requests</TabsTrigger>
+          <TabsTrigger value="models">By Model</TabsTrigger>
+          <TabsTrigger value="sources">By Source</TabsTrigger>
+        </TabsList>
+        <TabsContent value="requests" className="mt-2">
+          <DataTable columns={requestColumns} data={data.recentRequests} />
+        </TabsContent>
+        <TabsContent value="models" className="mt-2">
+          <DataTable columns={modelColumns} data={data.byModel} />
+        </TabsContent>
+        <TabsContent value="sources" className="mt-2">
+          <DataTable columns={sourceColumns} data={data.bySource} />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
 
-      {/* Recent requests table */}
-      <Card className="p-5">
-        <h3 className="text-sm font-semibold mb-4">Recent Requests</h3>
-        {data.recentRequests.length === 0 ? (
-          <p className="text-sm text-muted-foreground text-center py-6">
-            No requests yet
-          </p>
-        ) : (
-          <div className="overflow-x-auto -mx-5">
-            <table className="w-full text-xs">
-              <thead>
-                <tr className="border-b border-border">
-                  <th className="text-left font-medium text-muted-foreground px-5 py-2">
-                    Time
-                  </th>
-                  <th className="text-left font-medium text-muted-foreground px-3 py-2">
-                    Model
-                  </th>
-                  <th className="text-left font-medium text-muted-foreground px-3 py-2">
-                    Source
-                  </th>
-                  <th className="text-right font-medium text-muted-foreground px-3 py-2">
-                    In
-                  </th>
-                  <th className="text-right font-medium text-muted-foreground px-3 py-2">
-                    Out
-                  </th>
-                  <th className="text-right font-medium text-muted-foreground px-5 py-2">
-                    Cost
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.recentRequests.map((r) => (
-                  <tr
-                    key={r._id}
-                    className="border-b border-border/50 hover:bg-accent/5 transition-colors"
-                  >
-                    <td className="px-5 py-2.5 text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(r.createdAt), {
-                        addSuffix: true,
-                      })}
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <Badge variant="outline" className="text-[10px] font-mono">
-                        {r.llmModel}
-                      </Badge>
-                    </td>
-                    <td className="px-3 py-2.5">
-                      <span className="text-muted-foreground">{r.source}</span>
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">
-                      {r.inputTokens.toLocaleString()}
-                    </td>
-                    <td className="px-3 py-2.5 text-right tabular-nums">
-                      {r.outputTokens.toLocaleString()}
-                    </td>
-                    <td className="px-5 py-2.5 text-right tabular-nums font-medium">
-                      {formatCost(r.costUsd)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </Card>
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-lg font-semibold tabular-nums tracking-tight">
+        {value}
+      </p>
     </div>
   );
 }

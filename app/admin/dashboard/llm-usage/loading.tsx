@@ -1,34 +1,26 @@
-import { Card } from "@/components/ui/card";
+import { Zap } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Loading() {
   return (
-    <div className="w-full flex flex-col gap-6">
-      <div>
-        <Skeleton className="h-8 w-40" />
-        <Skeleton className="h-4 w-64 mt-2" />
+    <div className="flex flex-col gap-2 pb-8">
+      <div className="flex items-center gap-2 px-4 border-b h-12 shrink-0">
+        <Zap className="size-4 text-muted-foreground" />
+        <span className="text-sm font-semibold flex-1">Token Usage</span>
       </div>
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
-        {[...Array(4)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <Skeleton className="h-3 w-20 mb-3" />
-            <Skeleton className="h-7 w-24 mb-1" />
-            <Skeleton className="h-3 w-16" />
-          </Card>
-        ))}
+      <div className="px-4 flex flex-col gap-6 pt-3">
+        <Skeleton className="h-9 w-72 rounded-lg" />
+        <div className="flex gap-8">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex flex-col gap-1">
+              <Skeleton className="h-3 w-16" />
+              <Skeleton className="h-6 w-20" />
+            </div>
+          ))}
+        </div>
+        <Skeleton className="h-48 w-full rounded-md" />
+        <Skeleton className="h-64 w-full rounded-md" />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
-        {[...Array(2)].map((_, i) => (
-          <Card key={i} className="p-6">
-            <Skeleton className="h-5 w-32 mb-4" />
-            <Skeleton className="h-40 w-full" />
-          </Card>
-        ))}
-      </div>
-      <Card className="p-6">
-        <Skeleton className="h-5 w-40 mb-4" />
-        <Skeleton className="h-64 w-full" />
-      </Card>
     </div>
   );
 }
