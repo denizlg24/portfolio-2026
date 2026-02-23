@@ -13,7 +13,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -37,31 +37,9 @@ import {
   SelectTrigger,
 } from "@/components/ui/select";
 import { SelectValue } from "@radix-ui/react-select";
-import { Anthropic } from "@anthropic-ai/sdk/client";
 import { Separator } from "@/components/ui/separator";
 import { DialogClose } from "@radix-ui/react-dialog";
-
-export const AnthropicModels = [
-  "claude-opus-4-5",
-  "claude-3-7-sonnet-latest",
-  "claude-3-7-sonnet-20250219",
-  "claude-3-5-haiku-latest",
-  "claude-3-5-haiku-20241022",
-  "claude-haiku-4-5",
-  "claude-haiku-4-5-20251001",
-  "claude-sonnet-4-20250514",
-  "claude-sonnet-4-0",
-  "claude-4-sonnet-20250514",
-  "claude-sonnet-4-5",
-  "claude-sonnet-4-5-20250929",
-  "claude-opus-4-0",
-  "claude-opus-4-20250514",
-  "claude-4-opus-20250514",
-  "claude-opus-4-1-20250805",
-  "claude-3-opus-latest",
-  "claude-3-opus-20240229",
-  "claude-3-haiku-20240307",
-];
+import { ModelSelector } from "@/components/model-selector";
 
 export const ContentEditor = ({
   note,
@@ -81,9 +59,7 @@ export const ContentEditor = ({
 
   const [enhancing, setEnhancing] = useState(false);
   const [additionalInfo, setAdditionalInfo] = useState("");
-  const [model, setModel] = useState<(typeof AnthropicModels)[number]>(
-    "claude-sonnet-4-5-20250929",
-  );
+  const [model, setModel] = useState<string>("claude-haiku-4-5");
   const [toolbarOpen, setToolbarOpen] = useState(false);
 
   const closeEnhanceDialogRef = useRef<HTMLButtonElement | null>(null);
@@ -166,15 +142,55 @@ export const ContentEditor = ({
         toast.error("Failed to enhance note");
         return;
       }
-      const data = await response.json();
-      setContent(data.enhancedContent);
+
+      closeEnhanceDialogRef.current?.click();
       setTogglePreview(true);
-      toast.success("Note enhanced successfully");
+      setContent("");
+
+      const reader = response.body
+        ?.pipeThrough(new TextDecoderStream())
+        .getReader();
+      if (!reader) {
+        toast.error("Failed to read stream");
+        setEnhancing(false);
+        return;
+      }
+
+      let accumulated = "";
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += value;
+        const lines = buffer.split("\n");
+
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const json = line.slice(6);
+          try {
+            const event = JSON.parse(json);
+            if (event.type === "delta") {
+              accumulated += event.text;
+              setContent(accumulated);
+            } else if (event.type === "done") {
+              const { inputTokens, outputTokens, costUsd } = event.usage;
+              toast.success(
+                `Enhanced — ${inputTokens + outputTokens} tokens ($${costUsd.toFixed(4)})`,
+              );
+            } else if (event.type === "error") {
+              toast.error(event.error ?? "Stream error");
+            }
+          } catch {}
+        }
+      }
     } catch (error) {
       toast.error("An error occurred while enhancing the note");
     } finally {
       setEnhancing(false);
-      closeEnhanceDialogRef.current?.click();
     }
   };
 
@@ -209,23 +225,7 @@ export const ContentEditor = ({
                   <Label htmlFor="model" className="w-32">
                     Model
                   </Label>
-                  <Select
-                    value={model}
-                    onValueChange={(value) =>
-                      setModel(value as Anthropic.Model)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select model" />
-                    </SelectTrigger>
-                    <SelectContent className="z-99">
-                      {AnthropicModels.map((modelKey) => (
-                        <SelectItem key={modelKey} value={modelKey}>
-                          {modelKey}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <ModelSelector model={model} onModelChange={setModel} />
                 </div>
                 <Separator />
                 <div className="flex flex-col items-start gap-1">
@@ -241,8 +241,12 @@ export const ContentEditor = ({
                 </div>
               </div>
               <DialogFooter>
-                <DialogClose ref={closeEnhanceDialogRef} asChild>
-                  <Button variant="outline" disabled={enhancing}>
+                <DialogClose asChild>
+                  <Button
+                    ref={closeEnhanceDialogRef}
+                    variant="outline"
+                    disabled={enhancing}
+                  >
                     Cancel
                   </Button>
                 </DialogClose>
@@ -368,9 +372,7 @@ export const ContentEditor = ({
         />
       )}
       {togglePreview && (
-        <div
-          className="h-[calc(100vh-8rem)] overflow-y-auto w-full max-w-full! mx-auto bg-background px-3 py-2"
-        >
+        <div className="h-[calc(100vh-8rem)] overflow-y-auto w-full max-w-full! mx-auto bg-background px-3 py-2">
           <MarkdownRenderer content={content} />
         </div>
       )}

@@ -1,8 +1,11 @@
-import { generateText } from "@/lib/llm";
+import { streamGenerate, createSSEStream } from "@/lib/llm";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Note } from "@/models/Notes";
 import { NextRequest, NextResponse } from "next/server";
+import type Anthropic from "@anthropic-ai/sdk";
+
+export const maxDuration = 120;
 
 const SYSTEM_PROMPT = `You clean up and restructure hastily typed class notes. Your job is strictly to enhance what the user wrote — never invent new information.
 
@@ -31,21 +34,29 @@ export const POST = async (
     if (!note) {
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
-    const { additionalInfo, model = "claude-sonnet-4-5-20250929",content } =
-      await req.json();
+    const {
+      additionalInfo,
+      model = "claude-sonnet-4-5-20250929",
+      content,
+    } = await req.json();
     const prompt = `Enhance the following note content:\n\n${content}${additionalInfo ? `\n\nAdditional information to consider:\n${additionalInfo}` : ""}`;
-    const enhanced = await generateText({
+
+    const result = await streamGenerate({
       system: SYSTEM_PROMPT,
-      prompt: prompt,
-      model,
-      maxChars: Math.min((SYSTEM_PROMPT.length + prompt.length) * 2, 3000),
+      prompt,
+      model: model as Anthropic.Model,
+      source: "enhance-note",
     });
-    return NextResponse.json(
-      {
-        enhancedContent: enhanced,
+
+    const sseStream = createSSEStream(result);
+
+    return new Response(sseStream, {
+      headers: {
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        Connection: "keep-alive",
       },
-      { status: 200 },
-    );
+    });
   } catch (error) {
     console.error("Error enhancing note:", error);
     return NextResponse.json(

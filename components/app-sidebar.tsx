@@ -1,4 +1,5 @@
 import {
+  Brain,
   Briefcase,
   Calendar,
   CalendarDays,
@@ -103,6 +104,11 @@ const items = [
     title: "Resources",
     url: "/admin/dashboard/resources",
     icon: Server,
+  },
+  {
+    title: "LLM Usage",
+    url: "/admin/dashboard/llm-usage",
+    icon: Brain,
   },
 ];
 
