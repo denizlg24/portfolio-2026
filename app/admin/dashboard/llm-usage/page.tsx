@@ -16,9 +16,7 @@ export default async function Page() {
         <Zap className="size-4 text-muted-foreground" />
         <span className="text-sm font-semibold flex-1">Token Usage</span>
       </div>
-      <div className="px-4">
-        <LlmUsageDashboard />
-      </div>
+      <LlmUsageDashboard />
     </div>
   );
 }
