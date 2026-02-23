@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ContributionDay {
@@ -12,6 +14,11 @@ interface ContributionDay {
     | "FOURTH_QUARTILE";
 }
 
+interface ContributionData {
+  totalContributions: number;
+  weeks: { contributionDays: ContributionDay[] }[];
+}
+
 const LEVEL_COLORS: Record<ContributionDay["contributionLevel"], string> = {
   NONE: "bg-background border border-border",
   FIRST_QUARTILE: "bg-muted",
@@ -23,44 +30,8 @@ const LEVEL_COLORS: Record<ContributionDay["contributionLevel"], string> = {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const WEEK_COUNT = 53;
 
-async function fetchContributions() {
-  const result = await fetch("https://api.github.com/graphql", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
-    },
-    body: JSON.stringify({
-      query: `
-        query ($username: String!) {
-          user(login: $username) {
-            contributionsCollection {
-              contributionCalendar {
-                totalContributions
-                weeks {
-                  contributionDays {
-                    date
-                    contributionCount
-                    contributionLevel
-                  }
-                }
-              }
-            }
-          }
-        }
-      `,
-      variables: { username: "denizlg24" },
-    }),
-  });
-  const data = await result.json();
-  return data.data.user.contributionsCollection.contributionCalendar as {
-    totalContributions: number;
-    weeks: { contributionDays: ContributionDay[] }[];
-  };
-}
-
-export async function GitHubContributions() {
-  const { weeks, totalContributions } = await fetchContributions();
+function ContributionGrid({ data }: { data: ContributionData }) {
+  const { weeks, totalContributions } = data;
 
   const normalizedWeeks = weeks.map((week) => {
     const days: (ContributionDay | null)[] = Array(7).fill(null);
@@ -137,7 +108,7 @@ export async function GitHubContributions() {
   );
 }
 
-export function GitHubContributionsSkeleton() {
+function GitHubContributionsSkeleton() {
   return (
     <div className="w-full max-w-fit mx-auto">
       <div className="overflow-x-auto">
@@ -150,7 +121,7 @@ export function GitHubContributionsSkeleton() {
         >
           <div className="sticky left-0 z-10 bg-background" />
           {Array.from({ length: WEEK_COUNT }, (_, i) => (
-            <div key={i} className="h-4"/>
+            <div key={i} className="h-4" />
           ))}
           {Array.from({ length: 7 }, (_, dayIndex) => (
             <React.Fragment key={dayIndex}>
@@ -158,7 +129,10 @@ export function GitHubContributionsSkeleton() {
                 {dayIndex % 2 === 1 ? DAY_LABELS[dayIndex] : ""}
               </div>
               {Array.from({ length: WEEK_COUNT }, (_, weekIndex) => (
-                <Skeleton className="rounded-none bg-surface" key={weekIndex} />
+                <Skeleton
+                  className="rounded-none bg-surface"
+                  key={weekIndex}
+                />
               ))}
             </React.Fragment>
           ))}
@@ -166,4 +140,19 @@ export function GitHubContributionsSkeleton() {
       </div>
     </div>
   );
+}
+
+export function GitHubContributions() {
+  const [data, setData] = useState<ContributionData | null>(null);
+
+  useEffect(() => {
+    fetch("/api/github/contributions")
+      .then((res) => res.json())
+      .then(setData)
+      .catch(() => {});
+  }, []);
+
+  if (!data) return <GitHubContributionsSkeleton />;
+
+  return <ContributionGrid data={data} />;
 }

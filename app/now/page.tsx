@@ -8,12 +8,9 @@ import {
   GitHubRecentCommits,
   GitHubRecentCommitsSkeleton,
 } from "./github-activity";
-import {
-  GitHubContributions,
-  GitHubContributionsSkeleton,
-} from "./github-contributions";
+import { GitHubContributions } from "./github-contributions";
 
-export const revalidate = 3600;
+export const revalidate = 604800;
 
 export const metadata: Metadata = {
   title: {
@@ -82,9 +79,7 @@ export default function Page() {
           check out what i've been working on lately
         </h2>
         <div className="my-12"></div>
-        <Suspense fallback={<GitHubContributionsSkeleton />}>
-          <GitHubContributions />
-        </Suspense>
+        <GitHubContributions />
         <Suspense fallback={<NowPageContentSkeleton />}>
           <NowPageContent />
         </Suspense>
