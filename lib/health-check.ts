@@ -33,7 +33,7 @@ export async function checkResourceHealth(
   const start = Date.now();
   try {
     const controller = new AbortController();
-    const timeout = globalThis.setTimeout(() => controller.abort(), 10_000);
+    const timeout = globalThis.setTimeout(() => controller.abort(), 120_000);
 
     const res = await fetch(resource.url, {
       method: "HEAD",
