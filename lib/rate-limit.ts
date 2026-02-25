@@ -33,7 +33,7 @@ export async function checkRateLimit(
         },
       },
     ],
-    { upsert: true, returnDocument: "after" },
+    { upsert: true, returnDocument: "after", updatePipeline: true },
   );
 
   const count = doc?.timestamps?.length ?? 1;

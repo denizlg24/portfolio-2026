@@ -15,8 +15,6 @@ const RateLimitSchema = new mongoose.Schema<IRateLimit>(
   { timestamps: true },
 );
 
-RateLimitSchema.index({ key: 1 });
-
 RateLimitSchema.index({ updatedAt: 1 }, { expireAfterSeconds: 120 });
 
 export const RateLimit: mongoose.Model<IRateLimit> =
