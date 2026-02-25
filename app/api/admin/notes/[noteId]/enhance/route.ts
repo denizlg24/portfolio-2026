@@ -7,7 +7,8 @@ import type Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 120;
 
-const SYSTEM_PROMPT = `You clean up and restructure hastily typed class notes. Your job is strictly to enhance what the user wrote — never invent new information.
+const SYSTEM_PROMPT = `You clean up and restructure hastily typed class notes. Your job is strictly to enhance what the user wrote filling in with missing information if the user requires so.
+You can add tables, examples if requested.
 
 Rules:
 - Fix typos, grammar, and punctuation
