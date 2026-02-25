@@ -62,8 +62,6 @@ const ConversationSchema = new mongoose.Schema<IConversation>(
   { timestamps: true },
 );
 
-ConversationSchema.index({ updatedAt: -1 });
-
 export const Conversation: mongoose.Model<IConversation> =
   mongoose.models.Conversation ||
   mongoose.model<IConversation>("Conversation", ConversationSchema);
