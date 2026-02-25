@@ -54,7 +54,7 @@ export async function updateConversationMessages(
 
   const conversation = await Conversation.findByIdAndUpdate(
     id,
-    { messages },
+    { $set: { messages } },
     { new: true },
   ).lean<ILeanConversation | null>();
 

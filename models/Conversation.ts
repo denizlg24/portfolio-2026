@@ -39,22 +39,25 @@ const ConversationSchema = new mongoose.Schema<IConversation>(
   {
     title: { type: String, required: true },
     llmModel: { type: String, required: true },
-    messages: [
-      {
-        role: {
-          type: String,
-          enum: ["user", "assistant"],
-          required: true,
+    messages: {
+      type: [
+        {
+          role: {
+            type: String,
+            enum: ["user", "assistant"],
+            required: true,
+          },
+          content: { type: String, required: true },
+          tokenUsage: {
+            inputTokens: Number,
+            outputTokens: Number,
+            costUsd: Number,
+          },
+          createdAt: { type: Date, default: Date.now },
         },
-        content: { type: String, required: true },
-        tokenUsage: {
-          inputTokens: Number,
-          outputTokens: Number,
-          costUsd: Number,
-        },
-        createdAt: { type: Date, default: Date.now },
-      },
-    ],
+      ],
+      default: [],
+    },
   },
   { timestamps: true },
 );
