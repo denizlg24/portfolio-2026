@@ -1,18 +1,20 @@
 import mongoose from "mongoose";
 
+export interface IConversationMessage {
+  role: "user" | "assistant";
+  content: string | unknown[];
+  tokenUsage?: {
+    inputTokens: number;
+    outputTokens: number;
+    costUsd: number;
+  };
+  createdAt: Date;
+}
+
 export interface IConversation extends mongoose.Document {
   title: string;
   llmModel: string;
-  messages: {
-    role: "user" | "assistant";
-    content: string;
-    tokenUsage?: {
-      inputTokens: number;
-      outputTokens: number;
-      costUsd: number;
-    };
-    createdAt: Date;
-  }[];
+  messages: IConversationMessage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,16 +23,7 @@ export interface ILeanConversation {
   _id: string;
   title: string;
   llmModel: string;
-  messages: {
-    role: "user" | "assistant";
-    content: string;
-    tokenUsage?: {
-      inputTokens: number;
-      outputTokens: number;
-      costUsd: number;
-    };
-    createdAt: Date;
-  }[];
+  messages: IConversationMessage[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -47,7 +40,7 @@ const ConversationSchema = new mongoose.Schema<IConversation>(
             enum: ["user", "assistant"],
             required: true,
           },
-          content: { type: String, required: true },
+          content: { type: mongoose.Schema.Types.Mixed, required: true },
           tokenUsage: {
             inputTokens: Number,
             outputTokens: Number,

@@ -1,5 +1,6 @@
 import {
   Conversation,
+  type IConversationMessage,
   type ILeanConversation,
 } from "@/models/Conversation";
 import { connectDB } from "./mongodb";
@@ -66,6 +67,25 @@ export async function updateConversationMessages(
   if (!conversation) return null;
 
   return { ...conversation, _id: conversation._id.toString(), };
+}
+
+export async function appendMessages(
+  id: string,
+  messages: IConversationMessage[],
+) {
+  await connectDB();
+
+  const conversation = await Conversation.findByIdAndUpdate(
+    id,
+    {
+      $push: { messages: { $each: messages } },
+      updatedAt: new Date(),
+    },
+    { new: true },
+  ).lean();
+  if (!conversation) return null;
+
+  return { ...conversation, _id: conversation._id.toString() };
 }
 
 export async function deleteConversation(id: string): Promise<boolean> {
