@@ -5,19 +5,17 @@ import type { ToolSchema } from "@/lib/tools/types";
 
 const MAX_ITERATIONS = 15;
 
-interface ConfirmedAction {
-  toolId: string;
-  toolName: string;
-  input: Record<string, unknown>;
-}
-
 interface AgenticStreamParams {
   system: string;
   messages: Anthropic.MessageParam[];
   model: string;
   tools?: (ToolSchema | Anthropic.Tool)[];
   source: string;
-  confirmedActions?: ConfirmedAction[];
+  toolApprovals?: Record<string, boolean>;
+  onPersist?: (
+    messages: Anthropic.MessageParam[],
+    tokenUsage?: { inputTokens: number; outputTokens: number; costUsd: number },
+  ) => Promise<void>;
 }
 
 export function createAgenticSSEStream({
@@ -26,7 +24,8 @@ export function createAgenticSSEStream({
   model,
   tools,
   source,
-  confirmedActions,
+  toolApprovals,
+  onPersist,
 }: AgenticStreamParams): ReadableStream {
   const encoder = new TextEncoder();
   let totalInputTokens = 0;
@@ -46,63 +45,87 @@ export function createAgenticSSEStream({
       try {
         const workingMessages = [...messages];
 
-        if (confirmedActions?.length) {
-          const actionResults: string[] = [];
+        if (toolApprovals) {
+          const lastAssistant = workingMessages[workingMessages.length - 1];
+          if (lastAssistant?.role !== "assistant" || !Array.isArray(lastAssistant.content)) {
+            send({ type: "error", error: "Invalid state for tool continuation" });
+            controller.close();
+            return;
+          }
 
-          for (const action of confirmedActions) {
-            const tool = getToolByName(action.toolName);
-            if (!tool) {
-              actionResults.push(
-                `[Action: ${action.toolName} — Error: Tool not found]`,
-              );
-              continue;
-            }
+          const toolUseBlocks = (lastAssistant.content as Anthropic.ContentBlock[]).filter(
+            (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
+          );
 
-            try {
-              const result = await tool.execute(action.input);
-              const resultStr = JSON.stringify(result);
+          const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
+          for (const toolUse of toolUseBlocks) {
+            const toolName = toolUse.name;
+            const toolId = toolUse.id;
+            const toolInput = toolUse.input as Record<string, unknown>;
+
+            if (!isWriteTool(toolName)) {
+              const tool = getToolByName(toolName);
+              if (!tool) {
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: `Error: Tool "${toolName}" not found.`,
+                  is_error: true,
+                });
+                continue;
+              }
+
+              try {
+                const result = await tool.execute(toolInput);
+                const resultStr = JSON.stringify(result);
+                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+              } catch (err) {
+                const errMsg = err instanceof Error ? err.message : "Tool execution failed";
+                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+              }
+            } else if (toolApprovals[toolId] === true) {
+              const tool = getToolByName(toolName);
+              if (!tool) {
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: `Error: Tool "${toolName}" not found.`,
+                  is_error: true,
+                });
+                continue;
+              }
+
+              try {
+                const result = await tool.execute(toolInput);
+                const resultStr = JSON.stringify(result);
+                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+              } catch (err) {
+                const errMsg = err instanceof Error ? err.message : "Execution failed";
+                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+              }
+            } else {
               send({
                 type: "tool_result",
-                toolId: action.toolId,
-                toolName: action.toolName,
-                result: resultStr,
-                isError: false,
-              });
-
-              actionResults.push(
-                `[Action executed: ${action.toolName}(${JSON.stringify(action.input)}) — Result: ${resultStr}]`,
-              );
-            } catch (err) {
-              const errMsg =
-                err instanceof Error ? err.message : "Execution failed";
-
-              send({
-                type: "tool_result",
-                toolId: action.toolId,
-                toolName: action.toolName,
-                result: errMsg,
+                toolId,
+                toolName,
+                result: "User denied this action.",
                 isError: true,
               });
-
-              actionResults.push(
-                `[Action failed: ${action.toolName} — Error: ${errMsg}]`,
-              );
+              toolResults.push({
+                type: "tool_result",
+                tool_use_id: toolId,
+                content: "User denied this action.",
+                is_error: true,
+              });
             }
           }
 
-          const lastMsg = workingMessages[workingMessages.length - 1];
-          if (lastMsg && lastMsg.role === "user") {
-            const prefix = actionResults.join("\n");
-            if (typeof lastMsg.content === "string") {
-              lastMsg.content = prefix + "\n\n" + lastMsg.content;
-            } else {
-              lastMsg.content = [
-                { type: "text" as const, text: prefix },
-                ...(lastMsg.content as Anthropic.ContentBlockParam[]),
-              ];
-            }
-          }
+          workingMessages.push({ role: "user", content: toolResults });
         }
 
         while (iterations < MAX_ITERATIONS) {
@@ -134,15 +157,79 @@ export function createAgenticSSEStream({
 
           if (finalMessage.stop_reason === "tool_use") {
             const toolUseBlocks = finalMessage.content.filter(
-              (
-                block,
-              ): block is Anthropic.ContentBlockParam & {
-                type: "tool_use";
-                id: string;
-                name: string;
-                input: Record<string, unknown>;
-              } => block.type === "tool_use",
+              (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
             );
+
+            const readTools = toolUseBlocks.filter((t) => !isWriteTool(t.name));
+            const writeTools = toolUseBlocks.filter((t) => isWriteTool(t.name));
+
+            if (writeTools.length > 0) {
+              const toolResults: Anthropic.ToolResultBlockParam[] = [];
+
+              for (const toolUse of readTools) {
+                const toolName = toolUse.name;
+                const toolId = toolUse.id;
+                const toolInput = toolUse.input as Record<string, unknown>;
+
+                send({ type: "tool_call", toolName, toolId, input: toolInput });
+
+                const tool = getToolByName(toolName);
+                if (!tool) {
+                  send({ type: "tool_result", toolId, toolName, result: `Error: Tool "${toolName}" not found.`, isError: true });
+                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: `Error: Tool "${toolName}" not found.`, is_error: true });
+                  continue;
+                }
+
+                try {
+                  const result = await tool.execute(toolInput);
+                  const resultStr = JSON.stringify(result);
+                  send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
+                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+                } catch (err) {
+                  const errMsg = err instanceof Error ? err.message : "Tool execution failed";
+                  send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
+                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+                }
+              }
+
+              for (const toolUse of writeTools) {
+                send({
+                  type: "tool_call",
+                  toolName: toolUse.name,
+                  toolId: toolUse.id,
+                  input: toolUse.input as Record<string, unknown>,
+                });
+                send({
+                  type: "tool_confirmation_required",
+                  toolId: toolUse.id,
+                  toolName: toolUse.name,
+                  input: toolUse.input as Record<string, unknown>,
+                });
+              }
+
+              if (onPersist) {
+                await onPersist(workingMessages);
+              }
+
+              send({
+                type: "paused",
+                readResults: toolResults,
+              });
+
+              controller.close();
+
+              logLlmUsage({
+                llmModel: model,
+                inputTokens: totalInputTokens,
+                outputTokens: totalOutputTokens,
+                costUsd: calculateCost(model, totalInputTokens, totalOutputTokens),
+                systemPrompt: system,
+                userPrompt: source,
+                source,
+              });
+
+              return;
+            }
 
             const toolResults: Anthropic.ToolResultBlockParam[] = [];
 
@@ -151,102 +238,47 @@ export function createAgenticSSEStream({
               const toolId = toolUse.id;
               const toolInput = toolUse.input as Record<string, unknown>;
 
-              send({
-                type: "tool_call",
-                toolName,
-                toolId,
-                input: toolInput,
-              });
+              send({ type: "tool_call", toolName, toolId, input: toolInput });
 
-              if (isWriteTool(toolName)) {
-                send({
-                  type: "tool_confirmation_required",
-                  toolId,
-                  toolName,
-                  input: toolInput,
-                });
-
+              const tool = getToolByName(toolName);
+              if (!tool) {
                 toolResults.push({
                   type: "tool_result",
                   tool_use_id: toolId,
-                  content:
-                    "This action requires user approval. Please describe what you intend to do and wait for confirmation.",
+                  content: `Error: Tool "${toolName}" not found.`,
+                  is_error: true,
                 });
-              } else {
-                const tool = getToolByName(toolName);
-                if (!tool) {
-                  toolResults.push({
-                    type: "tool_result",
-                    tool_use_id: toolId,
-                    content: `Error: Tool "${toolName}" not found.`,
-                    is_error: true,
-                  });
-                  continue;
-                }
+                continue;
+              }
 
-                try {
-                  const result = await tool.execute(toolInput);
-                  const resultStr = JSON.stringify(result);
-
-                  send({
-                    type: "tool_result",
-                    toolId,
-                    toolName,
-                    result: resultStr,
-                    isError: false,
-                  });
-
-                  toolResults.push({
-                    type: "tool_result",
-                    tool_use_id: toolId,
-                    content: resultStr,
-                  });
-                } catch (err) {
-                  const errMsg =
-                    err instanceof Error
-                      ? err.message
-                      : "Tool execution failed";
-                  send({
-                    type: "tool_result",
-                    toolId,
-                    toolName,
-                    result: errMsg,
-                    isError: true,
-                  });
-
-                  toolResults.push({
-                    type: "tool_result",
-                    tool_use_id: toolId,
-                    content: errMsg,
-                    is_error: true,
-                  });
-                }
+              try {
+                const result = await tool.execute(toolInput);
+                const resultStr = JSON.stringify(result);
+                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+              } catch (err) {
+                const errMsg = err instanceof Error ? err.message : "Tool execution failed";
+                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
+                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
               }
             }
 
-            workingMessages.push({
-              role: "user",
-              content: toolResults,
-            });
-
-            const hasWriteTools = toolUseBlocks.some((t) =>
-              isWriteTool(t.name),
-            );
-            if (hasWriteTools) {
-              continue;
-            }
-
+            workingMessages.push({ role: "user", content: toolResults });
             continue;
           }
 
           break;
         }
 
-        const costUsd = calculateCost(
-          model,
-          totalInputTokens,
-          totalOutputTokens,
-        );
+        const costUsd = calculateCost(model, totalInputTokens, totalOutputTokens);
+
+        if (onPersist) {
+          await onPersist(workingMessages, {
+            inputTokens: totalInputTokens,
+            outputTokens: totalOutputTokens,
+            costUsd,
+          });
+        }
 
         send({
           type: "done",

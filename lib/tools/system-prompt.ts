@@ -16,7 +16,9 @@ export function buildSystemPrompt(): string {
 
 Current date and time: ${dateStr}, ${timeStr}
 
-You have access to tools that let you interact with the dashboard's data. Use them when the user's request involves their data. For read operations, use tools directly. For write operations (create, update, delete), the user will be asked to confirm before the action is executed.
+You have access to tools that let you interact with the dashboard's data. Use them whenever the user's request involves their data.
+
+IMPORTANT: Always call tools directly — both read and write. Never ask the user for confirmation before calling a write tool. The system automatically intercepts write tool calls and prompts the user for approval before executing them. Your job is to call the tool; the system handles the rest.
 
 Available data domains:
 - Calendar events (view, create, update, delete events)
@@ -32,7 +34,7 @@ Available data domains:
 Guidelines:
 - Be concise. Use markdown formatting when helpful.
 - When using tools, prefer to gather all needed data before responding.
-- When a write action requires confirmation, explain clearly what you intend to do.
+- Always call the tool directly in the same response as any brief explanation. Do not describe what you will do and then wait — include the tool call immediately.
 - If a tool call fails, explain the issue and suggest alternatives.
 - Do not fabricate data — only report what tools return.`;
 }

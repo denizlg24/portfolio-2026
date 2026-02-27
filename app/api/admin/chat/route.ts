@@ -1,7 +1,10 @@
 import { requireAdmin } from "@/lib/require-admin";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { NextRequest, NextResponse } from "next/server";
-import { getConversation, appendMessages } from "@/lib/conversations";
+import {
+  getConversation,
+  updateConversationMessages,
+} from "@/lib/conversations";
 import { createAgenticSSEStream } from "@/lib/llm-chat";
 import { buildSystemPrompt } from "@/lib/tools/system-prompt";
 import { getToolSchemas } from "@/lib/tools/registry";
@@ -39,12 +42,24 @@ export const POST = async (req: NextRequest) => {
       model = "claude-sonnet-4-5-20250929",
       toolsEnabled = true,
       webSearchEnabled = false,
-      confirmedActions,
+      toolApprovals,
     } = await req.json();
 
-    if (!message) {
+    if (message && toolApprovals) {
       return NextResponse.json(
-        { error: "message is required" },
+        { error: "Cannot provide both message and toolApprovals" },
+        { status: 400 },
+      );
+    }
+    if (!message && !toolApprovals) {
+      return NextResponse.json(
+        { error: "Either message or toolApprovals is required" },
+        { status: 400 },
+      );
+    }
+    if (toolApprovals && !conversationId) {
+      return NextResponse.json(
+        { error: "conversationId is required for tool continuations" },
         { status: 400 },
       );
     }
@@ -63,9 +78,11 @@ export const POST = async (req: NextRequest) => {
       }
     }
 
-    const userContent: string | Anthropic.ContentBlockParam[] =
-      typeof message === "string" ? message : message;
-    messages.push({ role: "user", content: userContent });
+    if (message) {
+      const userContent: string | Anthropic.ContentBlockParam[] =
+        typeof message === "string" ? message : message;
+      messages.push({ role: "user", content: userContent });
+    }
 
     const tools: Anthropic.Tool[] = [];
     if (toolsEnabled) {
@@ -89,83 +106,41 @@ export const POST = async (req: NextRequest) => {
 
     const system = buildSystemPrompt();
 
+    const onPersist = async (
+      msgs: Anthropic.MessageParam[],
+      tokenUsage?: {
+        inputTokens: number;
+        outputTokens: number;
+        costUsd: number;
+      },
+    ) => {
+      if (!conversationId) return;
+
+      const messagesToStore = msgs.map((m) => ({
+        role: m.role as "user" | "assistant",
+        content: m.content,
+        ...(tokenUsage &&
+        m === msgs[msgs.length - 1] &&
+        m.role === "assistant"
+          ? { tokenUsage }
+          : {}),
+        createdAt: new Date(),
+      }));
+
+      await updateConversationMessages(conversationId, messagesToStore);
+    };
+
     const sseStream = createAgenticSSEStream({
       system,
       messages,
       model,
       tools: tools.length > 0 ? tools : undefined,
       source: "dashboard-chat",
-      confirmedActions,
+      toolApprovals,
+      onPersist,
     });
 
-    const persistStream = new ReadableStream({
-      async start(controller) {
-        const reader = sseStream.getReader();
-        const assistantTextChunks: string[] = [];
-        let doneUsage: {
-          inputTokens: number;
-          outputTokens: number;
-          costUsd: number;
-        } | null = null;
-
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            controller.enqueue(value);
-
-            const text = new TextDecoder().decode(value);
-            const lines = text.split("\n");
-            for (const line of lines) {
-              if (!line.startsWith("data: ")) continue;
-              try {
-                const event = JSON.parse(line.slice(6));
-                if (event.type === "delta") {
-                  assistantTextChunks.push(event.text);
-                } else if (event.type === "done") {
-                  doneUsage = event.usage;
-                }
-              } catch {}
-            }
-          }
-
-          controller.close();
-
-          if (conversationId) {
-            const assistantContent = assistantTextChunks.join("");
-            const messagesToPersist = [
-              {
-                role: "user" as const,
-                content: userContent,
-                createdAt: new Date(),
-              },
-              {
-                role: "assistant" as const,
-                content: assistantContent,
-                tokenUsage: doneUsage
-                  ? {
-                      inputTokens: doneUsage.inputTokens,
-                      outputTokens: doneUsage.outputTokens,
-                      costUsd: doneUsage.costUsd,
-                    }
-                  : undefined,
-                createdAt: new Date(),
-              },
-            ];
-            appendMessages(conversationId, messagesToPersist).catch((err) => {
-              console.error("Failed to persist chat messages:", err);
-            });
-          }
-        } catch (err) {
-          try {
-            controller.close();
-          } catch {}
-        }
-      },
-    });
-
-    return new Response(persistStream, {
+    return new Response(sseStream, {
       headers: {
         "Content-Type": "text/event-stream",
         "Cache-Control": "no-cache",
