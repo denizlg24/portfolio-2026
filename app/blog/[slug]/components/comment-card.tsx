@@ -15,11 +15,10 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
+import type { ILeanBlogComment } from "@/models/BlogComment";
 import { CommentInput, getCommenterInfo } from "./comment-input";
-import { ILeanBlogComment } from "@/models/BlogComment";
 
 const COMMENTER_COOKIE = "blog_commenter";
-
 
 interface CommentCardProps {
   comment: ILeanBlogComment;
@@ -42,7 +41,7 @@ export function CommentCard({
   const [isOwner, setIsOwner] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [localIsDeleted, setLocalIsDeleted] = useState(
-    comment.isDeleted ?? false
+    comment.isDeleted ?? false,
   );
 
   const { data: session } = authClient.useSession();
@@ -58,7 +57,7 @@ export function CommentCard({
         ? `&sessionId=${commenterInfo.sessionId}`
         : "";
       const response = await fetch(
-        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}${sessionParam}`
+        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}${sessionParam}`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -130,7 +129,7 @@ export function CommentCard({
       .slice(0, 2);
   };
 
-  const formatDate = (dateStr: string|Date) => {
+  const formatDate = (dateStr: string | Date) => {
     const date = new Date(dateStr);
     return date.toLocaleDateString("en-US", {
       month: "short",
@@ -152,7 +151,7 @@ export function CommentCard({
               "text-xs",
               isDeletedComment
                 ? "bg-muted text-muted-foreground"
-                : "bg-primary/10 text-primary"
+                : "bg-primary/10 text-primary",
             )}
           >
             {isDeletedComment ? "?" : getInitials(displayName)}
@@ -164,7 +163,7 @@ export function CommentCard({
             <span
               className={cn(
                 "font-medium text-sm",
-                isDeletedComment && "text-muted-foreground italic"
+                isDeletedComment && "text-muted-foreground italic",
               )}
             >
               {isDeletedComment ? "[deleted]" : displayName}
@@ -186,7 +185,7 @@ export function CommentCard({
               "text-sm whitespace-pre-wrap",
               isDeletedComment
                 ? "text-muted-foreground italic"
-                : "text-foreground/90"
+                : "text-foreground/90",
             )}
           >
             {isDeletedComment
@@ -216,7 +215,7 @@ export function CommentCard({
                 <ChevronUp
                   className={cn(
                     "w-3 h-3 transition-transform duration-200",
-                    showReplies && "rotate-180"
+                    showReplies && "rotate-180",
                   )}
                 />
                 {showReplies ? (

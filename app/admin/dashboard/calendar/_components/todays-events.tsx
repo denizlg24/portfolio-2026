@@ -1,11 +1,11 @@
 "use client";
 
-import { ILeanCalendarEvent } from "@/models/CalendarEvent";
-import { Badge } from "@/components/ui/badge";
 import { Ban, Check, Clock, ExternalLink, Loader2, MapPin } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import type { ILeanCalendarEvent } from "@/models/CalendarEvent";
 import { useCalendar } from "./calendar-context";
 
 export function TodaysEvents() {
@@ -30,7 +30,10 @@ export function TodaysEvents() {
     );
   }
 
-  const handleStatusChange = async (event: ILeanCalendarEvent, status: "completed" | "canceled") => {
+  const handleStatusChange = async (
+    event: ILeanCalendarEvent,
+    status: "completed" | "canceled",
+  ) => {
     setChangingStatus(status === "completed" ? "complete" : "cancel");
     try {
       await fetch(`/api/admin/calendar/${event._id}`, {
@@ -61,8 +64,8 @@ export function TodaysEvents() {
                   event.status === "completed"
                     ? "default"
                     : event.status === "canceled"
-                    ? "destructive"
-                    : "secondary"
+                      ? "destructive"
+                      : "secondary"
                 }
                 className="text-xs shrink-0"
               >
@@ -106,7 +109,7 @@ export function TodaysEvents() {
                       onError={(e) => {
                         e.currentTarget.style.display = "none";
                         e.currentTarget.nextElementSibling?.classList.remove(
-                          "hidden"
+                          "hidden",
                         );
                       }}
                     />
@@ -121,12 +124,12 @@ export function TodaysEvents() {
           )}
           <div className="w-full flex flex-row items-center gap-2">
             <Button
-              disabled={!!changingStatus || event.status == 'completed'}
+              disabled={!!changingStatus || event.status === "completed"}
               size={"sm"}
               className="text-sm"
               onClick={() => handleStatusChange(event, "completed")}
             >
-              {changingStatus == "complete" ? (
+              {changingStatus === "complete" ? (
                 <>
                   <Loader2 className="animate-spin" />
                   Completing...
@@ -134,25 +137,25 @@ export function TodaysEvents() {
               ) : (
                 <>
                   <Check />
-                  {event.status == 'completed' ? "Completed": "Complete"}
+                  {event.status === "completed" ? "Completed" : "Complete"}
                 </>
               )}
             </Button>
             <Button
-              disabled={!!changingStatus || event.status == 'canceled'}
+              disabled={!!changingStatus || event.status === "canceled"}
               variant={"secondary"}
               size={"sm"}
               className="text-sm"
               onClick={() => handleStatusChange(event, "canceled")}
             >
-              {changingStatus == "cancel" ? (
+              {changingStatus === "cancel" ? (
                 <>
                   <Loader2 className="animate-spin" /> Cancelling...
                 </>
               ) : (
                 <>
                   <Ban />
-                   {event.status == 'canceled' ? "Canceled": "Cancel"}
+                  {event.status === "canceled" ? "Canceled" : "Cancel"}
                 </>
               )}
             </Button>

@@ -16,7 +16,7 @@ export async function GET(request: Request) {
 
     await connectDB();
     const accounts = await EmailAccountModel.find().lean();
-    
+
     let syncedCount = 0;
     let failedCount = 0;
 
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
       {
         status: 200,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
   } catch (error) {
     console.log("Error in email sync cron job:", error);

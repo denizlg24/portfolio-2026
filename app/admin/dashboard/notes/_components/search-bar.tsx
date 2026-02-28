@@ -1,8 +1,8 @@
 "use client";
 
-import { Input } from "@/components/ui/input";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { Input } from "@/components/ui/input";
 
 export const SearchBar = () => {
   const pathname = usePathname();
@@ -10,15 +10,7 @@ export const SearchBar = () => {
   const searchParams = useSearchParams();
   const [input, setInput] = useState(searchParams.get("search") || "");
 
-  useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      handleSearchChange(input);
-    }, 300);
-
-    return () => clearTimeout(delayDebounceFn);
-  }, [input]);
-
-  const handleSearchChange = (newSearch: string) => {
+  const handleSearchChange = useCallback((newSearch: string) => {
     const searchParams = new URLSearchParams(window.location.search);
     if (newSearch) {
       searchParams.set("search", newSearch);
@@ -26,7 +18,17 @@ export const SearchBar = () => {
       searchParams.delete("search");
     }
     router.push(`${pathname}?${searchParams.toString()}`);
-  };
+  }, [pathname, router]);
+
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      handleSearchChange(input);
+    }, 300);
+
+    return () => clearTimeout(delayDebounceFn);
+  }, [input, handleSearchChange]);
+
+
 
   return (
     <Input

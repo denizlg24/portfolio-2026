@@ -1,6 +1,6 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { createBoard, getAllBoards } from "@/lib/kanban";
 import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
-import { getAllBoards, createBoard } from "@/lib/kanban";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -9,8 +9,11 @@ export async function GET(request: NextRequest) {
   try {
     const boards = await getAllBoards();
     return NextResponse.json({ boards }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch boards" }, { status: 500 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to fetch boards" },
+      { status: 500 },
+    );
   }
 }
 
@@ -28,7 +31,10 @@ export async function POST(request: NextRequest) {
 
     const board = await createBoard({ title, description, color });
     return NextResponse.json({ board }, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to create board" }, { status: 500 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to create board" },
+      { status: 500 },
+    );
   }
 }

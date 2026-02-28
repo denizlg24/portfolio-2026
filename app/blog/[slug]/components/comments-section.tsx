@@ -2,9 +2,9 @@
 
 import { MessageSquare } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
+import type { ILeanBlogComment } from "@/models/BlogComment";
 import { CommentCard } from "./comment-card";
 import { CommentInput, getCommenterInfo } from "./comment-input";
-import { ILeanBlogComment } from "@/models/BlogComment";
 
 interface CommentsSectionProps {
   blogId: string;
@@ -22,7 +22,7 @@ export function CommentsSection({ blogId }: CommentsSectionProps) {
         ? `&sessionId=${commenterInfo.sessionId}`
         : "";
       const response = await fetch(
-        `/api/blog/comments?blogId=${blogId}${sessionParam}`
+        `/api/blog/comments?blogId=${blogId}${sessionParam}`,
       );
       if (response.ok) {
         const data = await response.json();

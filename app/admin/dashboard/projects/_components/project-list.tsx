@@ -161,9 +161,15 @@ export function ProjectList({
                       variant="ghost"
                       size="icon"
                       onClick={() => handleToggleFeatured(project._id)}
-                      title={project.isFeatured ? "Remove from featured" : "Add to featured"}
+                      title={
+                        project.isFeatured
+                          ? "Remove from featured"
+                          : "Add to featured"
+                      }
                     >
-                      <Star className={`w-4 h-4 ${project.isFeatured ? "fill-yellow-500 text-yellow-500" : ""}`} />
+                      <Star
+                        className={`w-4 h-4 ${project.isFeatured ? "fill-yellow-500 text-yellow-500" : ""}`}
+                      />
                     </Button>
                     <Button
                       variant="ghost"

@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/require-admin";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { getAdminSession } from "@/lib/require-admin";
 import { syncInbox } from "@/lib/sync-email";
 import { EmailAccountModel } from "@/models/EmailAccount";
 
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
     if (accounts.length === 0) {
       return NextResponse.json(
         { message: "No email accounts to sync", syncedCount: 0 },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -30,11 +30,11 @@ export async function POST(request: NextRequest) {
       try {
         console.log(`Syncing account: ${account.user}`);
         const lastUid = await syncInbox(account);
-        
+
         await EmailAccountModel.findByIdAndUpdate(account._id, {
           lastUid,
         });
-        
+
         syncedCount++;
         console.log(`Successfully synced ${account.user}, lastUid: ${lastUid}`);
       } catch (error) {
@@ -52,13 +52,13 @@ export async function POST(request: NextRequest) {
         failedCount,
         errors: errors.length > 0 ? errors : undefined,
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error in email sync:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

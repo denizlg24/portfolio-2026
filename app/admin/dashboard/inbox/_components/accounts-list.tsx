@@ -1,17 +1,9 @@
 "use client";
 
+import { Mail, MoreVertical, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import useSWR from "swr";
-import { Mail, MoreVertical, Trash2, RefreshCw, Plus } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -22,7 +14,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { AddAccountDialog } from "./add-account-dialog";
 
 interface EmailAccount {
@@ -43,15 +43,14 @@ export function AccountsList() {
   const [accountToDelete, setAccountToDelete] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  
   const { data, error, isLoading, mutate } = useSWR(
     "/api/admin/email-accounts",
     fetcher,
     {
-      refreshInterval: 60000, 
-      revalidateOnFocus: true, 
-      revalidateOnReconnect: true, 
-    }
+      refreshInterval: 60000,
+      revalidateOnFocus: true,
+      revalidateOnReconnect: true,
+    },
   );
 
   const accounts = data?.accounts || [];
@@ -65,19 +64,22 @@ export function AccountsList() {
         `/api/admin/email-accounts/${accountToDelete}`,
         {
           method: "DELETE",
-        }
+        },
       );
 
       if (response.ok) {
-        
         mutate(
-          { accounts: accounts.filter((acc: EmailAccount) => acc._id !== accountToDelete) },
-          false
+          {
+            accounts: accounts.filter(
+              (acc: EmailAccount) => acc._id !== accountToDelete,
+            ),
+          },
+          false,
         );
         setDeleteDialogOpen(false);
         setAccountToDelete(null);
         toast.success("Email account deleted successfully");
-        
+
         mutate();
       } else {
         const error = await response.json();
@@ -91,7 +93,7 @@ export function AccountsList() {
     }
   };
 
-  const handleSync = async (accountId: string) => {
+  const handleSync = async (_accountId: string) => {
     toast.loading("Syncing emails...", { id: "email-sync" });
     try {
       const response = await fetch("/api/admin/email-accounts/sync", {
@@ -103,7 +105,7 @@ export function AccountsList() {
         toast.success(data.message || "Email sync completed successfully", {
           id: "email-sync",
         });
-        
+
         mutate();
       } else {
         const error = await response.json();
@@ -147,7 +149,9 @@ export function AccountsList() {
               <Mail className="w-6 h-6 sm:w-8 sm:h-8 text-muted-foreground" />
             </div>
             <div>
-              <h3 className="font-semibold text-base sm:text-lg mb-2">No Email Accounts</h3>
+              <h3 className="font-semibold text-base sm:text-lg mb-2">
+                No Email Accounts
+              </h3>
               <p className="text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                 Add your first email account to start receiving and managing
                 emails.
@@ -168,16 +172,24 @@ export function AccountsList() {
                       <Mail className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h3 className="font-semibold text-sm sm:text-base truncate">{account.user}</h3>
+                      <h3 className="font-semibold text-sm sm:text-base truncate">
+                        {account.user}
+                      </h3>
                       <p className="text-xs sm:text-sm text-muted-foreground truncate">
                         {account.host}:{account.port}
                       </p>
                       <div className="flex items-center gap-1.5 sm:gap-2 mt-1.5 sm:mt-2 flex-wrap">
-                        <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                        <Badge
+                          variant="secondary"
+                          className="text-[10px] sm:text-xs"
+                        >
                           {account.inboxName}
                         </Badge>
                         {account.secure && (
-                          <Badge variant="outline" className="text-[10px] sm:text-xs">
+                          <Badge
+                            variant="outline"
+                            className="text-[10px] sm:text-xs"
+                          >
                             SSL/TLS
                           </Badge>
                         )}
@@ -190,12 +202,19 @@ export function AccountsList() {
 
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 sm:h-10 sm:w-10"
+                      >
                         <MoreVertical className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleSync(account._id)} className="text-xs sm:text-sm">
+                      <DropdownMenuItem
+                        onClick={() => handleSync(account._id)}
+                        className="text-xs sm:text-sm"
+                      >
                         <RefreshCw className="w-3.5 h-3.5 sm:w-4 sm:h-4 mr-2" />
                         Sync Now
                       </DropdownMenuItem>
@@ -227,14 +246,21 @@ export function AccountsList() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-base sm:text-lg">Delete Email Account</AlertDialogTitle>
+            <AlertDialogTitle className="text-base sm:text-lg">
+              Delete Email Account
+            </AlertDialogTitle>
             <AlertDialogDescription className="text-xs sm:text-sm">
               Are you sure you want to delete this email account? This will also
               delete all associated emails. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleting} className="text-xs sm:text-sm">Cancel</AlertDialogCancel>
+            <AlertDialogCancel
+              disabled={deleting}
+              className="text-xs sm:text-sm"
+            >
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
               disabled={deleting}

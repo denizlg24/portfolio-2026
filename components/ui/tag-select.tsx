@@ -1,10 +1,7 @@
 "use client";
 
-import * as React from "react";
 import { Check, ChevronsUpDown } from "lucide-react";
-
-import { useIsMobile } from "@/hooks/use-mobile";
-import { cn } from "@/lib/utils";
+import * as React from "react";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -15,17 +12,19 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
 } from "@/components/ui/drawer";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { cn } from "@/lib/utils";
 
 interface TagSelectProps {
   tags: string[];
@@ -55,7 +54,7 @@ export function TagSelect({
 
   const label =
     values.length > 0
-      ? selectedLabel?.(values.length) ?? `${values.length} topic(s) selected`
+      ? (selectedLabel?.(values.length) ?? `${values.length} topic(s) selected`)
       : placeholder;
 
   const handleSelect = (currentValue: string) => {
@@ -74,11 +73,7 @@ export function TagSelect({
         <CommandEmpty>{emptyText}</CommandEmpty>
         <CommandGroup>
           {tags.map((tag) => (
-            <CommandItem
-              key={tag}
-              value={tag}
-              onSelect={handleSelect}
-            >
+            <CommandItem key={tag} value={tag} onSelect={handleSelect}>
               {tag}
               <Check
                 className={cn(

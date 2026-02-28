@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { getAllComments, getCommentStats } from "@/lib/comments";
 import { getAdminSession } from "@/lib/require-admin";
 
-export async function GET(request:NextRequest) {
+export async function GET(request: NextRequest) {
   try {
     const session = await getAdminSession(request);
     if (!session) {

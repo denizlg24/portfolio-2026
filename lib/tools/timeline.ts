@@ -1,5 +1,5 @@
-import type { ToolDefinition } from "./types";
 import { getAllTimelineItems } from "@/lib/timeline";
+import type { ToolDefinition } from "./types";
 
 export const timelineTools: ToolDefinition[] = [
   {

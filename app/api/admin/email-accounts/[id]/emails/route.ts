@@ -1,11 +1,11 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
 import { EmailModel } from "@/models/Email";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -28,13 +28,13 @@ export async function GET(
           accountId: String(email.accountId),
         })),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching emails:", error);
     return NextResponse.json(
       { error: "Failed to fetch emails" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -22,7 +22,9 @@ export default async function NewTimelinePage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Create Timeline Item</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            Create Timeline Item
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Add a new timeline card to display on your homepage.
           </p>

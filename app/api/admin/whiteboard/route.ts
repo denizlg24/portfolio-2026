@@ -1,6 +1,6 @@
-import { getAllWhiteboards, createWhiteboard } from "@/lib/whiteboard";
+import { type NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
+import { createWhiteboard, getAllWhiteboards } from "@/lib/whiteboard";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
   if (!whiteboard) {
     return NextResponse.json(
       { error: "Failed to create whiteboard" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

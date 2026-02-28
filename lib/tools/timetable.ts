@@ -1,11 +1,11 @@
-import type { ToolDefinition } from "./types";
 import {
-  getAllTimetableEntries,
   createTimetableEntry,
-  updateTimetableEntry,
   deleteTimetableEntry,
+  getAllTimetableEntries,
+  updateTimetableEntry,
 } from "@/lib/timetable";
 import type { TimetableColor } from "@/lib/timetable-constants";
+import type { ToolDefinition } from "./types";
 
 const DAY_NAMES = [
   "Monday",

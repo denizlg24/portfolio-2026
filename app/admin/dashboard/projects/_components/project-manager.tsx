@@ -82,7 +82,9 @@ export function ProjectManager({ initialProjects }: ProjectManagerProps) {
     <>
       <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between w-full">
         <div className="">
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Projects Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            Projects Management
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Create and manage your projects displayed on the homepage.
             {" Drag items to reorder them."}

@@ -1,12 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
+import { addDays, endOfDay, startOfDay } from "date-fns";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
+import { Blog } from "@/models/Blog";
+import { BlogComment } from "@/models/BlogComment";
+import { CalendarEvent } from "@/models/CalendarEvent";
 import { Contact } from "@/models/Contact";
 import { Project } from "@/models/Project";
-import { Blog } from "@/models/Blog";
-import { CalendarEvent } from "@/models/CalendarEvent";
-import { BlogComment } from "@/models/BlogComment";
-import { startOfDay, endOfDay, addDays } from "date-fns";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     const startOfTomorrow = startOfDay(addDays(now, 1));
     const endOfWeek = endOfDay(addDays(now, 7));
 
-    
     const [totalContacts, unreadContacts, recentContacts] = await Promise.all([
       Contact.countDocuments(),
       Contact.countDocuments({ status: "new" }),
@@ -32,19 +31,16 @@ export async function GET(request: NextRequest) {
         .lean(),
     ]);
 
-    
     const [totalProjects, featuredProjects] = await Promise.all([
       Project.countDocuments(),
       Project.countDocuments({ isFeatured: true }),
     ]);
 
-    
     const [totalBlogs, publishedBlogs] = await Promise.all([
       Blog.countDocuments(),
       Blog.countDocuments({ published: true }),
     ]);
 
-    
     const [todayEvents, upcomingEvents, calendarEvents] = await Promise.all([
       CalendarEvent.countDocuments({
         date: { $gte: startOfToday, $lte: endOfToday },
@@ -64,7 +60,6 @@ export async function GET(request: NextRequest) {
         .lean(),
     ]);
 
-    
     const [totalComments, pendingComments] = await Promise.all([
       BlogComment.countDocuments(),
       BlogComment.countDocuments({ approved: false }),
@@ -109,7 +104,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching dashboard stats:", error);
     return NextResponse.json(
       { error: "Failed to fetch dashboard stats" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

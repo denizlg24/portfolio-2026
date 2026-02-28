@@ -1,6 +1,6 @@
+import { subDays } from "date-fns";
 import { connectDB } from "@/lib/mongodb";
-import { CalendarEvent, ICalendarEvent } from "@/models/CalendarEvent";
-import { format, subDays } from "date-fns";
+import { CalendarEvent, type ICalendarEvent } from "@/models/CalendarEvent";
 
 export async function GET(request: Request) {
   try {
@@ -18,10 +18,10 @@ export async function GET(request: Request) {
         status: "scheduled",
         date: { $lte: subDays(new Date(), 1) },
       },
-      { status: "completed" }
+      { status: "completed" },
     );
     console.log(
-      `Completed ${eventsCompleted.modifiedCount} events that are passed their date.`
+      `Completed ${eventsCompleted.modifiedCount} events that are passed their date.`,
     );
     const events = await CalendarEvent.find({
       notifyBySlack: true,
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       });
     }
     return new Response(JSON.stringify({ success: true }), { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return new Response(JSON.stringify({ error: "Internal Server Error" }), {
       status: 500,
     });
@@ -47,7 +47,7 @@ async function sendEventToSlack(event: ICalendarEvent) {
   const slackWebhookUrl = process.env.EVENTS_SLACK_WEBHOOK_URL;
   if (!slackWebhookUrl) return;
   const headerText = `⏰ Reminder: ${event.title} is scheduled for ${new Date(
-    event.date
+    event.date,
   ).toLocaleDateString()}`;
 
   const blocks = [
@@ -64,7 +64,7 @@ async function sendEventToSlack(event: ICalendarEvent) {
         {
           type: "mrkdwn",
           text: `🗓 <!date^${Math.floor(
-            event.date.getTime() / 1000
+            event.date.getTime() / 1000,
           )}^{date_long} at {time}|${event.date.toISOString()}>`,
         },
         ...(event.place

@@ -1,12 +1,12 @@
-import type { ToolDefinition } from "./types";
 import {
-  getMonthCalendarEvents,
-  getCalendarEvents,
   createCalendarEvent,
-  updateCalendarEvent,
   deleteCalendarEvent,
+  getCalendarEvents,
+  getMonthCalendarEvents,
+  updateCalendarEvent,
 } from "@/lib/calendar-events";
 import { fetchFavicon } from "@/lib/fetch-favicon";
+import type { ToolDefinition } from "./types";
 
 type LinkInput = { label: string; url: string; icon?: string }[];
 

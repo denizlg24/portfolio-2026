@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { sendToSlack } from "@/lib/comments";
 import { connectDB } from "@/lib/mongodb";
 import { Blog } from "@/models/Blog";
 import { BlogComment } from "@/models/BlogComment";
-import { sendToSlack } from "@/lib/comments";
 
 function sanitizeString(str: string): string {
   return str
@@ -76,7 +76,8 @@ export async function GET(request: NextRequest) {
     const formattedComments = comments.map((comment) => ({
       ...comment,
       _id: comment._id.toString(),
-      sessionId: comment.sessionId === sessionId ? comment.sessionId : undefined,
+      sessionId:
+        comment.sessionId === sessionId ? comment.sessionId : undefined,
     }));
 
     return NextResponse.json({ comments: formattedComments }, { status: 200 });
@@ -173,7 +174,6 @@ export async function POST(request: NextRequest) {
       sessionId: typeof sessionId === "string" ? sessionId : undefined,
     });
 
-    
     const blog = await Blog.findById(blogId).select("title slug").lean();
 
     await sendToSlack({

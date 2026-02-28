@@ -1,13 +1,13 @@
+import { type NextRequest, NextResponse } from "next/server";
 import {
   deleteCalendarEvent,
   updateCalendarEvent,
 } from "@/lib/calendar-events";
 import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -19,7 +19,7 @@ export async function PATCH(
   if (!updated) {
     return NextResponse.json(
       { error: "Failed to update calendar event" },
-      { status: 500 }
+      { status: 500 },
     );
   }
   return NextResponse.json({ event: updated }, { status: 200 });
@@ -27,7 +27,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -38,7 +38,7 @@ export async function DELETE(
   if (!deleted) {
     return NextResponse.json(
       { error: "Failed to delete calendar event" },
-      { status: 500 }
+      { status: 500 },
     );
   }
   return NextResponse.json({ success: true }, { status: 200 });

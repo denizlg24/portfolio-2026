@@ -35,7 +35,7 @@ export function getCommenterInfo(): CommenterInfo | null {
   if (cookie) {
     try {
       const parsed = JSON.parse(cookie);
-      
+
       if (!parsed.sessionId) {
         parsed.sessionId = generateSessionId();
         setCommenterInfo(parsed);
@@ -57,7 +57,7 @@ export function getOrCreateSessionId(): string {
   if (existing?.sessionId) {
     return existing.sessionId;
   }
-  
+
   const sessionId = generateSessionId();
   return sessionId;
 }
@@ -96,7 +96,6 @@ export function CommentInput({
       return;
     }
 
-    
     const existingInfo = getCommenterInfo();
     if (existingInfo) {
       submitComment(existingInfo.name, existingInfo.sessionId);

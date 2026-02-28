@@ -1,10 +1,10 @@
-import type { ToolDefinition } from "./types";
 import {
+  createCard,
   getAllBoards,
   getFullBoard,
-  createCard,
   updateCard,
 } from "@/lib/kanban";
+import type { ToolDefinition } from "./types";
 
 export const kanbanTools: ToolDefinition[] = [
   {
@@ -46,21 +46,55 @@ export const kanbanTools: ToolDefinition[] = [
   },
   {
     schema: {
+      name: "list_kanban_columns",
+      description:
+        "List columns of a kanban board. Returns column titles, IDs, and the number of cards in each column.",
+      input_schema: {
+        type: "object",
+        properties: {
+          boardId: { type: "string", description: "Board ID" },
+        },
+        required: ["boardId"],
+      },
+    },
+    isWrite: false,
+    category: "kanban",
+    execute: async (input) => {
+      const board = await getFullBoard(input.boardId as string);
+      if (!board) throw new Error("Board not found");
+      return board.columns.map((col) => ({
+        id: col._id,
+        title: col.title,
+        cardCount: col.cards.length,
+      }));
+    },
+  },
+  {
+    schema: {
       name: "create_kanban_card",
       description: "Create a new card on a kanban board in a specific column.",
       input_schema: {
         type: "object",
         properties: {
           boardId: { type: "string", description: "Board ID" },
-          columnId: { type: "string", description: "Column ID to place the card in" },
+          columnId: {
+            type: "string",
+            description: "Column ID to place the card in",
+          },
           title: { type: "string", description: "Card title" },
-          description: { type: "string", description: "Card description (optional)" },
+          description: {
+            type: "string",
+            description: "Card description (optional)",
+          },
           priority: {
             type: "string",
             description: "Card priority (optional)",
             enum: ["none", "low", "medium", "high", "urgent"],
           },
-          dueDate: { type: "string", description: "Due date in ISO 8601 (optional)" },
+          dueDate: {
+            type: "string",
+            description: "Due date in ISO 8601 (optional)",
+          },
           labels: {
             type: "array",
             description: "Labels/tags for the card (optional)",
@@ -89,21 +123,35 @@ export const kanbanTools: ToolDefinition[] = [
   {
     schema: {
       name: "update_kanban_card",
-      description: "Update an existing kanban card. Can change title, description, column, priority, etc.",
+      description:
+        "Update an existing kanban card. Can change title, description, column, priority, etc.",
       input_schema: {
         type: "object",
         properties: {
           id: { type: "string", description: "Card ID" },
           title: { type: "string", description: "New title (optional)" },
-          description: { type: "string", description: "New description (optional)" },
-          columnId: { type: "string", description: "Move to this column (optional)" },
+          description: {
+            type: "string",
+            description: "New description (optional)",
+          },
+          columnId: {
+            type: "string",
+            description: "Move to this column (optional)",
+          },
           priority: {
             type: "string",
             description: "New priority (optional)",
             enum: ["none", "low", "medium", "high", "urgent"],
           },
-          dueDate: { type: "string", description: "New due date in ISO 8601, or null to clear (optional)" },
-          isArchived: { type: "boolean", description: "Archive or unarchive the card (optional)" },
+          dueDate: {
+            type: "string",
+            description:
+              "New due date in ISO 8601, or null to clear (optional)",
+          },
+          isArchived: {
+            type: "boolean",
+            description: "Archive or unarchive the card (optional)",
+          },
         },
         required: ["id"],
       },

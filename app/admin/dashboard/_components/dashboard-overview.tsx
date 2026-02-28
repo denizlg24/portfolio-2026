@@ -1,24 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
+import { format } from "date-fns";
 import {
+  AlertCircle,
+  ArrowRight,
+  Bell,
   Calendar,
-  MessageSquare,
+  CheckCircle2,
+  Clock,
   FolderGit2,
   Mail,
-  Clock,
+  MessageSquare,
   TrendingUp,
-  AlertCircle,
-  CheckCircle2,
-  Bell,
-  ArrowRight,
 } from "lucide-react";
 import Link from "next/link";
-import { format } from "date-fns";
+import { useCallback, useEffect, useState } from "react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface DashboardStats {
   contacts: {
@@ -60,11 +60,7 @@ export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
-
-  const fetchStats = async () => {
+  const fetchStats = useCallback(async () => {
     try {
       const response = await fetch("/api/admin/dashboard/stats");
       if (response.ok) {
@@ -76,7 +72,11 @@ export function DashboardOverview() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
 
   if (loading) {
     return (
@@ -112,7 +112,6 @@ export function DashboardOverview() {
 
   return (
     <div className="w-full flex flex-col gap-6">
-      
       <div className="grid gap-4 md:grid-cols-2 w-full lg:grid-cols-4">
         <Link href="/admin/dashboard/contacts">
           <Card className="p-6 hover:bg-accent/5 transition-colors cursor-pointer">
@@ -142,7 +141,9 @@ export function DashboardOverview() {
               <Calendar className="w-4 h-4 text-muted-foreground" />
             </div>
             <div className="flex items-center gap-2">
-              <h3 className="text-2xl font-bold">{stats.calendar.todayEvents}</h3>
+              <h3 className="text-2xl font-bold">
+                {stats.calendar.todayEvents}
+              </h3>
               {stats.calendar.upcomingEvents > 0 && (
                 <Badge variant="secondary" className="text-xs">
                   +{stats.calendar.upcomingEvents} upcoming
@@ -189,9 +190,7 @@ export function DashboardOverview() {
         </Link>
       </div>
 
-      
       <div className="grid gap-4 md:grid-cols-2 w-full">
-        
         <Card className="p-6 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Recent Contacts</h3>
@@ -221,7 +220,10 @@ export function DashboardOverview() {
                           {contact.name}
                         </p>
                         {contact.status === "new" && (
-                          <Badge variant="destructive" className="text-xs shrink-0">
+                          <Badge
+                            variant="destructive"
+                            className="text-xs shrink-0"
+                          >
                             New
                           </Badge>
                         )}
@@ -240,7 +242,6 @@ export function DashboardOverview() {
           </div>
         </Card>
 
-        
         <Card className="p-6 overflow-hidden">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold">Upcoming Events</h3>
@@ -298,7 +299,6 @@ export function DashboardOverview() {
         </Card>
       </div>
 
-      
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4">

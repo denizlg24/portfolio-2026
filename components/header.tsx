@@ -9,11 +9,11 @@ import {
   Notebook,
   X,
 } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "motion/react";
 
 const navLinks = [
   { href: "/", label: "home", icon: <Home className="w-4.5 h-4.5" /> },
@@ -67,7 +67,7 @@ export const Header = () => {
 
   useEffect(() => {
     setMobileOpen(false);
-  }, [pathname]);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -157,7 +157,9 @@ export const Header = () => {
                 <Menu
                   className={cn(
                     "w-5 h-5 absolute inset-0 transition-all duration-200",
-                    mobileOpen ? "opacity-0 -rotate-90" : "opacity-100 rotate-0",
+                    mobileOpen
+                      ? "opacity-0 -rotate-90"
+                      : "opacity-100 rotate-0",
                   )}
                 />
               </button>

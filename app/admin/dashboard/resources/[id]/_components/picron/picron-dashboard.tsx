@@ -14,7 +14,12 @@ interface PiCronDashboardProps {
   baseUrl: string;
 }
 
-export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDashboardProps) {
+export function PiCronDashboard({
+  resourceId,
+  capId,
+  name,
+  baseUrl,
+}: PiCronDashboardProps) {
   const [jobs, setJobs] = useState<PiCronJob[]>([]);
   const [stats, setStats] = useState<PiCronStats | null>(null);
   const [loading, setLoading] = useState(true);
@@ -24,37 +29,42 @@ export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDash
 
   const apiBase = `/api/admin/resources/${resourceId}/capabilities/${capId}/picron`;
 
-  const load = useCallback(async (isRefresh = false) => {
-    if (isRefresh) setRefreshing(true);
-    else setLoading(true);
-    setError(null);
+  const load = useCallback(
+    async (isRefresh = false) => {
+      if (isRefresh) setRefreshing(true);
+      else setLoading(true);
+      setError(null);
 
-    try {
-      const [jobsRes, statsRes] = await Promise.all([
-        fetch(`${apiBase}/jobs`, { cache: "no-store" }),
-        fetch(`${apiBase}/stats`, { cache: "no-store" }),
-      ]);
+      try {
+        const [jobsRes, statsRes] = await Promise.all([
+          fetch(`${apiBase}/jobs`, { cache: "no-store" }),
+          fetch(`${apiBase}/stats`, { cache: "no-store" }),
+        ]);
 
-      if (!jobsRes.ok) {
-        const d = await jobsRes.json();
-        throw new Error(d.error ?? "Failed to load jobs");
+        if (!jobsRes.ok) {
+          const d = await jobsRes.json();
+          throw new Error(d.error ?? "Failed to load jobs");
+        }
+
+        const jobsData = await jobsRes.json();
+        setJobs(Array.isArray(jobsData) ? jobsData : []);
+
+        if (statsRes.ok) {
+          setStats((await statsRes.json()) as PiCronStats);
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : String(e));
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
+    },
+    [apiBase],
+  );
 
-      const jobsData = await jobsRes.json();
-      setJobs(Array.isArray(jobsData) ? jobsData : []);
-
-      if (statsRes.ok) {
-        setStats(await statsRes.json() as PiCronStats);
-      }
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, [apiBase]);
-
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const refresh = () => load(true);
 
@@ -74,8 +84,15 @@ export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDash
       )}
 
       <div className="flex items-center gap-2 justify-end">
-        <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing}>
-          <RefreshCw className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`} />
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={refresh}
+          disabled={refreshing}
+        >
+          <RefreshCw
+            className={`w-3.5 h-3.5 mr-1.5 ${refreshing ? "animate-spin" : ""}`}
+          />
           Refresh
         </Button>
         <Button size="sm" onClick={() => setCreateOpen(true)}>
@@ -92,9 +109,13 @@ export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDash
 
       {!loading && error && (
         <div className="text-center py-8 space-y-3">
-          <p className="text-sm text-destructive font-medium">Failed to connect to PiCron</p>
+          <p className="text-sm text-destructive font-medium">
+            Failed to connect to PiCron
+          </p>
           <p className="text-xs text-muted-foreground">{error}</p>
-          <Button variant="outline" size="sm" onClick={refresh}>Retry</Button>
+          <Button variant="outline" size="sm" onClick={refresh}>
+            Retry
+          </Button>
         </div>
       )}
 
@@ -134,11 +155,21 @@ export function PiCronDashboard({ resourceId, capId, name, baseUrl }: PiCronDash
   );
 }
 
-function StatCard({ label, value, alert }: { label: string; value: number; alert?: boolean }) {
+function StatCard({
+  label,
+  value,
+  alert,
+}: {
+  label: string;
+  value: number;
+  alert?: boolean;
+}) {
   return (
     <div className="border rounded-md p-3 flex flex-col gap-1">
       <p className="text-xs text-muted-foreground">{label}</p>
-      <p className={`text-xl font-semibold tabular-nums ${alert ? "text-destructive" : ""}`}>
+      <p
+        className={`text-xl font-semibold tabular-nums ${alert ? "text-destructive" : ""}`}
+      >
         {value.toLocaleString()}
       </p>
     </div>

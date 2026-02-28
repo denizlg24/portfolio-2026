@@ -1,10 +1,10 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 import type {
   ILeanTimetableEntry,
   TimetableColor,
 } from "@/lib/timetable-constants";
+import { cn } from "@/lib/utils";
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -143,7 +143,6 @@ export function TimetableGrid({ entries, onEntryClick }: TimetableGridProps) {
         className="grid min-w-225"
         style={{ gridTemplateColumns: "60px repeat(7, 1fr)" }}
       >
-        
         <div className="sticky left-0 z-10 bg-background border-b border-r p-2" />
         {DAYS.map((day) => (
           <div
@@ -154,7 +153,6 @@ export function TimetableGrid({ entries, onEntryClick }: TimetableGridProps) {
           </div>
         ))}
 
-        
         <div className="sticky left-0 z-10 bg-background border-r">
           {hours.map((hour) => (
             <div
@@ -167,14 +165,12 @@ export function TimetableGrid({ entries, onEntryClick }: TimetableGridProps) {
           ))}
         </div>
 
-        
         {DAYS.map((day, dayIndex) => (
           <div
             key={day}
             className="relative border-r last:border-r-0"
             style={{ height: hours.length * hourHeight }}
           >
-            
             {hours.map((hour) => (
               <div
                 key={hour}
@@ -186,7 +182,6 @@ export function TimetableGrid({ entries, onEntryClick }: TimetableGridProps) {
               />
             ))}
 
-            
             {layoutByDay[dayIndex].map(
               ({ entry, columnIndex, totalColumns }) => {
                 const startMin = timeToMinutes(entry.startTime);

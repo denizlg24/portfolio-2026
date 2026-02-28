@@ -158,16 +158,14 @@ export async function getAllComments(options?: {
     .limit(options?.limit || 100)
     .lean();
 
-  
   const blogIds = [...new Set(comments.map((c) => c.blogId))];
 
-  
   const blogs = await Blog.find({ _id: { $in: blogIds } })
     .select("_id title slug")
     .lean();
 
   const blogMap = new Map(
-    blogs.map((b) => [b._id.toString(), { title: b.title, slug: b.slug }])
+    blogs.map((b) => [b._id.toString(), { title: b.title, slug: b.slug }]),
   );
 
   return comments.map((comment) => ({
@@ -201,7 +199,7 @@ export async function approveComment(id: string) {
   const comment = await BlogComment.findByIdAndUpdate(
     id,
     { isApproved: true },
-    { new: true }
+    { new: true },
   ).lean();
 
   if (!comment) return null;
@@ -217,7 +215,7 @@ export async function rejectComment(id: string) {
   const comment = await BlogComment.findByIdAndUpdate(
     id,
     { isApproved: false },
-    { new: true }
+    { new: true },
   ).lean();
 
   if (!comment) return null;
@@ -234,11 +232,9 @@ export async function deleteComment(id: string) {
   const comment = await BlogComment.findById(id);
   if (!comment) return null;
 
-  
   const hasReplies = await BlogComment.exists({ commentId: id });
 
   if (hasReplies) {
-    
     await BlogComment.findByIdAndUpdate(id, {
       isDeleted: true,
       content: "[deleted]",
@@ -247,7 +243,6 @@ export async function deleteComment(id: string) {
     return { softDeleted: true };
   }
 
-  
   await BlogComment.findByIdAndDelete(id);
   return { softDeleted: false };
 }

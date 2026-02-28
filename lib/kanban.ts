@@ -1,8 +1,8 @@
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
-import { KanbanBoard, ILeanKanbanBoard } from "@/models/KanbanBoard";
-import { KanbanColumn, ILeanKanbanColumn } from "@/models/KanbanColumn";
-import { KanbanCard, ILeanKanbanCard } from "@/models/KanbanCard";
+import { type ILeanKanbanBoard, KanbanBoard } from "@/models/KanbanBoard";
+import { type ILeanKanbanCard, KanbanCard } from "@/models/KanbanCard";
+import { type ILeanKanbanColumn, KanbanColumn } from "@/models/KanbanColumn";
 
 export async function getAllBoards(): Promise<ILeanKanbanBoard[]> {
   await connectDB();
@@ -17,7 +17,9 @@ export async function getFullBoard(boardId: string) {
   const board = await KanbanBoard.findById(boardId).lean();
   if (!board) return null;
 
-  const columns = await KanbanColumn.find({ boardId }).sort({ order: 1 }).lean();
+  const columns = await KanbanColumn.find({ boardId })
+    .sort({ order: 1 })
+    .lean();
   const cards = await KanbanCard.find({ boardId, isArchived: false })
     .sort({ order: 1 })
     .lean();
@@ -34,7 +36,7 @@ export async function getFullBoard(boardId: string) {
       });
       return acc;
     },
-    {} as Record<string, ILeanKanbanCard[]>
+    {} as Record<string, ILeanKanbanCard[]>,
   );
 
   return {
@@ -66,7 +68,7 @@ export async function updateBoard(
     description: string;
     color: string;
     isArchived: boolean;
-  }>
+  }>,
 ) {
   await connectDB();
   const board = await KanbanBoard.findByIdAndUpdate(id, data, {
@@ -86,9 +88,13 @@ export async function deleteBoard(id: string) {
   return true;
 }
 
-export async function getBoardColumns(boardId: string): Promise<ILeanKanbanColumn[]> {
+export async function getBoardColumns(
+  boardId: string,
+): Promise<ILeanKanbanColumn[]> {
   await connectDB();
-  const columns = await KanbanColumn.find({ boardId }).sort({ order: 1 }).lean();
+  const columns = await KanbanColumn.find({ boardId })
+    .sort({ order: 1 })
+    .lean();
   return columns.map((c) => ({
     ...c,
     _id: c._id.toString(),
@@ -98,10 +104,12 @@ export async function getBoardColumns(boardId: string): Promise<ILeanKanbanColum
 
 export async function createColumn(
   boardId: string,
-  data: { title: string; color?: string; wipLimit?: number }
+  data: { title: string; color?: string; wipLimit?: number },
 ) {
   await connectDB();
-  const lastCol = await KanbanColumn.findOne({ boardId }).sort({ order: -1 }).lean();
+  const lastCol = await KanbanColumn.findOne({ boardId })
+    .sort({ order: -1 })
+    .lean();
   const order = lastCol ? lastCol.order + 1 : 0;
   const column = await KanbanColumn.create({ boardId, order, ...data });
   return {
@@ -113,7 +121,7 @@ export async function createColumn(
 
 export async function updateColumn(
   id: string,
-  data: Partial<{ title: string; color: string; wipLimit: number }>
+  data: Partial<{ title: string; color: string; wipLimit: number }>,
 ) {
   await connectDB();
   const column = await KanbanColumn.findByIdAndUpdate(id, data, {
@@ -121,7 +129,11 @@ export async function updateColumn(
     runValidators: true,
   }).lean();
   if (!column) return null;
-  return { ...column, _id: column._id.toString(), boardId: column.boardId.toString() };
+  return {
+    ...column,
+    _id: column._id.toString(),
+    boardId: column.boardId.toString(),
+  };
 }
 
 export async function deleteColumn(id: string) {
@@ -146,12 +158,14 @@ export async function reorderColumns(items: { _id: string; order: number }[]) {
 
 export async function getBoardCards(
   boardId: string,
-  columnId?: string
+  columnId?: string,
 ): Promise<ILeanKanbanCard[]> {
   await connectDB();
   const query: Record<string, unknown> = { boardId, isArchived: false };
   if (columnId) query.columnId = columnId;
-  const cards = await KanbanCard.find(query).sort({ columnId: 1, order: 1 }).lean();
+  const cards = await KanbanCard.find(query)
+    .sort({ columnId: 1, order: 1 })
+    .lean();
   return cards.map((c) => ({
     ...c,
     _id: c._id.toString(),
@@ -181,10 +195,12 @@ export async function createCard(
     labels?: string[];
     priority?: string;
     dueDate?: string;
-  }
+  },
 ) {
   await connectDB();
-  const lastCard = await KanbanCard.findOne({ columnId }).sort({ order: -1 }).lean();
+  const lastCard = await KanbanCard.findOne({ columnId })
+    .sort({ order: -1 })
+    .lean();
   const order = lastCard ? lastCard.order + 1 : 0;
   const card = await KanbanCard.create({ boardId, columnId, order, ...data });
   return {
@@ -206,7 +222,7 @@ export async function updateCard(
     priority: string;
     dueDate: string | null;
     isArchived: boolean;
-  }>
+  }>,
 ) {
   await connectDB();
   const card = await KanbanCard.findByIdAndUpdate(id, data, {
@@ -229,7 +245,7 @@ export async function deleteCard(id: string) {
 }
 
 export async function reorderCards(
-  items: { _id: string; columnId: string; order: number }[]
+  items: { _id: string; columnId: string; order: number }[],
 ) {
   await connectDB();
   const bulkOps = items.map((item) => ({

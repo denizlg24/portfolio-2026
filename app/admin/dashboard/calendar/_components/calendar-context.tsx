@@ -1,15 +1,15 @@
 "use client";
 
+import { endOfMonth, isSameDay, startOfMonth } from "date-fns";
 import {
   createContext,
-  useContext,
-  useState,
+  type ReactNode,
   useCallback,
-  ReactNode,
+  useContext,
   useEffect,
+  useState,
 } from "react";
-import { ILeanCalendarEvent } from "@/models/CalendarEvent";
-import { startOfMonth, endOfMonth, isSameDay } from "date-fns";
+import type { ILeanCalendarEvent } from "@/models/CalendarEvent";
 
 interface CalendarContextType {
   events: ILeanCalendarEvent[];

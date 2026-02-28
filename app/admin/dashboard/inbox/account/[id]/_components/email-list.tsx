@@ -1,18 +1,16 @@
 "use client";
 
-import { useState } from "react";
-import useSWR from "swr";
 import { format } from "date-fns";
-import { Mail, MailOpen, RefreshCw, Loader2, X } from "lucide-react";
-import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { Loader2, Mail, MailOpen, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import { toast } from "sonner";
+import useSWR from "swr";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Drawer,
   DrawerClose,
   DrawerContent,
-  DrawerDescription,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -53,7 +51,7 @@ export function EmailList({ accountId }: EmailListProps) {
       revalidateOnFocus: true,
       revalidateOnReconnect: true,
       dedupingInterval: 2000,
-    }
+    },
   );
 
   const emails = data?.emails || [];
@@ -95,7 +93,7 @@ export function EmailList({ accountId }: EmailListProps) {
 
     try {
       const response = await fetch(
-        `/api/admin/email-accounts/${accountId}/emails/${email._id}`
+        `/api/admin/email-accounts/${accountId}/emails/${email._id}`,
       );
 
       if (response.ok) {
@@ -198,7 +196,10 @@ export function EmailList({ accountId }: EmailListProps) {
                       >
                         {email.from[0]?.name || email.from[0]?.address}
                       </p>
-                      <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0" suppressHydrationWarning>
+                      <span
+                        className="text-[10px] sm:text-xs text-muted-foreground shrink-0"
+                        suppressHydrationWarning
+                      >
                         {format(new Date(email.date), "MMM d, h:mm a")}
                       </span>
                     </div>
@@ -229,7 +230,6 @@ export function EmailList({ accountId }: EmailListProps) {
         )}
       </div>
 
-      
       <Drawer open={selectedEmail !== null} onOpenChange={handleCloseDrawer}>
         <DrawerContent className="min-h-[80vh] max-h-[90vh]">
           <DrawerHeader className="border-b py-3 px-4">
@@ -240,11 +240,16 @@ export function EmailList({ accountId }: EmailListProps) {
                 </DrawerTitle>
                 <div className="flex mx-auto w-full text-center items-center justify-center gap-2 text-xs text-muted-foreground mt-1">
                   <span className="truncate max-w-50 sm:max-w-75">
-                    {selectedEmail?.from[0]?.name || selectedEmail?.from[0]?.address}
+                    {selectedEmail?.from[0]?.name ||
+                      selectedEmail?.from[0]?.address}
                   </span>
                   <span className="text-muted-foreground/50">•</span>
                   <span className="shrink-0" suppressHydrationWarning>
-                    {selectedEmail && format(new Date(selectedEmail.date), "MMM d, yyyy, h:mm a")}
+                    {selectedEmail &&
+                      format(
+                        new Date(selectedEmail.date),
+                        "MMM d, yyyy, h:mm a",
+                      )}
                   </span>
                 </div>
               </div>
@@ -258,10 +263,11 @@ export function EmailList({ accountId }: EmailListProps) {
               </div>
             ) : fullEmail ? (
               <div className="max-w-3xl mx-auto">
-                
                 <div className="flex items-center gap-3 mb-4 pb-4 border-b">
                   <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold">
-                    {(fullEmail.from[0]?.name || fullEmail.from[0]?.address || "?")[0].toUpperCase()}
+                    {(fullEmail.from[0]?.name ||
+                      fullEmail.from[0]?.address ||
+                      "?")[0].toUpperCase()}
                   </div>
                   <div className="min-w-0">
                     <p className="font-medium text-sm truncate">
@@ -273,7 +279,6 @@ export function EmailList({ accountId }: EmailListProps) {
                   </div>
                 </div>
 
-                
                 {fullEmail.htmlBody ? (
                   <div
                     className="prose prose-sm sm:prose max-w-none mx-auto text-foreground!"

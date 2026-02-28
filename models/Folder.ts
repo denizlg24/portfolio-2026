@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { ILeanNote } from "./Notes";
+import type { ILeanNote } from "./Notes";
 
 export interface IFolder extends mongoose.Document {
   name: string;

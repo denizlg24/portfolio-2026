@@ -1,6 +1,13 @@
 "use client";
 
-import { Clock, ExternalLink, MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import {
+  Clock,
+  ExternalLink,
+  MapPin,
+  Pencil,
+  Plus,
+  Trash2,
+} from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +39,15 @@ interface TimetableManagerProps {
 export function TimetableManager({ initialEntries }: TimetableManagerProps) {
   const [entries, setEntries] = useState<ILeanTimetableEntry[]>(initialEntries);
   const [formOpen, setFormOpen] = useState(false);
-  const [viewingEntry, setViewingEntry] =
-    useState<ILeanTimetableEntry | null>(null);
-  const [editingEntry, setEditingEntry] =
-    useState<ILeanTimetableEntry | null>(null);
-  const [deleteTarget, setDeleteTarget] =
-    useState<ILeanTimetableEntry | null>(null);
+  const [viewingEntry, setViewingEntry] = useState<ILeanTimetableEntry | null>(
+    null,
+  );
+  const [editingEntry, setEditingEntry] = useState<ILeanTimetableEntry | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<ILeanTimetableEntry | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState(false);
 
   const fetchEntries = async () => {
@@ -125,7 +135,6 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         onEntryClick={(entry) => setViewingEntry(entry)}
       />
 
-      
       <Dialog open={formOpen} onOpenChange={setFormOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -142,7 +151,6 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      
       <Dialog
         open={!!viewingEntry}
         onOpenChange={(open) => !open && setViewingEntry(null)}
@@ -227,7 +235,6 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      
       <Dialog
         open={!!editingEntry}
         onOpenChange={(open) => !open && setEditingEntry(null)}
@@ -262,7 +269,6 @@ export function TimetableManager({ initialEntries }: TimetableManagerProps) {
         </DialogContent>
       </Dialog>
 
-      
       <Dialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}

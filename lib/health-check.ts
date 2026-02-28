@@ -1,7 +1,7 @@
-import { connectDB } from "./mongodb";
-import { Resource, type IResource } from "@/models/Resource";
-import { HealthCheckLog } from "@/models/HealthCheckLog";
 import mongoose from "mongoose";
+import { HealthCheckLog } from "@/models/HealthCheckLog";
+import { type IResource, Resource } from "@/models/Resource";
+import { connectDB } from "./mongodb";
 
 export interface HealthCheckResult {
   resourceId: string;
@@ -81,7 +81,8 @@ export async function runAllHealthChecks(
 
   for (const resource of resources) {
     if (!force && resource.healthCheck.lastCheckedAt) {
-      const elapsed = now.getTime() - new Date(resource.healthCheck.lastCheckedAt).getTime();
+      const elapsed =
+        now.getTime() - new Date(resource.healthCheck.lastCheckedAt).getTime();
       const intervalMs = resource.healthCheck.intervalMinutes * 60 * 1000;
       if (elapsed < intervalMs) continue;
     }

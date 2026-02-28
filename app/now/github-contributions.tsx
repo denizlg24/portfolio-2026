@@ -36,7 +36,7 @@ function ContributionGrid({ data }: { data: ContributionData }) {
   const normalizedWeeks = weeks.map((week) => {
     const days: (ContributionDay | null)[] = Array(7).fill(null);
     for (const day of week.contributionDays) {
-      const dow = new Date(day.date + "T00:00:00").getDay();
+      const dow = new Date(`${day.date}T00:00:00`).getDay();
       days[dow] = day;
     }
     return days;
@@ -52,7 +52,7 @@ function ContributionGrid({ data }: { data: ContributionData }) {
       lastMonth = month;
       monthLabels.set(
         weekIndex,
-        new Date(firstDay.date + "T00:00:00").toLocaleString("default", {
+        new Date(`${firstDay.date}T00:00:00`).toLocaleString("default", {
           month: "short",
         }),
       );
@@ -129,10 +129,7 @@ function GitHubContributionsSkeleton() {
                 {dayIndex % 2 === 1 ? DAY_LABELS[dayIndex] : ""}
               </div>
               {Array.from({ length: WEEK_COUNT }, (_, weekIndex) => (
-                <Skeleton
-                  className="rounded-none bg-surface"
-                  key={weekIndex}
-                />
+                <Skeleton className="rounded-none bg-surface" key={weekIndex} />
               ))}
             </React.Fragment>
           ))}

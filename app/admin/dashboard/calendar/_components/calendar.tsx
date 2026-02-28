@@ -1,6 +1,5 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import {
   addMonths,
   format,
@@ -10,13 +9,15 @@ import {
   subMonths,
 } from "date-fns";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { CalendarDayDialog } from "./calendar-day-dialog";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useCalendar } from "./calendar-context";
+import { CalendarDayDialog } from "./calendar-day-dialog";
 
 export function Calendar() {
-  const { currentMonth, setCurrentMonth, getEventsForDay, refreshEvents } = useCalendar();
-  
+  const { currentMonth, setCurrentMonth, getEventsForDay, refreshEvents } =
+    useCalendar();
+
   const month = currentMonth.getMonth();
   const year = currentMonth.getFullYear();
   const days = getDaysInMonth(currentMonth);
@@ -32,21 +33,13 @@ export function Calendar() {
   return (
     <div className="w-full flex flex-col gap-2 items-center">
       <div className="mx-auto flex flex-row items-center justify-between gap-2 w-52">
-        <Button
-          onClick={handlePrevMonth}
-          size="icon-sm"
-          variant="ghost"
-        >
+        <Button onClick={handlePrevMonth} size="icon-sm" variant="ghost">
           <ChevronLeft />
         </Button>
         <p className="text-center text-sm font-semibold">
           {format(currentMonth, "MMMM yyyy")}
         </p>
-        <Button
-          onClick={handleNextMonth}
-          size="icon-sm"
-          variant="ghost"
-        >
+        <Button onClick={handleNextMonth} size="icon-sm" variant="ghost">
           <ChevronRight />
         </Button>
       </div>
@@ -61,7 +54,7 @@ export function Calendar() {
         ))}
         {Array.from({ length: getDay(new Date(year, month, 1)) }, (_, i) => (
           <div
-            key={i + "empty"}
+            key={`${i}empty`}
             className="bg-surface w-full col-span-1 aspect-square h-auto border"
           ></div>
         ))}
@@ -70,7 +63,7 @@ export function Calendar() {
           const dayDate = new Date(year, month, i + 1);
           const dayEvents = getEventsForDay(dayDate);
           const eventCount = dayEvents.length;
-          
+
           return isBefore(new Date(year, month, i + 2), new Date()) ? (
             <div
               key={i}
@@ -91,7 +84,7 @@ export function Calendar() {
                           "w-1.5 h-1.5 rounded-full shrink-0",
                           event.status === "scheduled" && "bg-muted",
                           event.status === "completed" && "bg-accent-strong",
-                          event.status === "canceled" && "bg-red-900"
+                          event.status === "canceled" && "bg-red-900",
                         )}
                       />
                       <span className="overflow-hidden whitespace-nowrap text-foreground/50 font-medium">
@@ -101,7 +94,9 @@ export function Calendar() {
                   ))}
                   {eventCount > 2 && (
                     <div className="text-xs text-foreground/40 font-medium pl-2.5 whitespace-nowrap">
-                      <span className="hidden xs:inline">+{eventCount - 2} more</span>
+                      <span className="hidden xs:inline">
+                        +{eventCount - 2} more
+                      </span>
                       <span className="xs:hidden">+{eventCount - 2}</span>
                     </div>
                   )}
@@ -109,9 +104,9 @@ export function Calendar() {
               )}
             </div>
           ) : (
-            <CalendarDayDialog 
-              date={dayDate} 
-              key={"date" + i}
+            <CalendarDayDialog
+              date={dayDate}
+              key={`date${i}`}
               events={dayEvents}
               onEventChange={refreshEvents}
             />
@@ -121,10 +116,10 @@ export function Calendar() {
           { length: 6 - getDay(new Date(year, month, days)) },
           (_, i) => (
             <div
-              key={i + "empty-end"}
+              key={`${i}empty-end`}
               className="bg-surface w-full col-span-1 aspect-square h-auto border"
             ></div>
-          )
+          ),
         )}
       </div>
     </div>

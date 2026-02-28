@@ -1,9 +1,9 @@
+import mongoose from "mongoose";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
-import { Note } from "@/models/Notes";
 import { Folder } from "@/models/Folder";
-import { NextRequest, NextResponse } from "next/server";
-import mongoose from "mongoose";
+import { Note } from "@/models/Notes";
 
 export const DELETE = async (
   request: NextRequest,

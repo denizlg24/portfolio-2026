@@ -1,5 +1,6 @@
 "use client";
 
+import { DialogClose } from "@radix-ui/react-dialog";
 import {
   ChevronLeftCircle,
   ChevronRightCircle,
@@ -14,7 +15,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
+import { ModelSelector } from "@/components/model-selector";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -27,19 +30,9 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import type { ILeanNote } from "@/models/Notes";
-import { toast } from "sonner";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-} from "@/components/ui/select";
-import { SelectValue } from "@radix-ui/react-select";
-import { Separator } from "@/components/ui/separator";
-import { DialogClose } from "@radix-ui/react-dialog";
-import { ModelSelector } from "@/components/model-selector";
 
 export const ContentEditor = ({
   note,
@@ -187,7 +180,7 @@ export const ContentEditor = ({
           } catch {}
         }
       }
-    } catch (error) {
+    } catch (_error) {
       toast.error("An error occurred while enhancing the note");
     } finally {
       setEnhancing(false);
@@ -325,13 +318,7 @@ export const ContentEditor = ({
             size="icon-sm"
             disabled={content === initialContent || loading}
           >
-            {loading ? (
-              <>
-                <Loader2 className="animate-spin" />
-              </>
-            ) : (
-              <Save />
-            )}
+            {loading ? <Loader2 className="animate-spin" /> : <Save />}
           </Button>
           <Button
             onClick={() => {

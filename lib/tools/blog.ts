@@ -1,5 +1,5 @@
-import type { ToolDefinition } from "./types";
 import { getAllBlogs, getBlogById, getFilteredActiveBlogs } from "@/lib/blog";
+import type { ToolDefinition } from "./types";
 
 export const blogTools: ToolDefinition[] = [
   {

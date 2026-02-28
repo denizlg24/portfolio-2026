@@ -46,7 +46,11 @@ export interface PiCronJobInput {
 
 const tokenCache = new Map<string, { token: string; expiresAt: number }>();
 
-async function acquireToken(baseUrl: string, username: string, password: string): Promise<string> {
+async function acquireToken(
+  baseUrl: string,
+  username: string,
+  password: string,
+): Promise<string> {
   const res = await fetch(`${baseUrl}/api/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -56,7 +60,11 @@ async function acquireToken(baseUrl: string, username: string, password: string)
   const text = await res.text();
   if (!res.ok) {
     let msg = `PiCron login failed (${res.status})`;
-    try { msg = JSON.parse(text).error ?? msg; } catch { /* noop */ }
+    try {
+      msg = JSON.parse(text).error ?? msg;
+    } catch {
+      /* noop */
+    }
     throw new Error(msg);
   }
 
@@ -77,7 +85,6 @@ async function getToken(
   tokenCache.set(apiId, { token, expiresAt: Date.now() + 55 * 60 * 1000 });
   return token;
 }
-
 
 export async function piCronFetch<T>(
   apiId: string,
@@ -110,7 +117,11 @@ export async function piCronFetch<T>(
   const text = await res.text();
   if (!res.ok) {
     let msg = `PiCron ${res.status}`;
-    try { msg = JSON.parse(text).error ?? msg; } catch { /* noop */ }
+    try {
+      msg = JSON.parse(text).error ?? msg;
+    } catch {
+      /* noop */
+    }
     throw new Error(msg);
   }
 

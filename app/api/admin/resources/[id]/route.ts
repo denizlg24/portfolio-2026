@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
@@ -52,7 +52,9 @@ export async function PATCH(
   const body = await request.json();
 
   await connectDB();
-  const resource = await Resource.findByIdAndUpdate(id, body, { new: true }).lean();
+  const resource = await Resource.findByIdAndUpdate(id, body, {
+    new: true,
+  }).lean();
   if (!resource) {
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }

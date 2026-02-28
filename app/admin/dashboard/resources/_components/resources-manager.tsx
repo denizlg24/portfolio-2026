@@ -2,11 +2,11 @@
 
 import { Loader2, Plus, RefreshCw } from "lucide-react";
 import { useCallback, useState } from "react";
-import useSWR from "swr";
 import { toast } from "sonner";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
-import type { IHealthCheck, ILeanCapability } from "@/models/Resource";
 import type { ResourceUptimeData } from "@/lib/health-check";
+import type { IHealthCheck, ILeanCapability } from "@/models/Resource";
 import { CreateResourceDialog } from "./create-resource-dialog";
 import { ResourceStatusCard } from "./resource-status-card";
 import { StatusSummary } from "./status-summary";

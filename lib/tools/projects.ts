@@ -1,11 +1,12 @@
-import type { ToolDefinition } from "./types";
 import { getAllProjects, getProjectById } from "@/lib/projects";
+import type { ToolDefinition } from "./types";
 
 export const projectsTools: ToolDefinition[] = [
   {
     schema: {
       name: "list_projects",
-      description: "List all portfolio projects with their titles, tags, and metadata.",
+      description:
+        "List all portfolio projects with their titles, tags, and metadata.",
       input_schema: {
         type: "object",
         properties: {},
@@ -29,7 +30,8 @@ export const projectsTools: ToolDefinition[] = [
   {
     schema: {
       name: "get_project",
-      description: "Get full details of a project by its ID, including markdown content.",
+      description:
+        "Get full details of a project by its ID, including markdown content.",
       input_schema: {
         type: "object",
         properties: {

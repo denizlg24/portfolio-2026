@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import crypto from "node:crypto";
 
 const ALGORITHM = "aes-256-gcm";
 const KEY = Buffer.from(process.env.IMAP_ENCRYPTION_KEY!, "hex");
@@ -24,12 +24,12 @@ export function encryptPassword(password: string) {
 export function decryptPassword(
   ciphertext: string,
   iv: string,
-  authTag: string
+  authTag: string,
 ) {
   const decipher = crypto.createDecipheriv(
     ALGORITHM,
     KEY,
-    Buffer.from(iv, "hex")
+    Buffer.from(iv, "hex"),
   );
 
   decipher.setAuthTag(Buffer.from(authTag, "hex"));

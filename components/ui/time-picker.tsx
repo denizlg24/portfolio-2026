@@ -1,17 +1,17 @@
 "use client";
 
-import * as React from "react";
+import { PopoverClose } from "@radix-ui/react-popover";
 import { Clock } from "lucide-react";
-import { Label } from "@/components/ui/label";
+import * as React from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { PopoverClose } from "@radix-ui/react-popover";
 
 interface TimePickerProps {
   value: string;
@@ -58,7 +58,7 @@ export function TimePicker({ value, onChange, className }: TimePickerProps) {
           className={cn(
             "w-full justify-start text-left font-normal",
             !value && "text-muted-foreground",
-            className
+            className,
           )}
         >
           <Clock className="mr-2 h-4 w-4" />

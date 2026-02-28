@@ -6,7 +6,6 @@ import {
   ChevronDown,
   Loader2,
   MessageSquare,
-  Notebook,
   Trash2,
   X,
 } from "lucide-react";
@@ -26,16 +25,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
-import type { ILeanBlogComment } from "@/models/BlogComment";
 import {
   Empty,
+  EmptyDescription,
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-  EmptyDescription,
 } from "@/components/ui/empty";
+import { Skeleton } from "@/components/ui/skeleton";
+import { cn } from "@/lib/utils";
+import type { ILeanBlogComment } from "@/models/BlogComment";
 
 interface CommentCardProps {
   comment: ILeanBlogComment;
@@ -62,7 +61,7 @@ function CommentCard({
     try {
       setLoadingReplies(true);
       const response = await fetch(
-        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}`
+        `/api/blog/comments?blogId=${blogId}&parentId=${comment._id}`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -177,7 +176,7 @@ function CommentCard({
                   "text-xs",
                   isDeleted
                     ? "bg-muted text-muted-foreground"
-                    : "bg-primary/10 text-primary"
+                    : "bg-primary/10 text-primary",
                 )}
               >
                 {getInitials(localComment.authorName)}
@@ -189,7 +188,7 @@ function CommentCard({
                 <span
                   className={cn(
                     "font-medium text-sm",
-                    isDeleted && "text-muted-foreground italic"
+                    isDeleted && "text-muted-foreground italic",
                   )}
                 >
                   {localComment.authorName}
@@ -207,7 +206,7 @@ function CommentCard({
                       month: "short",
                       day: "numeric",
                       year: "numeric",
-                    }
+                    },
                   )}
                 </span>
               </div>
@@ -217,7 +216,7 @@ function CommentCard({
                   "text-sm whitespace-pre-wrap mb-3",
                   isDeleted
                     ? "text-muted-foreground italic"
-                    : "text-foreground/90"
+                    : "text-foreground/90",
                 )}
               >
                 {localComment.content}
@@ -288,7 +287,7 @@ function CommentCard({
               <ChevronDown
                 className={cn(
                   "w-3.5 h-3.5 transition-transform",
-                  showReplies && "rotate-180"
+                  showReplies && "rotate-180",
                 )}
               />
               {showReplies ? "Hide" : "Show"} {replies.length}{" "}
@@ -398,10 +397,10 @@ export function CommentsList({ blogId }: CommentsListProps) {
   }
 
   const pendingCount = comments.filter(
-    (c) => !c.isApproved && !c.isDeleted
+    (c) => !c.isApproved && !c.isDeleted,
   ).length;
   const approvedCount = comments.filter(
-    (c) => c.isApproved && !c.isDeleted
+    (c) => c.isApproved && !c.isDeleted,
   ).length;
 
   return (

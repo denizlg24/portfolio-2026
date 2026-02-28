@@ -1,5 +1,4 @@
-import { IEmailAccount } from "@/models/EmailAccount";
-import { EmailAccountModel } from "@/models/EmailAccount";
+import { EmailAccountModel, type IEmailAccount } from "@/models/EmailAccount";
 import { createImapClient, saveEmail } from "./email";
 import { decryptPassword } from "./safe-email-password";
 
@@ -7,7 +6,7 @@ export async function syncInbox(account: IEmailAccount) {
   const password = decryptPassword(
     account.imapPassword.ciphertext,
     account.imapPassword.iv,
-    account.imapPassword.authTag
+    account.imapPassword.authTag,
   );
 
   const client = await createImapClient({
@@ -18,11 +17,11 @@ export async function syncInbox(account: IEmailAccount) {
     pass: password,
   });
 
-  let lastUid = account.lastUid ?? 0;
+  const lastUid = account.lastUid ?? 0;
   let highestUid = lastUid;
   const emailIds: string[] = [];
 
-  let lock = await client.getMailboxLock(account.inboxName || "INBOX");
+  const lock = await client.getMailboxLock(account.inboxName || "INBOX");
   try {
     let messageCount = 0;
 
@@ -44,7 +43,7 @@ export async function syncInbox(account: IEmailAccount) {
       const endSeq = totalMessages;
 
       console.log(
-        `Fetching last 50 messages: seq ${startSeq}:${endSeq} (total: ${totalMessages})`
+        `Fetching last 50 messages: seq ${startSeq}:${endSeq} (total: ${totalMessages})`,
       );
 
       const messages = client.fetch(
@@ -54,14 +53,14 @@ export async function syncInbox(account: IEmailAccount) {
           flags: true,
           uid: true,
         },
-        { uid: false }
+        { uid: false },
       );
 
-      for await (let msg of messages) {
+      for await (const msg of messages) {
         messageCount++;
         console.log(`Processing email UID: ${msg.uid}`);
 
-        const seen = msg.flags?.has("\\Seen") ? true : false;
+        const seen = !!msg.flags?.has("\\Seen");
         if (!msg.envelope) {
           console.log(`Skipping message ${msg.uid}: no envelope`);
           continue;
@@ -89,7 +88,7 @@ export async function syncInbox(account: IEmailAccount) {
       }
     } else {
       console.log(
-        `Incremental sync: fetching messages with UID ${lastUid + 1}:*`
+        `Incremental sync: fetching messages with UID ${lastUid + 1}:*`,
       );
 
       const messages = client.fetch(
@@ -99,17 +98,17 @@ export async function syncInbox(account: IEmailAccount) {
           flags: true,
           uid: true,
         },
-        { uid: true }
+        { uid: true },
       );
 
-      for await (let msg of messages) {
+      for await (const msg of messages) {
         messageCount++;
         console.log(`Processing email UID: ${msg.uid}`);
         if (msg.uid <= lastUid) {
           console.log(`Skipping already synced message UID: ${msg.uid}`);
           continue;
         }
-        const seen = msg.flags?.has("\\Seen") ? true : false;
+        const seen = !!msg.flags?.has("\\Seen");
         if (!msg.envelope) {
           console.log(`Skipping message ${msg.uid}: no envelope`);
           continue;

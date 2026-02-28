@@ -4,8 +4,8 @@ import { Plus } from "lucide-react";
 import { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { ILeanCapability } from "@/models/Resource";
-import { CapabilitySection } from "./capability-section";
 import { AddCapabilityDialog } from "./add-capability-dialog";
+import { CapabilitySection } from "./capability-section";
 
 interface ResourceData {
   _id: string;
@@ -18,28 +18,34 @@ interface ResourceCapabilitiesProps {
   resource: ResourceData;
 }
 
-export function ResourceCapabilities({ resource: initial }: ResourceCapabilitiesProps) {
+export function ResourceCapabilities({
+  resource: initial,
+}: ResourceCapabilitiesProps) {
   const [resource, setResource] = useState(initial);
   const [addCapOpen, setAddCapOpen] = useState(false);
 
   const fetchResource = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/resources/${initial._id}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/resources/${initial._id}`, {
+        cache: "no-store",
+      });
       if (!res.ok) return;
       const data = await res.json();
       setResource({
         _id: data._id ?? data.resource?._id ?? initial._id,
         name: data.name ?? data.resource?.name ?? initial.name,
         url: data.url ?? data.resource?.url ?? initial.url,
-        capabilities: (data.capabilities ?? data.resource?.capabilities ?? []).map(
-          (c: ILeanCapability) => ({
-            _id: c._id.toString(),
-            type: c.type,
-            label: c.label,
-            config: c.config,
-            isActive: c.isActive,
-          }),
-        ),
+        capabilities: (
+          data.capabilities ??
+          data.resource?.capabilities ??
+          []
+        ).map((c: ILeanCapability) => ({
+          _id: c._id.toString(),
+          type: c.type,
+          label: c.label,
+          config: c.config,
+          isActive: c.isActive,
+        })),
       });
     } catch (error) {
       console.error("Failed to fetch resource:", error);
@@ -62,7 +68,11 @@ export function ResourceCapabilities({ resource: initial }: ResourceCapabilities
           <p className="text-xs mb-3">
             Add a capability like PiCron to get started.
           </p>
-          <Button variant="outline" size="sm" onClick={() => setAddCapOpen(true)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setAddCapOpen(true)}
+          >
             <Plus className="w-3 h-3 mr-1" />
             Add Capability
           </Button>

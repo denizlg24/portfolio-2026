@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { getPiCronCredentials } from "@/lib/capabilities/picron";
 import { connectDB } from "@/lib/mongodb";
+import { type PiCronJob, type PiCronJobInput, piCronFetch } from "@/lib/picron";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
-import { getPiCronCredentials } from "@/lib/capabilities/picron";
-import { piCronFetch, type PiCronJob, type PiCronJobInput } from "@/lib/picron";
 
 async function getConnection(resourceId: string, capId: string) {
   await connectDB();
@@ -11,7 +11,8 @@ async function getConnection(resourceId: string, capId: string) {
   if (!resource) throw new Error("Resource not found");
 
   const cap = resource.capabilities.id(capId);
-  if (!cap || cap.type !== "picron") throw new Error("PiCron capability not found");
+  if (!cap || cap.type !== "picron")
+    throw new Error("PiCron capability not found");
 
   const { username, password } = getPiCronCredentials(cap);
   return { baseUrl: resource.url, username, password, cacheKey: capId };
@@ -28,7 +29,11 @@ export async function GET(
     const { id, capId } = await params;
     const conn = await getConnection(id, capId);
     const jobs = await piCronFetch<PiCronJob[]>(
-      conn.cacheKey, conn.baseUrl, conn.username, conn.password, "/api/jobs",
+      conn.cacheKey,
+      conn.baseUrl,
+      conn.username,
+      conn.password,
+      "/api/jobs",
     );
     return NextResponse.json(jobs);
   } catch (error) {
@@ -49,8 +54,12 @@ export async function POST(
     const body = (await request.json()) as PiCronJobInput;
     const conn = await getConnection(id, capId);
     const job = await piCronFetch<PiCronJob>(
-      conn.cacheKey, conn.baseUrl, conn.username, conn.password,
-      "/api/jobs", { method: "POST", body: JSON.stringify(body) },
+      conn.cacheKey,
+      conn.baseUrl,
+      conn.username,
+      conn.password,
+      "/api/jobs",
+      { method: "POST", body: JSON.stringify(body) },
     );
     return NextResponse.json(job, { status: 201 });
   } catch (error) {

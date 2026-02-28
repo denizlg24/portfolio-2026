@@ -1,5 +1,5 @@
-import mongoose, { Schema, Document } from "mongoose";
-import { ILeanEmail } from "@/models/Email";
+import mongoose, { type Document, Schema } from "mongoose";
+import type { ILeanEmail } from "@/models/Email";
 
 export interface IEmailAccount extends Document {
   host: string;

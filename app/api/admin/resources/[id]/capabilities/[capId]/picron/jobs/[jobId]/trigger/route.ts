@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { getPiCronCredentials } from "@/lib/capabilities/picron";
 import { connectDB } from "@/lib/mongodb";
+import { piCronFetch } from "@/lib/picron";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
-import { getPiCronCredentials } from "@/lib/capabilities/picron";
-import { piCronFetch } from "@/lib/picron";
 
 export async function POST(
   request: NextRequest,
@@ -16,15 +16,27 @@ export async function POST(
     const { id, capId, jobId } = await params;
     await connectDB();
     const resource = await Resource.findById(id);
-    if (!resource) return NextResponse.json({ error: "Resource not found" }, { status: 404 });
+    if (!resource)
+      return NextResponse.json(
+        { error: "Resource not found" },
+        { status: 404 },
+      );
 
     const cap = resource.capabilities.id(capId);
-    if (!cap || cap.type !== "picron") return NextResponse.json({ error: "PiCron capability not found" }, { status: 400 });
+    if (!cap || cap.type !== "picron")
+      return NextResponse.json(
+        { error: "PiCron capability not found" },
+        { status: 400 },
+      );
 
     const { username, password } = getPiCronCredentials(cap);
     const result = await piCronFetch<{ status: string }>(
-      capId, resource.url, username, password,
-      `/api/jobs/${jobId}/trigger`, { method: "POST" },
+      capId,
+      resource.url,
+      username,
+      password,
+      `/api/jobs/${jobId}/trigger`,
+      { method: "POST" },
     );
     return NextResponse.json(result);
   } catch (error) {

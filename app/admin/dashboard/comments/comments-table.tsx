@@ -46,7 +46,7 @@ export function CommentsTable({
   initialComments,
   onApprovalChange,
   onDelete,
-  children
+  children,
 }: CommentsTableProps) {
   const [localUpdates, setLocalUpdates] = useState<
     Map<string, { isApproved?: boolean; isDeleted?: boolean }>
@@ -54,7 +54,6 @@ export function CommentsTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<string | null>(null);
 
- 
   const comments = initialComments
     .map((comment) => {
       const update = localUpdates.get(comment._id);

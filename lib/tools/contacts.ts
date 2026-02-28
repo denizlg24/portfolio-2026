@@ -1,5 +1,11 @@
+import {
+  getAllContacts,
+  getContactByTicketId,
+  updateContactStatus,
+} from "@/lib/contacts";
+import { connectDB } from "../mongodb";
+import { resend } from "../resend";
 import type { ToolDefinition } from "./types";
-import { getAllContacts, getContactByTicketId, updateContactStatus } from "@/lib/contacts";
 
 export const contactsTools: ToolDefinition[] = [
   {
@@ -26,7 +32,12 @@ export const contactsTools: ToolDefinition[] = [
     category: "contacts",
     execute: async (input) => {
       return await getAllContacts({
-        status: input.status as "pending" | "read" | "responded" | "archived" | undefined,
+        status: input.status as
+          | "pending"
+          | "read"
+          | "responded"
+          | "archived"
+          | undefined,
         limit: (input.limit as number) || 20,
       });
     },
@@ -77,6 +88,46 @@ export const contactsTools: ToolDefinition[] = [
       );
       if (!result) throw new Error("Contact not found");
       return result;
+    },
+  },
+  {
+    schema: {
+      name: "reply_to_contact",
+      description:
+        "Send a reply to a contact submission and mark it as responded.",
+      input_schema: {
+        type: "object",
+        properties: {
+          ticketId: { type: "string", description: "Contact ticket ID" },
+          message: { type: "string", description: "Reply message" },
+        },
+        required: ["ticketId", "message"],
+      },
+    },
+    isWrite: true,
+    category: "contacts",
+    execute: async (input) => {
+      await connectDB();
+      const contact = await getContactByTicketId(input.ticketId as string);
+      if (!contact) return { success: false, error: "Contact not found" };
+
+      const email = contact.email;
+      const message = input.message as string;
+
+      const response = await resend.emails.send({
+        to: email,
+        from: "Deniz Günes <denizgunes@oceaninformatix.com>",
+        subject: `Re: Deniz Günes Portfolio Contact - Ticket #${contact.ticketId}`,
+        text: message,
+      });
+      if (response.error) {
+        return {
+          success: false,
+          error: response.error.message || "Failed to send email",
+        };
+      }
+      await updateContactStatus(contact.ticketId, "responded");
+      return { success: true };
     },
   },
 ];

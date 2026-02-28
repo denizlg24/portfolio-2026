@@ -1,8 +1,8 @@
+import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
-import { getAdminSession } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
+import { getAdminSession } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
 import { ResourceCapabilities } from "./_components/resource-capabilities";
 
@@ -47,7 +47,9 @@ export default async function ResourceDetailPage({ params }: Props) {
         </Link>
         <h1 className="text-2xl sm:text-3xl font-bold">{resource.name}</h1>
         {resource.description && (
-          <p className="text-sm text-muted-foreground mt-1">{resource.description}</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {resource.description}
+          </p>
         )}
       </div>
 

@@ -1,9 +1,9 @@
+import crypto from "node:crypto";
 import { forbidden } from "next/navigation";
 import type { NextRequest } from "next/server";
+import ApiKey from "@/models/ApiKey";
 import { getServerSession } from "./get-server-session";
 import { connectDB } from "./mongodb";
-import crypto from "crypto";
-import ApiKey from "@/models/ApiKey";
 
 export async function requireAdmin(request?: NextRequest) {
   const authorizationHeader = request?.headers.get("authorization");

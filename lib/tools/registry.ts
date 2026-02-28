@@ -1,13 +1,14 @@
-import type { ToolDefinition, ToolSchema } from "./types";
+import { blogTools } from "./blog";
 import { calendarTools } from "./calendar";
+import { contactsTools } from "./contacts";
+import { emailTools } from "./email";
 import { kanbanTools } from "./kanban";
 import { notesTools } from "./notes";
-import { timetableTools } from "./timetable";
-import { contactsTools } from "./contacts";
-import { blogTools } from "./blog";
+import { nowTools } from "./now";
 import { projectsTools } from "./projects";
 import { timelineTools } from "./timeline";
-import { emailTools } from "./email";
+import { timetableTools } from "./timetable";
+import type { ToolDefinition, ToolSchema } from "./types";
 
 const allTools: ToolDefinition[] = [
   ...calendarTools,
@@ -19,6 +20,7 @@ const allTools: ToolDefinition[] = [
   ...projectsTools,
   ...timelineTools,
   ...emailTools,
+  ...nowTools,
 ];
 
 const toolMap = new Map<string, ToolDefinition>();

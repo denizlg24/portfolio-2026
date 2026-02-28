@@ -1,7 +1,7 @@
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Note } from "@/models/Notes";
-import { NextRequest, NextResponse } from "next/server";
 
 export const PUT = async (
   request: NextRequest,

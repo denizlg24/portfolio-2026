@@ -1,5 +1,6 @@
 "use client";
 
+import { DialogClose } from "@radix-ui/react-dialog";
 import { format } from "date-fns";
 import {
   EllipsisVertical,
@@ -18,15 +19,6 @@ import {
 } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import {
-  Empty,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
-import { Skeleton } from "@/components/ui/skeleton";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -36,15 +28,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import {
-  Field,
-  FieldContent,
-  FieldDescription,
-  FieldGroup,
-  FieldLabel,
-  FieldTitle,
-} from "@/components/ui/field";
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@/components/ui/empty";
+import { Field, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { DialogClose } from "@radix-ui/react-dialog";
+import { Separator } from "@/components/ui/separator";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface FileItem {
   type: "folder" | "note";
@@ -71,8 +64,8 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
   const [breadcrumbs, setBreadcrumbs] = useState<BreadcrumbData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const [dialogError, setDialogError] = useState<string | null>(null);
-  const [loadingUpdate,setLoadingUpdate] = useState(false);
+  const [_dialogError, setDialogError] = useState<string | null>(null);
+  const [loadingUpdate, setLoadingUpdate] = useState(false);
   const [newName, setNewName] = useState<string>("");
   const dialogCloseRef = React.useRef<HTMLButtonElement>(null);
 
@@ -259,7 +252,7 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                             try {
                               setLoadingUpdate(true);
                               const url =
-                                item.type == "folder"
+                                item.type === "folder"
                                   ? `/api/admin/folders/${item._id}/name`
                                   : `/api/admin/notes/${item._id}/name`;
                               await fetch(url, {
@@ -276,7 +269,7 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                                     : prevItem,
                                 ),
                               );
-                            } catch (error) {
+                            } catch (_error) {
                               setDialogError(
                                 "An error occurred while saving changes.",
                               );
@@ -284,16 +277,24 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                             dialogCloseRef.current?.click();
                           }}
                           disabled={
-                            newName === item.name || newName.trim() === "" || loadingUpdate
+                            newName === item.name ||
+                            newName.trim() === "" ||
+                            loadingUpdate
                           }
                         >
-                          {loadingUpdate ? <>Processing <Loader2 className="animate-spin"/></> : `Save Changes`}
+                          {loadingUpdate ? (
+                            <>
+                              Processing <Loader2 className="animate-spin" />
+                            </>
+                          ) : (
+                            `Save Changes`
+                          )}
                         </Button>
                         <Button
                           onClick={async () => {
                             try {
                               const url =
-                                item.type == "folder"
+                                item.type === "folder"
                                   ? `/api/admin/folders/${item._id}`
                                   : `/api/admin/notes/${item._id}`;
                               await fetch(url, {
@@ -303,11 +304,11 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                                 },
                               });
                               setItems((prevItems) =>
-                                prevItems.filter((prevItem) =>
-                                  prevItem._id !== item._id
+                                prevItems.filter(
+                                  (prevItem) => prevItem._id !== item._id,
                                 ),
                               );
-                            } catch (error) {
+                            } catch (_error) {
                               setDialogError(
                                 "An error occurred while saving changes.",
                               );
@@ -317,7 +318,13 @@ export function FileExplorer({ folderId }: FileExplorerProps) {
                           variant="destructive"
                           disabled={loadingUpdate}
                         >
-                          {loadingUpdate ? <>Processing <Loader2 className="animate-spin"/></> : `Delete ${itemLabel}`}
+                          {loadingUpdate ? (
+                            <>
+                              Processing <Loader2 className="animate-spin" />
+                            </>
+                          ) : (
+                            `Delete ${itemLabel}`
+                          )}
                         </Button>
                       </DialogFooter>
                     </DialogContent>

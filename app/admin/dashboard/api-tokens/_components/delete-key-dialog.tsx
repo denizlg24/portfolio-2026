@@ -1,5 +1,9 @@
 "use client";
 
+import { DialogClose } from "@radix-ui/react-dialog";
+import { Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -9,11 +13,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { DialogClose } from "@radix-ui/react-dialog";
-import { router } from "better-auth/api";
-import { Loader2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useRef, useState } from "react";
 
 export const DeleteKeyDialog = ({
   children,

@@ -61,7 +61,9 @@ export function CreateResourceDialog({
       setHealthEnabled(resource.healthCheck.enabled);
       setIntervalMinutes(resource.healthCheck.intervalMinutes);
       setExpectedStatus(resource.healthCheck.expectedStatus);
-      setResponseTimeThresholdMs(resource.healthCheck.responseTimeThresholdMs ?? 1000);
+      setResponseTimeThresholdMs(
+        resource.healthCheck.responseTimeThresholdMs ?? 1000,
+      );
     } else if (open && !resource) {
       setName("");
       setUrl("");
@@ -98,7 +100,9 @@ export function CreateResourceDialog({
     setLoading(true);
     try {
       const res = await fetch(
-        isEdit ? `/api/admin/resources/${resource._id}` : "/api/admin/resources",
+        isEdit
+          ? `/api/admin/resources/${resource._id}`
+          : "/api/admin/resources",
         {
           method: isEdit ? "PATCH" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -115,7 +119,9 @@ export function CreateResourceDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save resource");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save resource",
+      );
     } finally {
       setLoading(false);
     }
@@ -126,24 +132,37 @@ export function CreateResourceDialog({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogTitle>{isEdit ? "Edit Resource" : "New Resource"}</DialogTitle>
         <DialogDescription>
-          {isEdit ? "Update resource configuration." : "Add a new infrastructure resource."}
+          {isEdit
+            ? "Update resource configuration."
+            : "Add a new infrastructure resource."}
         </DialogDescription>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Name</Label>
-            <Input placeholder="My Raspberry Pi" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              placeholder="My Raspberry Pi"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label>URL</Label>
-            <Input placeholder="http://raspberrypi.local:8080" value={url} onChange={(e) => setUrl(e.target.value)} />
+            <Input
+              placeholder="http://raspberrypi.local:8080"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <Label>Type</Label>
-              <Select value={type} onValueChange={(v) => setType(v as ResourceType)}>
+              <Select
+                value={type}
+                onValueChange={(v) => setType(v as ResourceType)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -157,7 +176,11 @@ export function CreateResourceDialog({
             </div>
             <div className="flex items-end pb-0.5">
               <div className="flex items-center gap-2">
-                <Checkbox id="resActive" checked={isActive} onCheckedChange={(v) => setIsActive(!!v)} />
+                <Checkbox
+                  id="resActive"
+                  checked={isActive}
+                  onCheckedChange={(v) => setIsActive(!!v)}
+                />
                 <Label htmlFor="resActive">Active</Label>
               </div>
             </div>
@@ -202,10 +225,14 @@ export function CreateResourceDialog({
                   />
                 </div>
                 <div className="space-y-1.5 col-span-2">
-                  <Label className="text-xs">Response Time Threshold (ms)</Label>
+                  <Label className="text-xs">
+                    Response Time Threshold (ms)
+                  </Label>
                   <Input
                     value={responseTimeThresholdMs}
-                    onChange={(e) => setResponseTimeThresholdMs(Number(e.target.value))}
+                    onChange={(e) =>
+                      setResponseTimeThresholdMs(Number(e.target.value))
+                    }
                   />
                   <p className="text-[10px] text-muted-foreground">
                     Responses slower than this will be marked as degraded.
@@ -217,7 +244,11 @@ export function CreateResourceDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
@@ -226,7 +257,11 @@ export function CreateResourceDialog({
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 {isEdit ? "Saving..." : "Creating..."}
               </>
-            ) : isEdit ? "Save Changes" : "Create Resource"}
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Create Resource"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

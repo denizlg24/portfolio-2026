@@ -1,10 +1,10 @@
-import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
+  deleteConversation,
   getConversation,
   updateConversationMessages,
-  deleteConversation,
 } from "@/lib/conversations";
+import { requireAdmin } from "@/lib/require-admin";
 
 export async function GET(
   request: NextRequest,
@@ -22,7 +22,7 @@ export async function GET(
         { status: 404 },
       );
     return NextResponse.json({ conversation }, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch conversation" },
       { status: 500 },
@@ -50,7 +50,7 @@ export async function PATCH(
         { status: 404 },
       );
     return NextResponse.json({ conversation }, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to update conversation" },
       { status: 500 },
@@ -74,7 +74,7 @@ export async function DELETE(
         { status: 404 },
       );
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to delete conversation" },
       { status: 500 },

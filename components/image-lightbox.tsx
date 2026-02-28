@@ -3,11 +3,11 @@
 import { X } from "lucide-react";
 import Image from "next/image";
 import {
+  type PointerEvent as ReactPointerEvent,
   useCallback,
   useEffect,
   useRef,
   useState,
-  type PointerEvent as ReactPointerEvent,
 } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "@/components/ui/button";
@@ -33,10 +33,9 @@ export function ImageLightbox({
   const lastPositionRef = useRef({ x: 0, y: 0 });
   const lastDistanceRef = useRef<number | null>(null);
   const activePointersRef = useRef<Map<number, { x: number; y: number }>>(
-    new Map()
+    new Map(),
   );
 
-  
   useEffect(() => {
     if (isOpen) {
       setScale(1);
@@ -46,7 +45,6 @@ export function ImageLightbox({
     }
   }, [isOpen]);
 
-  
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden";
@@ -58,7 +56,6 @@ export function ImageLightbox({
     };
   }, [isOpen]);
 
-  
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -69,73 +66,76 @@ export function ImageLightbox({
     return () => window.removeEventListener("keydown", handleEscape);
   }, [isOpen, onClose]);
 
-  const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }) => {
+  const getDistance = (
+    p1: { x: number; y: number },
+    p2: { x: number; y: number },
+  ) => {
     return Math.sqrt((p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2);
   };
 
   const handlePointerDown = useCallback((e: ReactPointerEvent) => {
     e.preventDefault();
     activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    
+
     if (activePointersRef.current.size === 1) {
       setIsDragging(true);
       lastPositionRef.current = { x: e.clientX, y: e.clientY };
     }
-    
+
     (e.target as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
   const handlePointerMove = useCallback(
     (e: ReactPointerEvent) => {
       e.preventDefault();
-      activePointersRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      
+      activePointersRef.current.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+      });
+
       const pointers = Array.from(activePointersRef.current.values());
 
-      
       if (pointers.length === 2) {
         const distance = getDistance(pointers[0], pointers[1]);
-        
+
         if (lastDistanceRef.current !== null) {
           const delta = distance - lastDistanceRef.current;
           setScale((prev) => Math.min(Math.max(prev + delta * 0.01, 1), 5));
         }
-        
+
         lastDistanceRef.current = distance;
         return;
       }
 
-      
       if (isDragging && scale > 1 && pointers.length === 1) {
         const deltaX = e.clientX - lastPositionRef.current.x;
         const deltaY = e.clientY - lastPositionRef.current.y;
-        
+
         setPosition((prev) => ({
           x: prev.x + deltaX,
           y: prev.y + deltaY,
         }));
-        
+
         lastPositionRef.current = { x: e.clientX, y: e.clientY };
       }
     },
-    [isDragging, scale]
+    [isDragging, scale, getDistance],
   );
 
   const handlePointerUp = useCallback((e: ReactPointerEvent) => {
     activePointersRef.current.delete(e.pointerId);
-    
+
     if (activePointersRef.current.size < 2) {
       lastDistanceRef.current = null;
     }
-    
+
     if (activePointersRef.current.size === 0) {
       setIsDragging(false);
     }
-    
+
     (e.target as HTMLElement).releasePointerCapture(e.pointerId);
   }, []);
 
-  
   const lastTapRef = useRef(0);
   const handleDoubleTap = useCallback(() => {
     const now = Date.now();
@@ -150,16 +150,18 @@ export function ImageLightbox({
     lastTapRef.current = now;
   }, [scale]);
 
-  
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? -0.2 : 0.2;
-    setScale((prev) => Math.min(Math.max(prev + delta, 1), 5));
-    
-    if (scale + delta <= 1) {
-      setPosition({ x: 0, y: 0 });
-    }
-  }, [scale]);
+  const handleWheel = useCallback(
+    (e: React.WheelEvent) => {
+      e.preventDefault();
+      const delta = e.deltaY > 0 ? -0.2 : 0.2;
+      setScale((prev) => Math.min(Math.max(prev + delta, 1), 5));
+
+      if (scale + delta <= 1) {
+        setPosition({ x: 0, y: 0 });
+      }
+    },
+    [scale],
+  );
 
   const [mounted, setMounted] = useState(false);
 
@@ -176,7 +178,6 @@ export function ImageLightbox({
         if (e.target === e.currentTarget && scale === 1) onClose();
       }}
     >
-      
       <Button
         variant="ghost"
         size="icon"
@@ -186,25 +187,24 @@ export function ImageLightbox({
         <X className="w-6 h-6" />
       </Button>
 
-      
       <div className="absolute top-4 left-4 z-10 text-white/70 text-sm font-mono">
         {Math.round(scale * 100)}%
       </div>
 
-      
       <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 text-white/50 text-xs text-center">
         <span className="sm:hidden">Pinch to zoom • Double-tap to reset</span>
-        <span className="hidden sm:inline">Scroll to zoom • Double-click to reset • Drag to pan</span>
+        <span className="hidden sm:inline">
+          Scroll to zoom • Double-click to reset • Drag to pan
+        </span>
       </div>
 
-      
       <div
         ref={containerRef}
         className={cn(
           "relative flex items-center justify-center overflow-hidden touch-none rounded-lg select-none",
           "w-full h-full sm:max-w-[90vw] sm:max-h-[85vh]",
           scale > 1 ? "cursor-grab" : "cursor-zoom-in",
-          isDragging && "cursor-grabbing"
+          isDragging && "cursor-grabbing",
         )}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
@@ -217,7 +217,7 @@ export function ImageLightbox({
         <div
           className={cn(
             "relative will-change-transform",
-            !isDragging && "transition-transform duration-150"
+            !isDragging && "transition-transform duration-150",
           )}
           style={{
             transform: `translate3d(${position.x}px, ${position.y}px, 0) scale(${scale})`,

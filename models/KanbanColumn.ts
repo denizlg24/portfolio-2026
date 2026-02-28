@@ -1,4 +1,4 @@
-import mongoose, {Document} from "mongoose";
+import mongoose, { type Document } from "mongoose";
 
 export interface IKanbanColumn extends Document {
   boardId: mongoose.Types.ObjectId;
@@ -34,7 +34,7 @@ const KanbanColumnSchema = new mongoose.Schema<IKanbanColumn>(
     order: { type: Number, required: true, default: 0 },
     wipLimit: { type: Number },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 KanbanColumnSchema.index({ boardId: 1, order: 1 });

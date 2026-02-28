@@ -296,10 +296,10 @@
   background-color: rgba(212, 163, 115, 0.15);
 }
 
-input[type='number']::-webkit-outer-spin-button,
-input[type='number']::-webkit-inner-spin-button,
-input[type='number'] {
-  -webkit-appearance: none !important;
-  appearance: none !important;
-  -moz-appearance: none !important;
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"] {
+  -webkit-appearance: none;
+  appearance: none;
+  -moz-appearance: none;
 }

@@ -88,7 +88,9 @@ export function TimelineManager({ initialItems }: TimelineManagerProps) {
     <>
       <div className="flex sm:flex-row flex-col sm:items-center items-start gap-2 justify-between w-full">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Timeline Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            Timeline Management
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Create and manage your timeline cards displayed on the homepage.
             {activeCategory !== "all" && " Drag items to reorder them."}

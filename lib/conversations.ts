@@ -50,7 +50,7 @@ export async function createConversation(data: {
     messages: [],
   });
 
-  return { ...conversation, _id: conversation._id.toString(), };
+  return { ...conversation, _id: conversation._id.toString() };
 }
 
 export async function updateConversationMessages(
@@ -66,7 +66,7 @@ export async function updateConversationMessages(
   ).lean();
   if (!conversation) return null;
 
-  return { ...conversation, _id: conversation._id.toString(), };
+  return { ...conversation, _id: conversation._id.toString() };
 }
 
 export async function appendMessages(

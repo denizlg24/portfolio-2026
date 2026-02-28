@@ -1,4 +1,4 @@
-import mongoose, {Document} from "mongoose";
+import mongoose, { type Document } from "mongoose";
 
 export type KanbanPriority = "none" | "low" | "medium" | "high" | "urgent";
 
@@ -57,7 +57,7 @@ const KanbanCardSchema = new mongoose.Schema<IKanbanCard>(
     dueDate: { type: Date },
     isArchived: { type: Boolean, default: false, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 KanbanCardSchema.index({ boardId: 1, columnId: 1, order: 1 });

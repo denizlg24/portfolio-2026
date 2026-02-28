@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
+import { buildPiCronConfig } from "@/lib/capabilities/picron";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
-import { buildPiCronConfig } from "@/lib/capabilities/picron";
 
 export async function PATCH(
   request: NextRequest,
@@ -22,7 +22,10 @@ export async function PATCH(
 
   const cap = resource.capabilities.id(capId);
   if (!cap) {
-    return NextResponse.json({ error: "Capability not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Capability not found" },
+      { status: 404 },
+    );
   }
 
   if (body.label !== undefined) cap.label = body.label;

@@ -1,4 +1,4 @@
-import Anthropic from "@anthropic-ai/sdk";
+import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, calculateCost, getMaxTokens, logLlmUsage } from "@/lib/llm";
 import { getToolByName, isWriteTool } from "@/lib/tools/registry";
 import type { ToolSchema } from "@/lib/tools/types";
@@ -47,14 +47,23 @@ export function createAgenticSSEStream({
 
         if (toolApprovals) {
           const lastAssistant = workingMessages[workingMessages.length - 1];
-          if (lastAssistant?.role !== "assistant" || !Array.isArray(lastAssistant.content)) {
-            send({ type: "error", error: "Invalid state for tool continuation" });
+          if (
+            lastAssistant?.role !== "assistant" ||
+            !Array.isArray(lastAssistant.content)
+          ) {
+            send({
+              type: "error",
+              error: "Invalid state for tool continuation",
+            });
             controller.close();
             return;
           }
 
-          const toolUseBlocks = (lastAssistant.content as Anthropic.ContentBlock[]).filter(
-            (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
+          const toolUseBlocks = (
+            lastAssistant.content as Anthropic.ContentBlock[]
+          ).filter(
+            (block): block is Anthropic.ToolUseBlock =>
+              block.type === "tool_use",
           );
 
           const toolResults: Anthropic.ToolResultBlockParam[] = [];
@@ -79,12 +88,34 @@ export function createAgenticSSEStream({
               try {
                 const result = await tool.execute(toolInput);
                 const resultStr = JSON.stringify(result);
-                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: resultStr,
+                  isError: false,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: resultStr,
+                });
               } catch (err) {
-                const errMsg = err instanceof Error ? err.message : "Tool execution failed";
-                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+                const errMsg =
+                  err instanceof Error ? err.message : "Tool execution failed";
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: errMsg,
+                  isError: true,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: errMsg,
+                  is_error: true,
+                });
               }
             } else if (toolApprovals[toolId] === true) {
               const tool = getToolByName(toolName);
@@ -101,12 +132,34 @@ export function createAgenticSSEStream({
               try {
                 const result = await tool.execute(toolInput);
                 const resultStr = JSON.stringify(result);
-                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: resultStr,
+                  isError: false,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: resultStr,
+                });
               } catch (err) {
-                const errMsg = err instanceof Error ? err.message : "Execution failed";
-                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+                const errMsg =
+                  err instanceof Error ? err.message : "Execution failed";
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: errMsg,
+                  isError: true,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: errMsg,
+                  is_error: true,
+                });
               }
             } else {
               send({
@@ -157,7 +210,8 @@ export function createAgenticSSEStream({
 
           if (finalMessage.stop_reason === "tool_use") {
             const toolUseBlocks = finalMessage.content.filter(
-              (block): block is Anthropic.ToolUseBlock => block.type === "tool_use",
+              (block): block is Anthropic.ToolUseBlock =>
+                block.type === "tool_use",
             );
 
             const readTools = toolUseBlocks.filter((t) => !isWriteTool(t.name));
@@ -175,20 +229,55 @@ export function createAgenticSSEStream({
 
                 const tool = getToolByName(toolName);
                 if (!tool) {
-                  send({ type: "tool_result", toolId, toolName, result: `Error: Tool "${toolName}" not found.`, isError: true });
-                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: `Error: Tool "${toolName}" not found.`, is_error: true });
+                  send({
+                    type: "tool_result",
+                    toolId,
+                    toolName,
+                    result: `Error: Tool "${toolName}" not found.`,
+                    isError: true,
+                  });
+                  toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: toolId,
+                    content: `Error: Tool "${toolName}" not found.`,
+                    is_error: true,
+                  });
                   continue;
                 }
 
                 try {
                   const result = await tool.execute(toolInput);
                   const resultStr = JSON.stringify(result);
-                  send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
-                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+                  send({
+                    type: "tool_result",
+                    toolId,
+                    toolName,
+                    result: resultStr,
+                    isError: false,
+                  });
+                  toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: toolId,
+                    content: resultStr,
+                  });
                 } catch (err) {
-                  const errMsg = err instanceof Error ? err.message : "Tool execution failed";
-                  send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
-                  toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+                  const errMsg =
+                    err instanceof Error
+                      ? err.message
+                      : "Tool execution failed";
+                  send({
+                    type: "tool_result",
+                    toolId,
+                    toolName,
+                    result: errMsg,
+                    isError: true,
+                  });
+                  toolResults.push({
+                    type: "tool_result",
+                    tool_use_id: toolId,
+                    content: errMsg,
+                    is_error: true,
+                  });
                 }
               }
 
@@ -222,7 +311,11 @@ export function createAgenticSSEStream({
                 llmModel: model,
                 inputTokens: totalInputTokens,
                 outputTokens: totalOutputTokens,
-                costUsd: calculateCost(model, totalInputTokens, totalOutputTokens),
+                costUsd: calculateCost(
+                  model,
+                  totalInputTokens,
+                  totalOutputTokens,
+                ),
                 systemPrompt: system,
                 userPrompt: source,
                 source,
@@ -254,12 +347,34 @@ export function createAgenticSSEStream({
               try {
                 const result = await tool.execute(toolInput);
                 const resultStr = JSON.stringify(result);
-                send({ type: "tool_result", toolId, toolName, result: resultStr, isError: false });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: resultStr });
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: resultStr,
+                  isError: false,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: resultStr,
+                });
               } catch (err) {
-                const errMsg = err instanceof Error ? err.message : "Tool execution failed";
-                send({ type: "tool_result", toolId, toolName, result: errMsg, isError: true });
-                toolResults.push({ type: "tool_result", tool_use_id: toolId, content: errMsg, is_error: true });
+                const errMsg =
+                  err instanceof Error ? err.message : "Tool execution failed";
+                send({
+                  type: "tool_result",
+                  toolId,
+                  toolName,
+                  result: errMsg,
+                  isError: true,
+                });
+                toolResults.push({
+                  type: "tool_result",
+                  tool_use_id: toolId,
+                  content: errMsg,
+                  is_error: true,
+                });
               }
             }
 
@@ -270,7 +385,11 @@ export function createAgenticSSEStream({
           break;
         }
 
-        const costUsd = calculateCost(model, totalInputTokens, totalOutputTokens);
+        const costUsd = calculateCost(
+          model,
+          totalInputTokens,
+          totalOutputTokens,
+        );
 
         if (onPersist) {
           await onPersist(workingMessages, {

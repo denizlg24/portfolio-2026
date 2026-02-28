@@ -1,5 +1,5 @@
+import { ImapFlow, type MessageAddressObject } from "imapflow";
 import { EmailModel } from "@/models/Email";
-import { ImapFlow, MessageAddressObject } from "imapflow";
 
 export async function createImapClient(account: {
   host: string;
@@ -54,7 +54,7 @@ export async function saveEmail(emailData: {
       upsert: true,
       new: true,
       setDefaultsOnInsert: true,
-    }
+    },
   );
 
   return email;

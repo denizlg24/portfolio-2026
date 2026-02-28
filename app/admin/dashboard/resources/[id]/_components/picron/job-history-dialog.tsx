@@ -25,15 +25,38 @@ interface JobHistoryDialogProps {
 
 function StatusBadge({ status }: { status: number }) {
   if (status === 0)
-    return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">ERR</Badge>;
+    return (
+      <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">
+        ERR
+      </Badge>
+    );
   if (status >= 200 && status < 300)
-    return <Badge className="bg-accent/20 text-accent-strong font-mono">{status}</Badge>;
+    return (
+      <Badge className="bg-accent/20 text-accent-strong font-mono">
+        {status}
+      </Badge>
+    );
   if (status >= 400 && status < 500)
-    return <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 font-mono">{status}</Badge>;
-  return <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">{status}</Badge>;
+    return (
+      <Badge className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100 font-mono">
+        {status}
+      </Badge>
+    );
+  return (
+    <Badge className="bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100 font-mono">
+      {status}
+    </Badge>
+  );
 }
 
-export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId, jobName }: JobHistoryDialogProps) {
+export function JobHistoryDialog({
+  open,
+  onOpenChange,
+  resourceId,
+  capId,
+  jobId,
+  jobName,
+}: JobHistoryDialogProps) {
   const [history, setHistory] = useState<PiCronHistoryEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +65,10 @@ export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId,
     if (!open) return;
     setLoading(true);
     setError(null);
-    fetch(`/api/admin/resources/${resourceId}/capabilities/${capId}/picron/jobs/${jobId}/history`, { cache: "no-store" })
+    fetch(
+      `/api/admin/resources/${resourceId}/capabilities/${capId}/picron/jobs/${jobId}/history`,
+      { cache: "no-store" },
+    )
       .then(async (res) => {
         if (!res.ok) {
           const d = await res.json();
@@ -59,7 +85,9 @@ export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId,
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[85vh] flex flex-col">
         <DialogTitle>Execution History</DialogTitle>
-        <DialogDescription>{jobName} — last 50 runs, newest first.</DialogDescription>
+        <DialogDescription>
+          {jobName} — last 50 runs, newest first.
+        </DialogDescription>
 
         <div className="flex-1 max-h-[70vh] overflow-y-auto">
           {loading && (
@@ -73,7 +101,9 @@ export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId,
           )}
 
           {!loading && !error && history.length === 0 && (
-            <p className="text-sm text-muted-foreground text-center py-8">No executions recorded yet.</p>
+            <p className="text-sm text-muted-foreground text-center py-8">
+              No executions recorded yet.
+            </p>
           )}
 
           {!loading && !error && history.length > 0 && (
@@ -83,14 +113,21 @@ export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId,
                   <th className="text-left py-2 pr-3 font-medium">Started</th>
                   <th className="text-left py-2 pr-3 font-medium">Status</th>
                   <th className="text-left py-2 pr-3 font-medium">Duration</th>
-                  <th className="text-left py-2 font-medium">Response / Error</th>
+                  <th className="text-left py-2 font-medium">
+                    Response / Error
+                  </th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((entry) => (
-                  <tr key={entry.id} className="border-b last:border-0 align-top">
+                  <tr
+                    key={entry.id}
+                    className="border-b last:border-0 align-top"
+                  >
                     <td className="py-2 pr-3 text-xs text-muted-foreground whitespace-nowrap">
-                      {formatDistanceToNow(new Date(entry.started_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(entry.started_at), {
+                        addSuffix: true,
+                      })}
                     </td>
                     <td className="py-2 pr-3">
                       <StatusBadge status={entry.status} />
@@ -115,7 +152,9 @@ export function JobHistoryDialog({ open, onOpenChange, resourceId, capId, jobId,
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -7,7 +7,7 @@ import { Project } from "@/models/Project";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -25,14 +25,14 @@ export async function GET(
     console.error("Error fetching project:", error);
     return NextResponse.json(
       { error: "Failed to fetch project" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -46,7 +46,7 @@ export async function PATCH(
       if (!project) {
         return NextResponse.json(
           { error: "Project not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       revalidatePath("/", "layout");
@@ -57,7 +57,7 @@ export async function PATCH(
       revalidatePath(`/projects/${project._id.toString()}`, "page");
       return NextResponse.json(
         { message: "Project visibility toggled successfully", project },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -67,13 +67,13 @@ export async function PATCH(
       if (!existingProject) {
         return NextResponse.json(
           { error: "Project not found" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       const project = await Project.findByIdAndUpdate(
         id,
         { isFeatured: !existingProject.isFeatured },
-        { new: true, runValidators: true }
+        { new: true, runValidators: true },
       )
         .lean()
         .exec();
@@ -85,7 +85,7 @@ export async function PATCH(
       revalidatePath(`/projects/${project?._id.toString()}`, "page");
       return NextResponse.json(
         { message: "Project featured status toggled successfully", project },
-        { status: 200 }
+        { status: 200 },
       );
     }
 
@@ -114,20 +114,20 @@ export async function PATCH(
           _id: project._id.toString(),
         },
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error updating project:", error);
     return NextResponse.json(
       { error: "Failed to update project" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -149,13 +149,13 @@ export async function DELETE(
     revalidatePath(`/projects/${project._id.toString()}`, "page");
     return NextResponse.json(
       { message: "Project deleted successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error deleting project:", error);
     return NextResponse.json(
       { error: "Failed to delete project" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

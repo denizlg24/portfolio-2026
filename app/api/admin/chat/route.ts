@@ -1,14 +1,14 @@
-import { requireAdmin } from "@/lib/require-admin";
-import { checkRateLimit } from "@/lib/rate-limit";
-import { NextRequest, NextResponse } from "next/server";
+import type Anthropic from "@anthropic-ai/sdk";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   getConversation,
   updateConversationMessages,
 } from "@/lib/conversations";
 import { createAgenticSSEStream } from "@/lib/llm-chat";
-import { buildSystemPrompt } from "@/lib/tools/system-prompt";
+import { checkRateLimit } from "@/lib/rate-limit";
+import { requireAdmin } from "@/lib/require-admin";
 import { getToolSchemas } from "@/lib/tools/registry";
-import type Anthropic from "@anthropic-ai/sdk";
+import { buildSystemPrompt } from "@/lib/tools/system-prompt";
 
 export const maxDuration = 300;
 
@@ -119,9 +119,7 @@ export const POST = async (req: NextRequest) => {
       const messagesToStore = msgs.map((m) => ({
         role: m.role as "user" | "assistant",
         content: m.content,
-        ...(tokenUsage &&
-        m === msgs[msgs.length - 1] &&
-        m.role === "assistant"
+        ...(tokenUsage && m === msgs[msgs.length - 1] && m.role === "assistant"
           ? { tokenUsage }
           : {}),
         createdAt: new Date(),

@@ -1,7 +1,7 @@
-import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
+import crypto from "node:crypto";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
 import ApiKey from "@/models/ApiKey";
 
 export const POST = async (request: NextRequest) => {

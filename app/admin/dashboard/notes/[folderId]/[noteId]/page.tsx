@@ -1,17 +1,16 @@
+import { notFound } from "next/navigation";
+import React from "react";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 import { Separator } from "@/components/ui/separator";
 import { connectDB } from "@/lib/mongodb";
 import { Folder } from "@/models/Folder";
-import mongoose from "mongoose";
-import {
-  Breadcrumb,
-  BreadcrumbList,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
-import React from "react";
 import { Note } from "@/models/Notes";
-import { notFound } from "next/navigation";
 import { ContentEditor } from "./_components/content-editor";
 
 export default async function AdminNotesPage({

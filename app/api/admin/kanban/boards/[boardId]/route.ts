@@ -1,10 +1,10 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { deleteBoard, getFullBoard, updateBoard } from "@/lib/kanban";
 import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
-import { getFullBoard, updateBoard, deleteBoard } from "@/lib/kanban";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ boardId: string }> }
+  { params }: { params: Promise<{ boardId: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -12,16 +12,20 @@ export async function GET(
   try {
     const { boardId } = await params;
     const board = await getFullBoard(boardId);
-    if (!board) return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    if (!board)
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
     return NextResponse.json({ board }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to fetch board" }, { status: 500 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to fetch board" },
+      { status: 500 },
+    );
   }
 }
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ boardId: string }> }
+  { params }: { params: Promise<{ boardId: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -30,16 +34,20 @@ export async function PATCH(
     const { boardId } = await params;
     const body = await request.json();
     const board = await updateBoard(boardId, body);
-    if (!board) return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    if (!board)
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
     return NextResponse.json({ board }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to update board" }, { status: 500 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to update board" },
+      { status: 500 },
+    );
   }
 }
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ boardId: string }> }
+  { params }: { params: Promise<{ boardId: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -47,9 +55,13 @@ export async function DELETE(
   try {
     const { boardId } = await params;
     const deleted = await deleteBoard(boardId);
-    if (!deleted) return NextResponse.json({ error: "Board not found" }, { status: 404 });
+    if (!deleted)
+      return NextResponse.json({ error: "Board not found" }, { status: 404 });
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ error: "Failed to delete board" }, { status: 500 });
+  } catch (_error) {
+    return NextResponse.json(
+      { error: "Failed to delete board" },
+      { status: 500 },
+    );
   }
 }

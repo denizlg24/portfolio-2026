@@ -1,7 +1,5 @@
 "use client";
 
-import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
   Cloud,
   Cpu,
@@ -12,6 +10,8 @@ import {
   Trash2,
   Webhook,
 } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
@@ -30,10 +30,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { LeanResource } from "./resources-manager";
-import { CreateResourceDialog } from "./create-resource-dialog";
-import { UptimeBar } from "./uptime-bar";
 import type { DailyUptimeEntry } from "@/lib/health-check";
+import { CreateResourceDialog } from "./create-resource-dialog";
+import type { LeanResource } from "./resources-manager";
+import { UptimeBar } from "./uptime-bar";
 
 const TYPE_LABELS: Record<string, string> = {
   pi: "Pi",

@@ -39,22 +39,31 @@ export default async function ContactDetailsPage({
         </Button>
 
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Contact details</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">Ticket #{contact.ticketId}</p>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            Contact details
+          </h1>
+          <p className="text-sm sm:text-base text-muted-foreground">
+            Ticket #{contact.ticketId}
+          </p>
         </div>
       </div>
 
       <div className="grid md:grid-cols-3 gap-6">
-        
         <Card className="md:col-span-2 border-0 shadow-none gap-4">
           <div className="border-b pb-4">
-            <h2 className="text-base sm:text-lg font-semibold mb-4">Contact Information</h2>
+            <h2 className="text-base sm:text-lg font-semibold mb-4">
+              Contact Information
+            </h2>
             <div className="space-y-3">
               <div className="flex items-center gap-3">
                 <User className="w-4 h-4 text-muted-foreground" />
                 <div>
-                  <div className="text-xs sm:text-sm text-muted-foreground">Name</div>
-                  <div className="text-sm sm:text-base font-medium">{contact.name}</div>
+                  <div className="text-xs sm:text-sm text-muted-foreground">
+                    Name
+                  </div>
+                  <div className="text-sm sm:text-base font-medium">
+                    {contact.name}
+                  </div>
                 </div>
               </div>
               <div className="flex items-center gap-3">
@@ -79,7 +88,6 @@ export default async function ContactDetailsPage({
           </div>
         </Card>
 
-        
         <div className="space-y-4">
           <Card className="p-4 space-y-4">
             <div>

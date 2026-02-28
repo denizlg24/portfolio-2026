@@ -1,9 +1,12 @@
 import { redirect } from "next/navigation";
-import { getAdminSession } from "@/lib/require-admin";
-import { connectDB } from "@/lib/mongodb";
 import { getUptimeData } from "@/lib/health-check";
+import { connectDB } from "@/lib/mongodb";
+import { getAdminSession } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
-import { ResourcesManager, type LeanResource } from "./_components/resources-manager";
+import {
+  type LeanResource,
+  ResourcesManager,
+} from "./_components/resources-manager";
 
 export default async function ResourcesPage() {
   const session = await getAdminSession();
@@ -14,7 +17,10 @@ export default async function ResourcesPage() {
 
   const resourceIds = raw.map((r) => r._id.toString());
   const thresholds = new Map(
-    raw.map((r) => [r._id.toString(), r.healthCheck?.responseTimeThresholdMs ?? 1000]),
+    raw.map((r) => [
+      r._id.toString(),
+      r.healthCheck?.responseTimeThresholdMs ?? 1000,
+    ]),
   );
   const uptimeMap = await getUptimeData(resourceIds, thresholds);
 

@@ -12,9 +12,8 @@ import {
   Instagram,
   MessageSquare,
   NotebookPen,
-  PenTool,
-  Settings,
   Server,
+  Settings,
 } from "lucide-react";
 
 import {
@@ -54,11 +53,6 @@ const items = [
     title: "Timetable",
     url: "/admin/dashboard/timetable",
     icon: CalendarDays,
-  },
-  {
-    title: "Whiteboard",
-    url: "/admin/dashboard/whiteboard",
-    icon: PenTool,
   },
   {
     title: "Blog",

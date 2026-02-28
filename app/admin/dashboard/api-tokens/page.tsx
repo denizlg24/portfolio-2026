@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { Plus, RefreshCw, Settings, Trash } from "lucide-react";
 import { forbidden } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -9,13 +10,12 @@ import {
   EmptyMedia,
   EmptyTitle,
 } from "@/components/ui/empty";
-import { getAdminSession } from "@/lib/require-admin";
 import { connectDB } from "@/lib/mongodb";
+import { getAdminSession } from "@/lib/require-admin";
 import ApiKey from "@/models/ApiKey";
 import { CreateKeyDialog } from "./_components/create-key-dialog";
-import { format } from "date-fns";
-import { EditKeyDialog } from "./_components/edit-key-dialog";
 import { DeleteKeyDialog } from "./_components/delete-key-dialog";
+import { EditKeyDialog } from "./_components/edit-key-dialog";
 
 export default async function Page() {
   const session = await getAdminSession();
@@ -60,7 +60,9 @@ export default async function Page() {
       <div className="w-full flex flex-row items-center justify-between">
         <h1 className="text-2xl sm:text-3xl font-bold">API Keys</h1>
         <CreateKeyDialog>
-          <Button variant="outline" size="icon-sm"><Plus/></Button>
+          <Button variant="outline" size="icon-sm">
+            <Plus />
+          </Button>
         </CreateKeyDialog>
       </div>
 

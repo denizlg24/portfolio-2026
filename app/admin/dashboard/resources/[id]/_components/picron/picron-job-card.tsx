@@ -22,15 +22,25 @@ const METHOD_COLORS: Record<string, string> = {
   GET: "bg-accent/20 text-accent-strong",
   POST: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100",
   PUT: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-100",
-  PATCH: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
+  PATCH:
+    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
   DELETE: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
 };
 
 function LastStatus({ status }: { status: number | null }) {
-  if (status === null) return <span className="text-xs text-muted-foreground">Never run</span>;
-  if (status === 0) return <span className="text-xs text-destructive font-medium">Network error</span>;
-  const color = status >= 200 && status < 300 ? "text-accent-strong" : "text-destructive";
-  return <span className={`text-xs font-mono font-medium ${color}`}>{status}</span>;
+  if (status === null)
+    return <span className="text-xs text-muted-foreground">Never run</span>;
+  if (status === 0)
+    return (
+      <span className="text-xs text-destructive font-medium">
+        Network error
+      </span>
+    );
+  const color =
+    status >= 200 && status < 300 ? "text-accent-strong" : "text-destructive";
+  return (
+    <span className={`text-xs font-mono font-medium ${color}`}>{status}</span>
+  );
 }
 
 interface PiCronJobCardProps {
@@ -40,7 +50,12 @@ interface PiCronJobCardProps {
   onRefresh: () => void;
 }
 
-export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCardProps) {
+export function PiCronJobCard({
+  resourceId,
+  capId,
+  job,
+  onRefresh,
+}: PiCronJobCardProps) {
   const [editOpen, setEditOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -64,7 +79,9 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
       }
       onRefresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to toggle job");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to toggle job",
+      );
     } finally {
       setToggling(false);
     }
@@ -74,7 +91,9 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
     setTriggering(true);
     toast.loading("Triggering job...", { id: `trigger-${job.id}` });
     try {
-      const res = await fetch(`${apiBase}/jobs/${job.id}/trigger`, { method: "POST" });
+      const res = await fetch(`${apiBase}/jobs/${job.id}/trigger`, {
+        method: "POST",
+      });
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error ?? "Failed to trigger job");
@@ -82,7 +101,10 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
       toast.success("Job triggered successfully", { id: `trigger-${job.id}` });
       onRefresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to trigger job", { id: `trigger-${job.id}` });
+      toast.error(
+        error instanceof Error ? error.message : "Failed to trigger job",
+        { id: `trigger-${job.id}` },
+      );
     } finally {
       setTriggering(false);
     }
@@ -91,7 +113,9 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`${apiBase}/jobs/${job.id}`, { method: "DELETE" });
+      const res = await fetch(`${apiBase}/jobs/${job.id}`, {
+        method: "DELETE",
+      });
       if (!res.ok) {
         const d = await res.json();
         throw new Error(d.error ?? "Failed to delete job");
@@ -100,7 +124,9 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
       setDeleteOpen(false);
       onRefresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete job");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete job",
+      );
     } finally {
       setDeleting(false);
     }
@@ -111,7 +137,9 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row sm:items-start gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <span className={`shrink-0 mt-0.5 px-2 py-0.5 rounded text-xs font-mono font-semibold ${METHOD_COLORS[job.method.toUpperCase()] ?? ""}`}>
+            <span
+              className={`shrink-0 mt-0.5 px-2 py-0.5 rounded text-xs font-mono font-semibold ${METHOD_COLORS[job.method.toUpperCase()] ?? ""}`}
+            >
               {job.method.toUpperCase()}
             </span>
 
@@ -119,29 +147,38 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
               <div className="flex items-center gap-2 flex-wrap mb-0.5">
                 <span className="font-medium text-sm">{job.name}</span>
                 {!job.enabled && (
-                  <Badge variant="secondary" className="text-xs">Disabled</Badge>
+                  <Badge variant="secondary" className="text-xs">
+                    Disabled
+                  </Badge>
                 )}
               </div>
 
-              <p className="text-xs font-mono text-muted-foreground mb-1">{job.expression}</p>
+              <p className="text-xs font-mono text-muted-foreground mb-1">
+                {job.expression}
+              </p>
 
-              <p className="text-xs text-muted-foreground truncate mb-1">{job.url}</p>
+              <p className="text-xs text-muted-foreground truncate mb-1">
+                {job.url}
+              </p>
 
               <div className="flex items-center gap-3 flex-wrap text-xs text-muted-foreground">
                 {job.next_run && (
                   <span>
                     Next:{" "}
                     <span className="text-foreground">
-                      {formatDistanceToNow(new Date(job.next_run), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(job.next_run), {
+                        addSuffix: true,
+                      })}
                     </span>
                   </span>
                 )}
                 {job.last_run && (
                   <span>
-                    Last:{" "}
-                    <LastStatus status={job.last_status} />
+                    Last: <LastStatus status={job.last_status} />
                     {" · "}
-                    {formatDistanceToNow(new Date(job.last_run), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(job.last_run), {
+                      addSuffix: true,
+                    })}
                   </span>
                 )}
                 {!job.last_run && <LastStatus status={null} />}
@@ -158,7 +195,11 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
               disabled={toggling}
               title={job.enabled ? "Disable job" : "Enable job"}
             >
-              {job.enabled ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />}
+              {job.enabled ? (
+                <Eye className="w-3.5 h-3.5" />
+              ) : (
+                <EyeOff className="w-3.5 h-3.5 text-muted-foreground" />
+              )}
             </Button>
             <Button
               variant="ghost"
@@ -225,8 +266,18 @@ export function PiCronJobCard({ resourceId, capId, job, onRefresh }: PiCronJobCa
             Delete &ldquo;{job.name}&rdquo;? This cannot be undone.
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>Cancel</Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
               {deleting ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

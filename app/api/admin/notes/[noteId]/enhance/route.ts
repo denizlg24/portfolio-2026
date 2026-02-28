@@ -1,9 +1,9 @@
-import { streamGenerate, createSSEStream } from "@/lib/llm";
+import type Anthropic from "@anthropic-ai/sdk";
+import { type NextRequest, NextResponse } from "next/server";
+import { createSSEStream, streamGenerate } from "@/lib/llm";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Note } from "@/models/Notes";
-import { NextRequest, NextResponse } from "next/server";
-import type Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 120;
 

@@ -15,7 +15,9 @@ export const ProjectCard = ({
   className?: string;
 }) => {
   return (
-    <article className={cn("w-full flex flex-col gap-4 max-w-3xs h-full", className)}>
+    <article
+      className={cn("w-full flex flex-col gap-4 max-w-3xs h-full", className)}
+    >
       <Link href={`/projects/${project._id}`}>
         <div className="w-full flex flex-col gap-2 group hover:cursor-pointer">
           <Image

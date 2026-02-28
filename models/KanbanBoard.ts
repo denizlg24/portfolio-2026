@@ -1,4 +1,4 @@
-import mongoose, {Document} from "mongoose";
+import mongoose, { type Document } from "mongoose";
 
 export interface IKanbanBoard extends Document {
   title: string;
@@ -26,7 +26,7 @@ const KanbanBoardSchema = new mongoose.Schema<IKanbanBoard>(
     color: { type: String },
     isArchived: { type: Boolean, default: false, index: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export const KanbanBoard: mongoose.Model<IKanbanBoard> =

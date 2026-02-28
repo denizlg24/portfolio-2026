@@ -1,11 +1,11 @@
 "use client";
 
-import useSWR from "swr";
 import { Inbox, Mail } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { cn } from "@/lib/utils";
+import useSWR from "swr";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface EmailAccount {
   _id: string;
@@ -29,7 +29,9 @@ export const InboxSidebar = () => {
     <div className="hidden lg:flex absolute left-0 h-full w-64 border-r bg-muted/30 flex-col">
       <nav className="flex flex-col gap-1 p-2 border-b">
         <Button
-          variant={pathname === "/admin/dashboard/inbox" ? "secondary" : "ghost"}
+          variant={
+            pathname === "/admin/dashboard/inbox" ? "secondary" : "ghost"
+          }
           size="sm"
           asChild
           className="justify-start gap-2"
@@ -59,7 +61,8 @@ export const InboxSidebar = () => {
         ) : (
           <div className="space-y-1">
             {accounts.map((account: EmailAccount) => {
-              const isActive = pathname === `/admin/dashboard/inbox/account/${account._id}`;
+              const isActive =
+                pathname === `/admin/dashboard/inbox/account/${account._id}`;
               return (
                 <Button
                   key={account._id}
@@ -68,7 +71,7 @@ export const InboxSidebar = () => {
                   asChild
                   className={cn(
                     "w-full justify-start gap-2 h-auto py-2 px-2",
-                    isActive && "bg-secondary"
+                    isActive && "bg-secondary",
                   )}
                 >
                   <Link href={`/admin/dashboard/inbox/account/${account._id}`}>

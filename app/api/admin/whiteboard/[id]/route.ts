@@ -1,14 +1,14 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { requireAdmin } from "@/lib/require-admin";
 import {
+  deleteWhiteboard,
   getWhiteboardById,
   updateWhiteboard,
-  deleteWhiteboard,
 } from "@/lib/whiteboard";
-import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -18,7 +18,7 @@ export async function GET(
   if (!whiteboard) {
     return NextResponse.json(
       { error: "Whiteboard not found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
@@ -27,7 +27,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -39,7 +39,7 @@ export async function PUT(
   if (!whiteboard) {
     return NextResponse.json(
       { error: "Failed to update whiteboard" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 
@@ -48,7 +48,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -58,7 +58,7 @@ export async function DELETE(
   if (!success) {
     return NextResponse.json(
       { error: "Failed to delete whiteboard" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 

@@ -35,7 +35,14 @@ interface JobFormDialogProps {
   onSuccess: () => void;
 }
 
-export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSuccess }: JobFormDialogProps) {
+export function JobFormDialog({
+  open,
+  onOpenChange,
+  resourceId,
+  capId,
+  job,
+  onSuccess,
+}: JobFormDialogProps) {
   const isEdit = !!job;
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState("");
@@ -55,13 +62,24 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
       setExpression(job.expression);
       setUrl(job.url);
       setMethod(job.method as HttpMethod);
-      setHeaders(Object.entries(job.headers ?? {}).map(([key, value]) => ({ key, value })));
+      setHeaders(
+        Object.entries(job.headers ?? {}).map(([key, value]) => ({
+          key,
+          value,
+        })),
+      );
       setBody(job.body ?? "");
       setTimeout_(job.timeout);
       setEnabled(job.enabled);
     } else if (open && !job) {
-      setName(""); setExpression(""); setUrl(""); setMethod("GET");
-      setHeaders([]); setBody(""); setTimeout_(30); setEnabled(true);
+      setName("");
+      setExpression("");
+      setUrl("");
+      setMethod("GET");
+      setHeaders([]);
+      setBody("");
+      setTimeout_(30);
+      setEnabled(true);
     }
   }, [open, job]);
 
@@ -71,13 +89,19 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
       return;
     }
 
-    const headersObj = headers.reduce<Record<string, string>>((acc, { key, value }) => {
-      if (key.trim()) acc[key.trim()] = value;
-      return acc;
-    }, {});
+    const headersObj = headers.reduce<Record<string, string>>(
+      (acc, { key, value }) => {
+        if (key.trim()) acc[key.trim()] = value;
+        return acc;
+      },
+      {},
+    );
 
     const payload = {
-      name, expression, url, method,
+      name,
+      expression,
+      url,
+      method,
       headers: headersObj,
       body: body || undefined,
       timeout,
@@ -87,7 +111,7 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
     setLoading(true);
     try {
       const res = await fetch(
-        isEdit ? `${apiBase}/jobs/${job!.id}` : `${apiBase}/jobs`,
+        isEdit ? `${apiBase}/jobs/${job?.id}` : `${apiBase}/jobs`,
         {
           method: isEdit ? "PUT" : "POST",
           headers: { "Content-Type": "application/json" },
@@ -104,35 +128,48 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save job");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to save job",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   const addHeader = () => setHeaders((h) => [...h, { key: "", value: "" }]);
-  const removeHeader = (i: number) => setHeaders((h) => h.filter((_, idx) => idx !== i));
+  const removeHeader = (i: number) =>
+    setHeaders((h) => h.filter((_, idx) => idx !== i));
   const updateHeader = (i: number, field: "key" | "value", val: string) =>
-    setHeaders((h) => h.map((e, idx) => idx === i ? { ...e, [field]: val } : e));
+    setHeaders((h) =>
+      h.map((e, idx) => (idx === i ? { ...e, [field]: val } : e)),
+    );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogTitle>{isEdit ? "Edit Job" : "New Cron Job"}</DialogTitle>
         <DialogDescription>
-          {isEdit ? "Update the job configuration." : "Schedule a new HTTP request."}
+          {isEdit
+            ? "Update the job configuration."
+            : "Schedule a new HTTP request."}
         </DialogDescription>
 
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label>Name</Label>
-            <Input placeholder="My backup job" value={name} onChange={(e) => setName(e.target.value)} />
+            <Input
+              placeholder="My backup job"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
           </div>
 
           <div className="space-y-1.5">
             <Label>
               Cron Expression
-              <span className="ml-2 text-xs text-muted-foreground font-normal">minute hour dom month dow</span>
+              <span className="ml-2 text-xs text-muted-foreground font-normal">
+                minute hour dom month dow
+              </span>
             </Label>
             <Input
               placeholder="0 2 * * *"
@@ -145,13 +182,20 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
           <div className="grid grid-cols-3 gap-2">
             <div className="space-y-1.5 col-span-1">
               <Label>Method</Label>
-              <Select value={method} onValueChange={(v) => setMethod(v as HttpMethod)}>
+              <Select
+                value={method}
+                onValueChange={(v) => setMethod(v as HttpMethod)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(["GET", "POST", "PUT", "DELETE", "PATCH"] as HttpMethod[]).map((m) => (
-                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  {(
+                    ["GET", "POST", "PUT", "DELETE", "PATCH"] as HttpMethod[]
+                  ).map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {m}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -180,8 +224,14 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label>Headers</Label>
-              <Button type="button" variant="outline" size="sm" onClick={addHeader}>
-                <Plus className="w-3 h-3 mr-1" />Add
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addHeader}
+              >
+                <Plus className="w-3 h-3 mr-1" />
+                Add
               </Button>
             </div>
             {headers.length === 0 && (
@@ -201,7 +251,12 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
                   onChange={(e) => updateHeader(i, "value", e.target.value)}
                   className="flex-1"
                 />
-                <Button type="button" variant="ghost" size="icon" onClick={() => removeHeader(i)}>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeHeader(i)}
+                >
                   <Trash2 className="w-4 h-4" />
                 </Button>
               </div>
@@ -234,14 +289,24 @@ export function JobFormDialog({ open, onOpenChange, resourceId, capId, job, onSu
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
-            {loading
-              ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />{isEdit ? "Saving..." : "Creating..."}</>
-              : isEdit ? "Save Changes" : "Create Job"
-            }
+            {loading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                {isEdit ? "Saving..." : "Creating..."}
+              </>
+            ) : isEdit ? (
+              "Save Changes"
+            ) : (
+              "Create Job"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

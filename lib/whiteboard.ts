@@ -1,11 +1,11 @@
+import { Types } from "mongoose";
 import {
+  type ILeanWhiteboard,
+  type ILeanWhiteboardMeta,
+  type IWhiteboardElement,
   Whiteboard,
-  ILeanWhiteboard,
-  ILeanWhiteboardMeta,
-  IWhiteboardElement,
 } from "@/models/Whiteboard";
 import { connectDB } from "./mongodb";
-import { Types } from "mongoose";
 
 function serializeWhiteboard(whiteboard: any): ILeanWhiteboard {
   return {
@@ -31,7 +31,9 @@ export async function getAllWhiteboards(): Promise<ILeanWhiteboardMeta[]> {
       .select("name order createdAt updatedAt")
       .sort({ order: 1 })
       .lean();
-    return whiteboards.filter((wb) => wb.name !== "Today").map(serializeWhiteboardMeta);
+    return whiteboards
+      .filter((wb) => wb.name !== "Today")
+      .map(serializeWhiteboardMeta);
   } catch {
     return [];
   }
@@ -62,11 +64,9 @@ export async function updateTodayBoard(data: {
 }): Promise<ILeanWhiteboard | null> {
   try {
     await connectDB();
-    const updated = await Whiteboard.findOneAndUpdate(
-      { name: "Today" },
-      data,
-      { new: true },
-    ).lean();
+    const updated = await Whiteboard.findOneAndUpdate({ name: "Today" }, data, {
+      new: true,
+    }).lean();
     if (!updated) return null;
     return serializeWhiteboard(updated);
   } catch (err) {
@@ -75,12 +75,16 @@ export async function updateTodayBoard(data: {
   }
 }
 
-export async function clearTodayBoard(manual=false): Promise<boolean> {
+export async function clearTodayBoard(manual = false): Promise<boolean> {
   try {
     await connectDB();
     await Whiteboard.findOneAndUpdate(
       { name: "Today", hasBeenCleared: false },
-      { elements: [], viewState: { x: 0, y: 0, zoom: 1 }, hasBeenCleared: manual },
+      {
+        elements: [],
+        viewState: { x: 0, y: 0, zoom: 1 },
+        hasBeenCleared: manual,
+      },
     );
     return true;
   } catch (err) {

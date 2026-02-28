@@ -1,7 +1,7 @@
-import type { ToolDefinition } from "./types";
 import { connectDB } from "@/lib/mongodb";
-import { Note } from "@/models/Notes";
 import { Folder } from "@/models/Folder";
+import { Note } from "@/models/Notes";
+import type { ToolDefinition } from "./types";
 
 export const notesTools: ToolDefinition[] = [
   {
@@ -83,17 +83,17 @@ export const notesTools: ToolDefinition[] = [
     category: "notes",
     execute: async () => {
       await connectDB();
-      const folders = await Folder.find()
-        .populate("notes", "title")
-        .lean();
+      const folders = await Folder.find().populate("notes", "title").lean();
       return folders.map((f) => ({
         _id: String(f._id),
         name: f.name,
         parentFolder: f.parentFolder ? String(f.parentFolder) : null,
-        notes: (f.notes as unknown as { _id: unknown; title: string }[]).map((n) => ({
-          _id: String(n._id),
-          title: n.title,
-        })),
+        notes: (f.notes as unknown as { _id: unknown; title: string }[]).map(
+          (n) => ({
+            _id: String(n._id),
+            title: n.title,
+          }),
+        ),
       }));
     },
   },
@@ -105,8 +105,14 @@ export const notesTools: ToolDefinition[] = [
         type: "object",
         properties: {
           title: { type: "string", description: "Note title" },
-          content: { type: "string", description: "Note content (markdown supported)" },
-          folderId: { type: "string", description: "Folder ID to add the note to (optional)" },
+          content: {
+            type: "string",
+            description: "Note content (markdown supported)",
+          },
+          folderId: {
+            type: "string",
+            description: "Folder ID to add the note to (optional)",
+          },
         },
         required: ["title", "content"],
       },

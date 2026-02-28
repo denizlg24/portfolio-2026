@@ -69,11 +69,14 @@ export function AddCapabilityDialog({
 
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/resources/${resourceId}/capabilities`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const res = await fetch(
+        `/api/admin/resources/${resourceId}/capabilities`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -84,7 +87,9 @@ export function AddCapabilityDialog({
       onOpenChange(false);
       onSuccess();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to add capability");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to add capability",
+      );
     } finally {
       setLoading(false);
     }
@@ -144,7 +149,11 @@ export function AddCapabilityDialog({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
             Cancel
           </Button>
           <Button onClick={handleSubmit} disabled={loading}>
@@ -153,7 +162,9 @@ export function AddCapabilityDialog({
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 Adding...
               </>
-            ) : "Add Capability"}
+            ) : (
+              "Add Capability"
+            )}
           </Button>
         </DialogFooter>
       </DialogContent>

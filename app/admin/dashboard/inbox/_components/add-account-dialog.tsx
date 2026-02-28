@@ -1,9 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Info, Loader2 } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -11,12 +15,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, Info } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 
 const emailAccountSchema = z.object({
   host: z.string().min(1, "Host is required"),
@@ -91,7 +91,9 @@ export function AddAccountDialog({
       onAccountAdded();
     } catch (err) {
       console.error("Error adding email account:", err);
-      setError(err instanceof Error ? err.message : "Failed to add email account");
+      setError(
+        err instanceof Error ? err.message : "Failed to add email account",
+      );
     } finally {
       setLoading(false);
     }
@@ -107,7 +109,7 @@ export function AddAccountDialog({
     }
   };
 
-  const handlePresetSelect = (preset: typeof IMAP_PRESETS[0]) => {
+  const handlePresetSelect = (preset: (typeof IMAP_PRESETS)[0]) => {
     setValue("host", preset.host);
     setValue("port", preset.port);
     setValue("secure", preset.secure);
@@ -119,16 +121,23 @@ export function AddAccountDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base sm:text-lg">Add Email Account</DialogTitle>
+          <DialogTitle className="text-base sm:text-lg">
+            Add Email Account
+          </DialogTitle>
           <DialogDescription className="text-xs sm:text-sm">
             Connect your email account using IMAP. Make sure IMAP access is
             enabled in your email provider settings.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-3 sm:space-y-4 mt-4">
+        <form
+          onSubmit={handleSubmit(onSubmit)}
+          className="space-y-3 sm:space-y-4 mt-4"
+        >
           <div>
-            <FieldLabel className="mb-2 text-xs sm:text-sm">Quick Setup</FieldLabel>
+            <FieldLabel className="mb-2 text-xs sm:text-sm">
+              Quick Setup
+            </FieldLabel>
             <div className="flex flex-wrap gap-1.5 sm:gap-2">
               {IMAP_PRESETS.map((preset) => (
                 <Badge
@@ -144,7 +153,9 @@ export function AddAccountDialog({
           </div>
 
           <Field data-invalid={!!errors.user}>
-            <FieldLabel htmlFor="user" className="text-xs sm:text-sm">Email Address</FieldLabel>
+            <FieldLabel htmlFor="user" className="text-xs sm:text-sm">
+              Email Address
+            </FieldLabel>
             <Input
               id="user"
               type="email"
@@ -152,11 +163,15 @@ export function AddAccountDialog({
               className="text-sm"
               {...register("user")}
             />
-            {errors.user && <FieldError className="text-xs">{errors.user.message}</FieldError>}
+            {errors.user && (
+              <FieldError className="text-xs">{errors.user.message}</FieldError>
+            )}
           </Field>
 
           <Field data-invalid={!!errors.password}>
-            <FieldLabel htmlFor="password" className="text-xs sm:text-sm">Password</FieldLabel>
+            <FieldLabel htmlFor="password" className="text-xs sm:text-sm">
+              Password
+            </FieldLabel>
             <Input
               id="password"
               type="password"
@@ -165,7 +180,9 @@ export function AddAccountDialog({
               {...register("password")}
             />
             {errors.password && (
-              <FieldError className="text-xs">{errors.password.message}</FieldError>
+              <FieldError className="text-xs">
+                {errors.password.message}
+              </FieldError>
             )}
             <div className="flex items-start gap-2 mt-2 p-2 rounded-md bg-muted text-[10px] sm:text-xs">
               <Info className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground shrink-0 mt-0.5" />
@@ -181,7 +198,9 @@ export function AddAccountDialog({
           </Field>
 
           <Field data-invalid={!!errors.host}>
-            <FieldLabel htmlFor="host" className="text-xs sm:text-sm">IMAP Host</FieldLabel>
+            <FieldLabel htmlFor="host" className="text-xs sm:text-sm">
+              IMAP Host
+            </FieldLabel>
             <Input
               id="host"
               type="text"
@@ -189,26 +208,43 @@ export function AddAccountDialog({
               className="text-sm"
               {...register("host")}
             />
-            {errors.host && <FieldError className="text-xs">{errors.host.message}</FieldError>}
+            {errors.host && (
+              <FieldError className="text-xs">{errors.host.message}</FieldError>
+            )}
           </Field>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             <Field data-invalid={!!errors.port}>
-              <FieldLabel htmlFor="port" className="text-xs sm:text-sm">Port</FieldLabel>
+              <FieldLabel htmlFor="port" className="text-xs sm:text-sm">
+                Port
+              </FieldLabel>
               <Input
                 id="port"
                 type="number"
                 className="text-sm"
                 {...register("port", { valueAsNumber: true })}
               />
-              {errors.port && <FieldError className="text-xs">{errors.port.message}</FieldError>}
+              {errors.port && (
+                <FieldError className="text-xs">
+                  {errors.port.message}
+                </FieldError>
+              )}
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="inboxName" className="text-xs sm:text-sm">Inbox Name</FieldLabel>
-              <Input id="inboxName" type="text" className="text-sm" {...register("inboxName")} />
+              <FieldLabel htmlFor="inboxName" className="text-xs sm:text-sm">
+                Inbox Name
+              </FieldLabel>
+              <Input
+                id="inboxName"
+                type="text"
+                className="text-sm"
+                {...register("inboxName")}
+              />
               {errors.inboxName && (
-                <FieldError className="text-xs">{errors.inboxName.message}</FieldError>
+                <FieldError className="text-xs">
+                  {errors.inboxName.message}
+                </FieldError>
               )}
             </Field>
           </div>
@@ -222,7 +258,10 @@ export function AddAccountDialog({
                   setValue("secure", checked === true)
                 }
               />
-              <FieldLabel htmlFor="secure" className="cursor-pointer text-xs sm:text-sm">
+              <FieldLabel
+                htmlFor="secure"
+                className="cursor-pointer text-xs sm:text-sm"
+              >
                 Use SSL/TLS (Recommended)
               </FieldLabel>
             </div>
@@ -235,7 +274,11 @@ export function AddAccountDialog({
           )}
 
           <div className="flex gap-2 pt-3 sm:pt-4">
-            <Button type="submit" disabled={loading} className="flex-1 text-xs sm:text-sm">
+            <Button
+              type="submit"
+              disabled={loading}
+              className="flex-1 text-xs sm:text-sm"
+            >
               {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
               {loading ? "Testing..." : "Add Account"}
             </Button>

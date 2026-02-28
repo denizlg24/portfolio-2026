@@ -1,16 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getAdminSession } from "@/lib/require-admin";
-import { connectDB } from "@/lib/mongodb";
-import { EmailAccountModel } from "@/models/EmailAccount";
-import { EmailModel } from "@/models/Email";
-import { createImapClient } from "@/lib/email";
-import { decryptPassword } from "@/lib/safe-email-password";
-
 import { simpleParser } from "mailparser";
+import { type NextRequest, NextResponse } from "next/server";
+import { createImapClient } from "@/lib/email";
+import { connectDB } from "@/lib/mongodb";
+import { getAdminSession } from "@/lib/require-admin";
+import { decryptPassword } from "@/lib/safe-email-password";
+import { EmailModel } from "@/models/Email";
+import { EmailAccountModel } from "@/models/EmailAccount";
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string; emailId: string }> }
+  { params }: { params: Promise<{ id: string; emailId: string }> },
 ) {
   try {
     const session = await getAdminSession(request);
@@ -34,7 +33,7 @@ export async function GET(
     const password = decryptPassword(
       account.imapPassword.ciphertext,
       account.imapPassword.iv,
-      account.imapPassword.authTag
+      account.imapPassword.authTag,
     );
 
     const client = await createImapClient({
@@ -45,7 +44,7 @@ export async function GET(
       pass: password,
     });
 
-    let lock = await client.getMailboxLock(account.inboxName || "INBOX");
+    const lock = await client.getMailboxLock(account.inboxName || "INBOX");
 
     try {
       const msg = await client.fetchOne(
@@ -54,13 +53,13 @@ export async function GET(
           source: true,
           uid: true,
         },
-        { uid: true }
+        { uid: true },
       );
 
       if (!msg) {
         return NextResponse.json(
           { error: "Email not found on server" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -71,7 +70,7 @@ export async function GET(
       if (!msg.source) {
         return NextResponse.json(
           { error: "Email doesn't contain source" },
-          { status: 404 }
+          { status: 404 },
         );
       }
       const parsed = await simpleParser(msg.source);
@@ -88,7 +87,7 @@ export async function GET(
       if (!fullEmail) {
         return NextResponse.json(
           { error: "Email not found in mailbox" },
-          { status: 404 }
+          { status: 404 },
         );
       }
 
@@ -106,7 +105,7 @@ export async function GET(
     console.error("Error fetching email:", error);
     return NextResponse.json(
       { error: "Internal Server Error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -1,10 +1,10 @@
 import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
+import { createImapClient } from "@/lib/email";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
-import { EmailAccountModel } from "@/models/EmailAccount";
 import { encryptPassword } from "@/lib/safe-email-password";
-import { createImapClient } from "@/lib/email";
+import { EmailAccountModel } from "@/models/EmailAccount";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -24,13 +24,13 @@ export async function GET(request: NextRequest) {
           _id: account._id.toString(),
         })),
       },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error fetching email accounts:", error);
     return NextResponse.json(
       { error: "Failed to fetch email accounts" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
     if (!host || !port || !user || !password) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -59,16 +59,16 @@ export async function POST(request: NextRequest) {
         pass: password,
       });
 
-
       await client.mailboxOpen(inboxName || "INBOX");
       await client.logout();
     } catch (connectionError) {
       console.error("IMAP connection test failed:", connectionError);
       return NextResponse.json(
         {
-          error: "Failed to connect to email server. Please check your credentials.",
+          error:
+            "Failed to connect to email server. Please check your credentials.",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
     if (existingAccount) {
       return NextResponse.json(
         { error: "An account with this email and host already exists" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -108,13 +108,13 @@ export async function POST(request: NextRequest) {
           inboxName: account.inboxName,
         },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Error creating email account:", error);
     return NextResponse.json(
       { error: "Failed to create email account" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

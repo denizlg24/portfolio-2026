@@ -1,9 +1,9 @@
 "use client";
 import { Github, Instagram, Linkedin, Mail } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import CurrentYear from "./current-year";
-import { usePathname } from "next/navigation";
 
 export const Footer = () => {
   const pathname = usePathname();

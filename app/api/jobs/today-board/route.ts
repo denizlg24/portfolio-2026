@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { clearTodayBoard } from "@/lib/whiteboard";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { clearTodayBoard } from "@/lib/whiteboard";
 import { Whiteboard } from "@/models/Whiteboard";
 
 export async function GET(request: NextRequest) {
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
     }
     const result = await clearTodayBoard();
     return NextResponse.json({ result });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 },

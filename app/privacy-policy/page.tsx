@@ -5,7 +5,8 @@ import { StyledLink } from "@/components/styled-link";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Learn how we handle your information on this portfolio website.",
+  description:
+    "Learn how we handle your information on this portfolio website.",
   openGraph: {
     title: "Privacy Policy | Deniz Lopes Güneş",
     description:

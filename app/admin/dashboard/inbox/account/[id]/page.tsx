@@ -1,7 +1,7 @@
-import { forbidden, notFound } from "next/navigation";
+import { forbidden } from "next/navigation";
 import { getAdminSession } from "@/lib/require-admin";
-import { InboxSidebar } from "../../_components/inbox-sidebar";
 import { InboxMobileDropdown } from "../../_components/inbox-mobile-dropdown";
+import { InboxSidebar } from "../../_components/inbox-sidebar";
 import { EmailList } from "./_components/email-list";
 
 export default async function AccountInboxPage({

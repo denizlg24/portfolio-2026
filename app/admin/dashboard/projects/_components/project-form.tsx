@@ -86,7 +86,8 @@ export function ProjectForm({ project, mode }: ProjectFormProps) {
       markdown: project?.markdown || "",
       links: project?.links || [],
       isActive: project?.isActive !== undefined ? project.isActive : true,
-      isFeatured: project?.isFeatured !== undefined ? project.isFeatured : false,
+      isFeatured:
+        project?.isFeatured !== undefined ? project.isFeatured : false,
     },
   });
 

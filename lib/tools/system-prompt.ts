@@ -25,11 +25,12 @@ Available data domains:
 - Kanban boards (view boards/columns/cards, create/update cards)
 - Notes (search, read, create, update notes and list folders)
 - Timetable (view, create, update, delete schedule entries)
-- Contacts (view contact submissions, update status)
+- Contacts (view contact submissions, update status, reply to contacts)
 - Blog posts (search, list, read posts — read-only)
 - Projects (list, view projects — read-only)
 - Timeline (view career/education timeline — read-only)
-- Email (list, read emails — read-only)
+- Email (list, read emails, delete emails, list email accounts)
+- Now Page (view current 'Now Page' content, update content)
 
 Guidelines:
 - Be concise. Use markdown formatting when helpful.

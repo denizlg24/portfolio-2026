@@ -1,7 +1,7 @@
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { formatDistanceToNow } from "date-fns";
 import { GitCommit, GitMerge, GitPullRequest } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 async function fetchGitHub(query: string, variables: Record<string, unknown>) {
   const result = await fetch("https://api.github.com/graphql", {
@@ -81,8 +81,7 @@ export async function GitHubRecentCommits() {
 
   commits.sort(
     (a, b) =>
-      new Date(b.committedDate).getTime() -
-      new Date(a.committedDate).getTime(),
+      new Date(b.committedDate).getTime() - new Date(a.committedDate).getTime(),
   );
   const top = commits.slice(0, 10);
 
@@ -153,12 +152,14 @@ const PR_STATUS: Record<
 > = {
   OPEN: {
     label: "Open",
-    className: "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400",
+    className:
+      "border-green-500/30 bg-green-500/10 text-green-600 dark:text-green-400",
     icon: GitPullRequest,
   },
   MERGED: {
     label: "Merged",
-    className: "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    className:
+      "border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400",
     icon: GitMerge,
   },
   CLOSED: {

@@ -7,7 +7,6 @@ export const metadata: Metadata = {
   description: "View and manage contact form submissions",
 };
 
-
 export default async function ContactsPage() {
   const [contacts, stats] = await Promise.all([
     getAllContacts({ limit: 100 }),

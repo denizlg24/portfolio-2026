@@ -1,8 +1,8 @@
+import mongoose from "mongoose";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Folder } from "@/models/Folder";
-import mongoose from "mongoose";
-import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (request: NextRequest) => {
   try {

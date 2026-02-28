@@ -50,7 +50,9 @@ export function CapabilitySection({
       setDeleteOpen(false);
       onRefresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to delete capability");
+      toast.error(
+        error instanceof Error ? error.message : "Failed to delete capability",
+      );
     } finally {
       setDeleting(false);
     }
@@ -65,7 +67,9 @@ export function CapabilitySection({
           </Badge>
           <span className="text-sm font-medium">{capability.label}</span>
           {!capability.isActive && (
-            <Badge variant="secondary" className="text-xs">Inactive</Badge>
+            <Badge variant="secondary" className="text-xs">
+              Inactive
+            </Badge>
           )}
         </div>
         <Button
@@ -92,13 +96,22 @@ export function CapabilitySection({
         <DialogContent>
           <DialogTitle>Remove Capability</DialogTitle>
           <DialogDescription>
-            Remove &ldquo;{capability.label}&rdquo; from this resource? This cannot be undone.
+            Remove &ldquo;{capability.label}&rdquo; from this resource? This
+            cannot be undone.
           </DialogDescription>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteOpen(false)} disabled={deleting}>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteOpen(false)}
+              disabled={deleting}
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={deleting}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={deleting}
+            >
               {deleting ? "Removing..." : "Remove"}
             </Button>
           </DialogFooter>

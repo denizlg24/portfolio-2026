@@ -1,8 +1,9 @@
 "use client";
 
-import useSWR from "swr";
-import { Mail, ChevronDown, Inbox, Settings } from "lucide-react";
+import { ChevronDown, Inbox, Mail } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
+import useSWR from "swr";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 
 interface EmailAccount {
   _id: string;
@@ -36,7 +36,7 @@ export const InboxMobileDropdown = () => {
     if (pathname === "/admin/dashboard/inbox") {
       return "All Accounts";
     }
-    
+
     const accountMatch = pathname.match(/\/account\/([^/]+)/);
     if (accountMatch) {
       const accountId = accountMatch[1];
@@ -45,13 +45,17 @@ export const InboxMobileDropdown = () => {
         return account.user;
       }
     }
-    
+
     return "Select Inbox";
   };
 
   if (isLoading) {
     return (
-      <Button variant="outline" className="w-full max-w-62.5 justify-between text-sm sm:text-base animate-pulse" disabled>
+      <Button
+        variant="outline"
+        className="w-full max-w-62.5 justify-between text-sm sm:text-base animate-pulse"
+        disabled
+      >
         <span className="text-muted-foreground">Loading...</span>
         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
       </Button>
@@ -61,13 +65,18 @@ export const InboxMobileDropdown = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-full max-w-62.5 justify-between text-sm sm:text-base">
+        <Button
+          variant="outline"
+          className="w-full max-w-62.5 justify-between text-sm sm:text-base"
+        >
           <span className="truncate">{getCurrentLabel()}</span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-62.5">
-        <DropdownMenuLabel className="text-xs sm:text-sm">Navigation</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs sm:text-sm">
+          Navigation
+        </DropdownMenuLabel>
         <DropdownMenuItem
           onClick={() => router.push("/admin/dashboard/inbox")}
           className="cursor-pointer text-sm"
@@ -79,11 +88,15 @@ export const InboxMobileDropdown = () => {
         {accounts.length > 0 && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuLabel className="text-xs sm:text-sm">Accounts</DropdownMenuLabel>
+            <DropdownMenuLabel className="text-xs sm:text-sm">
+              Accounts
+            </DropdownMenuLabel>
             {accounts.map((account: EmailAccount) => (
               <DropdownMenuItem
                 key={account._id}
-                onClick={() => router.push(`/admin/dashboard/inbox/account/${account._id}`)}
+                onClick={() =>
+                  router.push(`/admin/dashboard/inbox/account/${account._id}`)
+                }
                 className="cursor-pointer"
               >
                 <Mail className="mr-2 h-4 w-4 shrink-0" />

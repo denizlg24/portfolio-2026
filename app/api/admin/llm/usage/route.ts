@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/require-admin";
+import { startOfDay, subDays } from "date-fns";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { requireAdmin } from "@/lib/require-admin";
 import { LlmUsage } from "@/models/LlmUsage";
-import { subDays, startOfDay } from "date-fns";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);

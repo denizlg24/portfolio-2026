@@ -13,7 +13,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { getActiveProjects, getProjectById } from "@/lib/projects";
 import { iconMap } from "@/lib/utils";

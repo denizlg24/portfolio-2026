@@ -1,12 +1,12 @@
 "use client";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { Suspense } from "react";
-import { TodaysDate } from "./_components/todays-date";
-import { Calendar } from "./_components/calendar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AddEventDialog } from "./_components/add-event-dialog";
-import { TodaysEvents } from "./_components/todays-events";
+import { Calendar } from "./_components/calendar";
 import { CalendarProvider, useCalendar } from "./_components/calendar-context";
+import { TodaysDate } from "./_components/todays-date";
+import { TodaysEvents } from "./_components/todays-events";
 
 function AddEventDialogWithContext() {
   const { refreshEvents } = useCalendar();
@@ -20,7 +20,9 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">Calendar Events</h1>
-            <p className="text-sm sm:text-base text-muted-foreground">View and manage calendar events</p>
+            <p className="text-sm sm:text-base text-muted-foreground">
+              View and manage calendar events
+            </p>
           </div>
         </div>
 

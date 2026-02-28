@@ -1,6 +1,6 @@
+import { type NextRequest, NextResponse } from "next/server";
+import { createConversation, getAllConversations } from "@/lib/conversations";
 import { requireAdmin } from "@/lib/require-admin";
-import { NextRequest, NextResponse } from "next/server";
-import { getAllConversations, createConversation } from "@/lib/conversations";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const conversations = await getAllConversations();
     return NextResponse.json({ conversations }, { status: 200 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to fetch conversations" },
       { status: 500 },
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 
     const conversation = await createConversation({ title, llmModel });
     return NextResponse.json({ conversation }, { status: 201 });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to create conversation" },
       { status: 500 },

@@ -22,7 +22,9 @@ export default async function NewBlogPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Create Blog Post</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">
+            Create Blog Post
+          </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Add a new blog post to your website.
           </p>

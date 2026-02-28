@@ -9,11 +9,11 @@ import {
   Trash2,
 } from "lucide-react";
 import Link from "next/link";
+import { ShareButton } from "@/app/blog/[slug]/components/share-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import type { ILeanBlog } from "@/models/Blog";
-import { ShareButton } from "@/app/blog/[slug]/components/share-button";
 
 interface BlogListProps {
   blogs: ILeanBlog[];

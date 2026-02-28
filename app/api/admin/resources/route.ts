@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { connectDB } from "@/lib/mongodb";
+import { type NextRequest, NextResponse } from "next/server";
 import { getUptimeData } from "@/lib/health-check";
+import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Resource } from "@/models/Resource";
 
@@ -13,7 +13,10 @@ export async function GET(request: NextRequest) {
 
   const resourceIds = resources.map((r) => r._id.toString());
   const thresholds = new Map(
-    resources.map((r) => [r._id.toString(), r.healthCheck?.responseTimeThresholdMs ?? 1000]),
+    resources.map((r) => [
+      r._id.toString(),
+      r.healthCheck?.responseTimeThresholdMs ?? 1000,
+    ]),
   );
   const uptimeMap = await getUptimeData(resourceIds, thresholds);
 

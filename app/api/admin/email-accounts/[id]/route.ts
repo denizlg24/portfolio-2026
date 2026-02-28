@@ -2,12 +2,12 @@ import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
-import { EmailAccountModel } from "@/models/EmailAccount";
 import { EmailModel } from "@/models/Email";
+import { EmailAccountModel } from "@/models/EmailAccount";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -23,7 +23,7 @@ export async function DELETE(
     if (!account) {
       return NextResponse.json(
         { error: "Email account not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -31,13 +31,13 @@ export async function DELETE(
 
     return NextResponse.json(
       { message: "Email account deleted successfully" },
-      { status: 200 }
+      { status: 200 },
     );
   } catch (error) {
     console.error("Error deleting email account:", error);
     return NextResponse.json(
       { error: "Failed to delete email account" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

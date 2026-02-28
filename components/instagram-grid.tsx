@@ -37,7 +37,7 @@ function BentoItem({
         isVisible
           ? "opacity-100 translate-y-0 scale-100"
           : "opacity-0 translate-y-4 scale-95",
-        className
+        className,
       )}
     >
       <Image
@@ -60,24 +60,25 @@ export function InstagramGrid({ posts }: { posts: InstagramPost[] }) {
     return null;
   }
 
-  
   const gridClasses = [
-    "col-span-2 row-span-2", 
-    "col-span-1 row-span-1", 
-    "col-span-1 row-span-1", 
-    "col-span-1 row-span-2", 
-    "col-span-1 row-span-1", 
-    "col-span-2 row-span-1", 
-    "col-span-1 row-span-1", 
-    "col-span-1 row-span-1", 
+    "col-span-2 row-span-2",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-2",
+    "col-span-1 row-span-1",
+    "col-span-2 row-span-1",
+    "col-span-1 row-span-1",
+    "col-span-1 row-span-1",
   ];
 
-  return posts.slice(0, 8).map((post, index) => (
-    <BentoItem
-      key={post.id}
-      post={post}
-      index={index}
-      className={gridClasses[index]}
-    />
-  ));
+  return posts
+    .slice(0, 8)
+    .map((post, index) => (
+      <BentoItem
+        key={post.id}
+        post={post}
+        index={index}
+        className={gridClasses[index]}
+      />
+    ));
 }

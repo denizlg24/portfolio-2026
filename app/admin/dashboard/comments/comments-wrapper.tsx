@@ -33,7 +33,7 @@ export function CommentsWrapper({
 
   const handleApprovalChange = (
     wasApproved: boolean,
-    isNowApproved: boolean
+    isNowApproved: boolean,
   ) => {
     if (wasApproved === isNowApproved) return;
 
@@ -69,7 +69,9 @@ export function CommentsWrapper({
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
           <MessageSquare className="w-4 h-4 text-muted-foreground" />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-semibold">{stats.total}</span>
+            <span className="text-sm sm:text-base font-semibold">
+              {stats.total}
+            </span>
             <span className="text-xs text-muted-foreground">Total</span>
           </div>
         </div>
@@ -77,7 +79,9 @@ export function CommentsWrapper({
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
           <Clock className="w-4 h-4 text-muted-foreground" />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-semibold">{stats.pending}</span>
+            <span className="text-sm sm:text-base font-semibold">
+              {stats.pending}
+            </span>
             <span className="text-xs text-muted-foreground">Pending</span>
           </div>
         </div>
@@ -85,7 +89,9 @@ export function CommentsWrapper({
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
           <Check className="w-4 h-4 text-muted-foreground" />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-semibold">{stats.approved}</span>
+            <span className="text-sm sm:text-base font-semibold">
+              {stats.approved}
+            </span>
             <span className="text-xs text-muted-foreground">Approved</span>
           </div>
         </div>
@@ -93,7 +99,9 @@ export function CommentsWrapper({
         <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-muted/50">
           <Trash2 className="w-4 h-4 text-muted-foreground" />
           <div className="flex items-baseline gap-1.5">
-            <span className="text-sm sm:text-base font-semibold">{stats.deleted}</span>
+            <span className="text-sm sm:text-base font-semibold">
+              {stats.deleted}
+            </span>
             <span className="text-xs text-muted-foreground">Deleted</span>
           </div>
         </div>

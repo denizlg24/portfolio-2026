@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     console.error("Error fetching timeline items:", error);
     return NextResponse.json(
       { error: "Failed to fetch timeline items", details: error.message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
     if (!body.title || !body.subtitle || !body.dateFrom || !body.category) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
       const itemsInCategory = await getAllTimelineItems(body.category);
       if (itemsInCategory.length > 0) {
         const maxOrder = Math.max(
-          ...itemsInCategory.map((item) => item.order || 0)
+          ...itemsInCategory.map((item) => item.order || 0),
         );
         order = maxOrder + 1;
       }
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
         error: "Failed to create timeline item",
         details: (error as any).message,
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

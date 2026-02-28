@@ -3,7 +3,9 @@
 import { Badge } from "@/components/ui/badge";
 import type { LeanResource } from "./resources-manager";
 
-function getResourceStatus(resource: LeanResource): "up" | "degraded" | "down" | "unknown" {
+function getResourceStatus(
+  resource: LeanResource,
+): "up" | "degraded" | "down" | "unknown" {
   const hc = resource.healthCheck;
   if (!hc.enabled || hc.isHealthy === null) return "unknown";
   if (!hc.isHealthy) return "down";

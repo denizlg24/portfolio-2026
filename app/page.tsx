@@ -22,7 +22,6 @@ import TimelineTabsContent from "@/components/timeline-tabs-content";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import Link from "next/link";
 
 export const metadata: Metadata = {
   title: {
@@ -95,11 +94,12 @@ export default function Home() {
           </p>
           <p className="sm:text-base text-sm">
             Today, I&apos;m completing my degree in Computing and Informatics
-            Engineering at FEUP while building real-world products. I specialize in fullstack development, creating web applications, but also have developed custom
-            software solutions, and modern digital experiences for clients. I enjoy
-            designing systems end-to-end, experimenting with new technologies,
-            and building products that feel simple, reliable, and are safe to
-            use.
+            Engineering at FEUP while building real-world products. I specialize
+            in fullstack development, creating web applications, but also have
+            developed custom software solutions, and modern digital experiences
+            for clients. I enjoy designing systems end-to-end, experimenting
+            with new technologies, and building products that feel simple,
+            reliable, and are safe to use.
           </p>
         </article>
         <div className="col-span-2 w-full flex flex-col items-center gap-2">
@@ -227,7 +227,10 @@ export default function Home() {
         <div className="grid grid-cols-4 xs:gap-3 gap-1 auto-rows-[120px] sm:auto-rows-[140px]">
           <Suspense
             fallback={Array.from({ length: 7 }).map((_, i) => (
-              <Skeleton key={i} className="sm:rounded-xl xs:rounded-lg rounded" />
+              <Skeleton
+                key={i}
+                className="sm:rounded-xl xs:rounded-lg rounded"
+              />
             ))}
           >
             <InstagramGridServer count={7} />

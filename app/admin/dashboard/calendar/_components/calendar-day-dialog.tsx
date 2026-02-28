@@ -1,4 +1,25 @@
 "use client";
+import { format } from "date-fns";
+import { isSameDay } from "date-fns/isSameDay";
+import {
+  Bell,
+  BellRing,
+  Calendar,
+  CalendarIcon,
+  Clock,
+  ExternalLink,
+  Link as LinkIcon,
+  Loader2,
+  MapPin,
+  Plus,
+  X,
+} from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -7,14 +28,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { TimePicker } from "@/components/ui/time-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -22,31 +42,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { isSameDay } from "date-fns/isSameDay";
-import { format } from "date-fns";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-import {
-  ExternalLink,
-  Plus,
-  X,
-  Calendar,
-  Link as LinkIcon,
-  Clock,
-  Loader2,
-  CalendarIcon,
-  Bell,
-  BellRing,
-  MapPin,
-} from "lucide-react";
-import { ILeanCalendarEvent } from "@/models/CalendarEvent";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { TimePicker } from "@/components/ui/time-picker";
 import { fetchFavicon } from "@/lib/fetch-favicon";
+import { cn } from "@/lib/utils";
+import type { ILeanCalendarEvent } from "@/models/CalendarEvent";
 
 function formatNotificationTime(minutes: number): string {
   if (minutes < 60) {
@@ -60,9 +60,9 @@ function formatNotificationTime(minutes: number): string {
   return days === 1 ? "1 day" : `${days} days`;
 }
 
-type NotificationOption = { 
+type NotificationOption = {
   value: string;
-  label: string; 
+  label: string;
   description?: string;
 };
 
@@ -72,50 +72,54 @@ function getSmartNotificationOptions(eventTime: string): NotificationOption[] {
 
   const optionsMap = new Map<number, NotificationOption>();
 
-  const safeAdd = (minutesBefore: number, label: string, type: 'standard' | 'smart' | 'longterm') => {
+  const safeAdd = (
+    minutesBefore: number,
+    label: string,
+    type: "standard" | "smart" | "longterm",
+  ) => {
     if (minutesBefore < 0) return;
 
     const existing = optionsMap.get(minutesBefore);
-    
+
     if (!existing) {
       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
       return;
     }
 
-    if (type === 'longterm') {
-       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
-    } 
-    else if (type === 'standard' && minutesBefore <= 180) {
-       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
-    }
-    else if (type === 'smart' && minutesBefore > 180) {
-       optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    if (type === "longterm") {
+      optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    } else if (type === "standard" && minutesBefore <= 180) {
+      optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
+    } else if (type === "smart" && minutesBefore > 180) {
+      optionsMap.set(minutesBefore, { value: minutesBefore.toString(), label });
     }
   };
 
-  const standardOffsets = [0, 10, 30, 60, 120]; 
-  standardOffsets.forEach(min => {
-    const label = min === 0 ? "At time of event" 
-      : min < 60 ? `${min} minutes before` 
-      : `${min / 60} hour${min === 60 ? '' : 's'} before`;
-    safeAdd(min, label, 'standard');
+  const standardOffsets = [0, 10, 30, 60, 120];
+  standardOffsets.forEach((min) => {
+    const label =
+      min === 0
+        ? "At time of event"
+        : min < 60
+          ? `${min} minutes before`
+          : `${min / 60} hour${min === 60 ? "" : "s"} before`;
+    safeAdd(min, label, "standard");
   });
 
-
   const dayInMins = 24 * 60;
-  
+
   const anchors = [
     { time: 9 * 60, label: "Start of day (9 AM)" },
     { time: 13 * 60, label: "At lunch (1 PM)" },
     { time: 17 * 60, label: "End of workday (5 PM)" },
-    
+
     { time: 20 * 60, label: "Night before (8 PM)", prevDay: true },
     { time: 17 * 60, label: "Previous afternoon (5 PM)", prevDay: true },
   ];
 
-  anchors.forEach(anchor => {
+  anchors.forEach((anchor) => {
     let offset: number;
-    
+
     if (anchor.prevDay) {
       offset = eventMinutes + (dayInMins - anchor.time);
     } else {
@@ -123,21 +127,21 @@ function getSmartNotificationOptions(eventTime: string): NotificationOption[] {
     }
 
     if (offset >= 90) {
-      safeAdd(offset, anchor.label, 'smart');
+      safeAdd(offset, anchor.label, "smart");
     }
   });
-
 
   const longTerm = [
     { val: 1440, label: "1 day before" },
     { val: 2880, label: "2 days before" },
-    { val: 10080, label: "1 week before" }
+    { val: 10080, label: "1 week before" },
   ];
 
-  longTerm.forEach(opt => safeAdd(opt.val, opt.label, 'longterm'));
+  longTerm.forEach((opt) => safeAdd(opt.val, opt.label, "longterm"));
 
-  return Array.from(optionsMap.values())
-    .sort((a, b) => Number(a.value) - Number(b.value));
+  return Array.from(optionsMap.values()).sort(
+    (a, b) => Number(a.value) - Number(b.value),
+  );
 }
 interface EventLink {
   _id?: string;
@@ -156,20 +160,23 @@ interface EventFormData {
   notifyBeforeMinutes: number;
 }
 
-export const CalendarDayDialog = ({ 
+export const CalendarDayDialog = ({
   date,
   events: initialEvents,
   onEventChange,
-}: { 
+}: {
   date: Date;
   events?: ILeanCalendarEvent[];
   onEventChange?: () => void;
 }) => {
-  const [events, setEvents] = useState<ILeanCalendarEvent[]>(initialEvents || []);
+  const [events, setEvents] = useState<ILeanCalendarEvent[]>(
+    initialEvents || [],
+  );
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [editingEvent, setEditingEvent] = useState<string | null>(null);
-  const [editingEventData, setEditingEventData] = useState<ILeanCalendarEvent | null>(null);
+  const [editingEventData, setEditingEventData] =
+    useState<ILeanCalendarEvent | null>(null);
   const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"view" | "add">("view");
 
@@ -201,18 +208,11 @@ export const CalendarDayDialog = ({
     icon: undefined,
   });
 
-  useEffect(() => {
-    if (open) {
-      fetchEvents();
-      setActiveTab("view"); 
-    }
-  }, [open, date]);
-
-  const fetchEvents = async () => {
+  const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `/api/admin/calendar?date=${date.toISOString()}`
+        `/api/admin/calendar?date=${date.toISOString()}`,
       );
       if (response.ok) {
         const data = await response.json();
@@ -224,7 +224,14 @@ export const CalendarDayDialog = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [date]);
+
+  useEffect(() => {
+    if (open) {
+      fetchEvents();
+      setActiveTab("view");
+    }
+  }, [open, fetchEvents]);
 
   const handleAddLink = async () => {
     if (!newLink.label || !newLink.url) {
@@ -233,7 +240,6 @@ export const CalendarDayDialog = ({
     }
 
     try {
-      
       const icon = await fetchFavicon(newLink.url);
       const linkToAdd = { ...newLink, icon };
 
@@ -245,7 +251,7 @@ export const CalendarDayDialog = ({
       setNewLink({ label: "", url: "", icon: undefined });
     } catch (error) {
       console.error("Error adding link:", error);
-      
+
       setFormData({
         ...formData,
         links: [...formData.links, { ...newLink }],
@@ -270,13 +276,11 @@ export const CalendarDayDialog = ({
 
     setSubmitting(true);
     try {
-      
       const [hours, minutes] = formData.time.split(":").map(Number);
       const eventDate = new Date(formData.date);
       eventDate.setHours(hours, minutes, 0, 0);
 
       if (editingEvent) {
-        
         const response = await fetch(`/api/admin/calendar/${editingEvent}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
@@ -293,7 +297,6 @@ export const CalendarDayDialog = ({
         if (!response.ok) throw new Error("Failed to update event");
         toast.success("Event updated successfully");
       } else {
-        
         const response = await fetch("/api/admin/calendar", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -312,7 +315,6 @@ export const CalendarDayDialog = ({
         toast.success("Event created successfully");
       }
 
-      
       setFormData({
         title: "",
         place: "",
@@ -324,9 +326,9 @@ export const CalendarDayDialog = ({
       });
       setEditingEvent(null);
       setEditingEventData(null);
-      setActiveTab("view"); 
+      setActiveTab("view");
       await fetchEvents();
-      onEventChange?.(); 
+      onEventChange?.();
     } catch (error) {
       console.error("Error saving event:", error);
       toast.error("Failed to save event");
@@ -348,7 +350,7 @@ export const CalendarDayDialog = ({
     });
     setEditingEvent(event._id);
     setEditingEventData(event);
-    setActiveTab("add"); 
+    setActiveTab("add");
   };
 
   const handleCancelEvent = async (eventId: string) => {
@@ -362,7 +364,7 @@ export const CalendarDayDialog = ({
       if (!response.ok) throw new Error("Failed to cancel event");
       toast.success("Event canceled");
       await fetchEvents();
-      onEventChange?.(); 
+      onEventChange?.();
     } catch (error) {
       console.error("Error canceling event:", error);
       toast.error("Failed to cancel event");
@@ -372,7 +374,7 @@ export const CalendarDayDialog = ({
   const handleUpdateEventTime = async (
     eventId: string,
     newDate: string,
-    newTime: string
+    newTime: string,
   ) => {
     try {
       const eventDate = new Date(`${newDate}T${newTime}`);
@@ -385,7 +387,7 @@ export const CalendarDayDialog = ({
       if (!response.ok) throw new Error("Failed to update event time");
       toast.success("Event time updated");
       await fetchEvents();
-      onEventChange?.(); 
+      onEventChange?.();
     } catch (error) {
       console.error("Error updating event time:", error);
       toast.error("Failed to update event time");
@@ -400,13 +402,13 @@ export const CalendarDayDialog = ({
             "border bg-background p-1.5 w-full col-span-1 aspect-square h-auto relative hover:bg-surface/50 transition-colors shadow-sm cursor-pointer",
             isSameDay(date, new Date()) && "border-accent border-2",
             hasScheduled && "bg-blue-50 dark:bg-blue-950/20",
-            hasCompleted && "bg-green-50 dark:bg-green-950/20"
+            hasCompleted && "bg-green-50 dark:bg-green-950/20",
           )}
         >
           <span className="absolute xs:top-1 top-0 xs:left-1 left-0.5 text-xs font-semibold lg:scale-100 xs:scale-75 scale-65">
             {date.getDate()}
           </span>
-          
+
           {eventCount > 0 && (
             <div className="absolute bottom-0 left-0 right-0 p-0.5 xs:p-1 space-y-0.5 lg:scale-100 xs:scale-75 scale-65 origin-bottom-left">
               {events.slice(0, 2).map((event) => (
@@ -418,18 +420,18 @@ export const CalendarDayDialog = ({
                     className={cn(
                       "w-1.5 h-1.5 rounded-full shrink-0",
                       event.status === "scheduled" && "bg-muted",
-                          event.status === "completed" && "bg-accent-strong",
-                          event.status === "canceled" && "bg-red-900"
+                      event.status === "completed" && "bg-accent-strong",
+                      event.status === "canceled" && "bg-red-900",
                     )}
                   />
-                  <span className="truncate font-medium">
-                    {event.title}
-                  </span>
+                  <span className="truncate font-medium">{event.title}</span>
                 </div>
               ))}
               {eventCount > 2 && (
                 <div className="text-xs text-foreground/70 font-medium pl-2.5 whitespace-nowrap">
-                  <span className="hidden xs:inline">+{eventCount - 2} more</span>
+                  <span className="hidden xs:inline">
+                    +{eventCount - 2} more
+                  </span>
                   <span className="xs:hidden">+{eventCount - 2}</span>
                 </div>
               )}
@@ -451,25 +453,28 @@ export const CalendarDayDialog = ({
             Manage your events here.
           </DialogDescription>
         </DialogHeader>
-        <Tabs value={activeTab} onValueChange={(value) => {
-          const newTab = value as "view" | "add";
-          setActiveTab(newTab);
-          
-          
-          if (newTab === "view" && editingEvent) {
-            setEditingEvent(null);
-            setEditingEventData(null);
-            setFormData({
-              title: "",
-              place: "",
-              date: date,
-              time: "09:00",
-              links: [],
-              notifyBySlack: false,
-              notifyBeforeMinutes: 15,
-            });
-          }
-        }} className="w-full">
+        <Tabs
+          value={activeTab}
+          onValueChange={(value) => {
+            const newTab = value as "view" | "add";
+            setActiveTab(newTab);
+
+            if (newTab === "view" && editingEvent) {
+              setEditingEvent(null);
+              setEditingEventData(null);
+              setFormData({
+                title: "",
+                place: "",
+                date: date,
+                time: "09:00",
+                links: [],
+                notifyBySlack: false,
+                notifyBeforeMinutes: 15,
+              });
+            }
+          }}
+          className="w-full"
+        >
           <TabsList className="w-full grid grid-cols-2">
             <TabsTrigger value="view" className="text-xs sm:text-sm">
               View Events
@@ -479,7 +484,6 @@ export const CalendarDayDialog = ({
             </TabsTrigger>
           </TabsList>
 
-          
           <TabsContent
             value="view"
             className="w-full border rounded-lg p-2 sm:p-4 min-h-50 max-h-125 overflow-y-auto overflow-x-hidden"
@@ -507,9 +511,11 @@ export const CalendarDayDialog = ({
             )}
           </TabsContent>
 
-          
           <TabsContent value="add" className="w-full overflow-x-hidden">
-            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6 mt-4">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4 sm:space-y-6 mt-4"
+            >
               <div className="space-y-2">
                 <Label htmlFor="title" className="text-sm">
                   Event Title *
@@ -595,13 +601,20 @@ export const CalendarDayDialog = ({
                             onError={(e) => {
                               e.currentTarget.style.display = "none";
                               e.currentTarget.nextElementSibling?.classList.remove(
-                                "hidden"
+                                "hidden",
                               );
                             }}
                           />
                         ) : null}
-                        <LinkIcon className={cn("w-3 h-3 sm:w-4 sm:h-4 shrink-0", link.icon && "hidden")} />
-                        <span className="flex-1 text-xs sm:text-sm truncate">{link.label}</span>
+                        <LinkIcon
+                          className={cn(
+                            "w-3 h-3 sm:w-4 sm:h-4 shrink-0",
+                            link.icon && "hidden",
+                          )}
+                        />
+                        <span className="flex-1 text-xs sm:text-sm truncate">
+                          {link.label}
+                        </span>
                         <Button
                           type="button"
                           size="icon"
@@ -620,7 +633,7 @@ export const CalendarDayDialog = ({
               <div className="space-y-3">
                 <div className="flex items-center space-x-2">
                   <Checkbox
-                  className="border-foreground!"
+                    className="border-foreground!"
                     id="notifyBySlack"
                     checked={formData.notifyBySlack}
                     disabled={editingEventData?.isNotificationSent}
@@ -628,44 +641,67 @@ export const CalendarDayDialog = ({
                       setFormData({ ...formData, notifyBySlack: !!checked })
                     }
                   />
-                  <Label htmlFor="notifyBySlack" className="cursor-pointer text-xs sm:text-sm">
+                  <Label
+                    htmlFor="notifyBySlack"
+                    className="cursor-pointer text-xs sm:text-sm"
+                  >
                     Notify by Slack
                     {editingEventData?.isNotificationSent && (
-                      <span className="text-muted-foreground ml-2">(Already sent)</span>
+                      <span className="text-muted-foreground ml-2">
+                        (Already sent)
+                      </span>
                     )}
                   </Label>
                 </div>
 
                 {formData.notifyBySlack && (
                   <div className="space-y-2">
-                    <Label htmlFor="notifyBeforeMinutes" className="text-xs sm:text-sm">
+                    <Label
+                      htmlFor="notifyBeforeMinutes"
+                      className="text-xs sm:text-sm"
+                    >
                       Notify me
                     </Label>
                     <Select
                       value={(() => {
-                        const options = getSmartNotificationOptions(formData.time);
-                        const currentValue = formData.notifyBeforeMinutes?.toString();
-                        
-                        const valueExists = options.some(opt => opt.value === currentValue);
-                        return valueExists ? currentValue : options[0]?.value || "15";
+                        const options = getSmartNotificationOptions(
+                          formData.time,
+                        );
+                        const currentValue =
+                          formData.notifyBeforeMinutes?.toString();
+
+                        const valueExists = options.some(
+                          (opt) => opt.value === currentValue,
+                        );
+                        return valueExists
+                          ? currentValue
+                          : options[0]?.value || "15";
                       })()}
                       onValueChange={(value) =>
                         setFormData({
                           ...formData,
-                          notifyBeforeMinutes: Number.parseInt(value),
+                          notifyBeforeMinutes: Number.parseInt(value, 10),
                         })
                       }
                       disabled={editingEventData?.isNotificationSent}
                     >
                       <SelectTrigger className="text-sm max-w-xs">
-                        <SelectValue className="min-w-3xs" placeholder="Select time" />
+                        <SelectValue
+                          className="min-w-3xs"
+                          placeholder="Select time"
+                        />
                       </SelectTrigger>
                       <SelectContent className="z-99">
-                        {getSmartNotificationOptions(formData.time).map((option, idx) => (
-                          <SelectItem key={`${option.value}-${idx}`} value={option.value}>
-                            {option.label}
-                          </SelectItem>
-                        ))}
+                        {getSmartNotificationOptions(formData.time).map(
+                          (option, idx) => (
+                            <SelectItem
+                              key={`${option.value}-${idx}`}
+                              value={option.value}
+                            >
+                              {option.label}
+                            </SelectItem>
+                          ),
+                        )}
                       </SelectContent>
                     </Select>
                   </div>
@@ -689,14 +725,18 @@ export const CalendarDayDialog = ({
                         notifyBySlack: false,
                         notifyBeforeMinutes: 15,
                       });
-                      setActiveTab("view"); 
+                      setActiveTab("view");
                     }}
                     className="text-xs sm:text-sm"
                   >
                     Cancel Edit
                   </Button>
                 )}
-                <Button type="submit" disabled={submitting} className="text-xs sm:text-sm">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="text-xs sm:text-sm"
+                >
                   {submitting ? (
                     <>
                       <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 mr-2 animate-spin" />
@@ -717,7 +757,6 @@ export const CalendarDayDialog = ({
   );
 };
 
-
 function EventCard({
   event,
   onEdit,
@@ -732,7 +771,7 @@ function EventCard({
   const [isEditingTime, setIsEditingTime] = useState(false);
   const [editDate, setEditDate] = useState<Date>(new Date(event.date));
   const [editTime, setEditTime] = useState(
-    new Date(event.date).toTimeString().split(" ")[0].substring(0, 5)
+    new Date(event.date).toTimeString().split(" ")[0].substring(0, 5),
   );
 
   const handleSaveTime = () => {
@@ -743,7 +782,6 @@ function EventCard({
 
   return (
     <div className="border rounded-lg p-3 sm:p-4 space-y-3 bg-card hover:bg-accent/5 transition-colors">
-      
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap flex-1 min-w-0">
           <h3 className="font-semibold text-sm sm:text-base wrap-break-word">
@@ -774,17 +812,19 @@ function EventCard({
               ) : (
                 <>
                   <BellRing className="w-3 h-3" />
-                  <span>{formatNotificationTime(event.notifyBeforeMinutes)}</span>
+                  <span>
+                    {formatNotificationTime(event.notifyBeforeMinutes)}
+                  </span>
                 </>
               )}
             </Badge>
           )}
         </div>
-        
+
         <div className="flex gap-1 shrink-0">
-          <Button 
-            size="sm" 
-            variant="outline" 
+          <Button
+            size="sm"
+            variant="outline"
             onClick={() => onEdit(event)}
             className="text-xs h-8 px-3"
           >
@@ -803,7 +843,6 @@ function EventCard({
         </div>
       </div>
 
-      
       {isEditingTime ? (
         <div className="flex gap-2 flex-wrap items-start">
           <Popover>
@@ -813,7 +852,7 @@ function EventCard({
                 size="sm"
                 className={cn(
                   "justify-start text-left font-normal text-xs",
-                  !editDate && "text-muted-foreground"
+                  !editDate && "text-muted-foreground",
                 )}
               >
                 <CalendarIcon className="mr-1 h-3 w-3" />
@@ -829,10 +868,7 @@ function EventCard({
               />
             </PopoverContent>
           </Popover>
-          <TimePicker
-            value={editTime}
-            onChange={(time) => setEditTime(time)}
-          />
+          <TimePicker value={editTime} onChange={(time) => setEditTime(time)} />
           <Button size="sm" onClick={handleSaveTime} className="text-xs h-8">
             Save
           </Button>
@@ -877,7 +913,6 @@ function EventCard({
         </div>
       )}
 
-      
       {event.links.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {event.links.map((link) => (
@@ -896,12 +931,17 @@ function EventCard({
                   onError={(e) => {
                     e.currentTarget.style.display = "none";
                     e.currentTarget.nextElementSibling?.classList.remove(
-                      "hidden"
+                      "hidden",
                     );
                   }}
                 />
               ) : null}
-              <ExternalLink className={cn("w-3 h-3 sm:w-4 sm:h-4 shrink-0", link.icon && "hidden")} />
+              <ExternalLink
+                className={cn(
+                  "w-3 h-3 sm:w-4 sm:h-4 shrink-0",
+                  link.icon && "hidden",
+                )}
+              />
               <span className="break-all">{link.label}</span>
             </a>
           ))}

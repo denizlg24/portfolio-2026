@@ -2,10 +2,10 @@
 
 import {
   type ColumnDef,
-  type SortingState,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
+  type SortingState,
   useReactTable,
 } from "@tanstack/react-table";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
@@ -13,9 +13,9 @@ import { useEffect, useState } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis } from "recharts";
 import { Badge } from "@/components/ui/badge";
 import {
+  type ChartConfig,
   ChartContainer,
   ChartTooltip,
-  type ChartConfig,
 } from "@/components/ui/chart";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -27,12 +27,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface UsageStats {
   totalRequests: number;
@@ -463,10 +458,7 @@ export function LlmUsageDashboard() {
 
   return (
     <div className="flex flex-col gap-6 pt-3">
-      <Tabs
-        value={period}
-        onValueChange={(v) => setPeriod(v as TimePeriod)}
-      >
+      <Tabs value={period} onValueChange={(v) => setPeriod(v as TimePeriod)}>
         <TabsList>
           {(Object.keys(PERIOD_LABELS) as TimePeriod[]).map((key) => (
             <TabsTrigger key={key} value={key}>
@@ -478,8 +470,14 @@ export function LlmUsageDashboard() {
 
       <div className="flex items-baseline gap-8 flex-wrap">
         <Stat label="Requests" value={stats.totalRequests.toLocaleString()} />
-        <Stat label="Input Tokens" value={formatTokens(stats.totalInputTokens)} />
-        <Stat label="Output Tokens" value={formatTokens(stats.totalOutputTokens)} />
+        <Stat
+          label="Input Tokens"
+          value={formatTokens(stats.totalInputTokens)}
+        />
+        <Stat
+          label="Output Tokens"
+          value={formatTokens(stats.totalOutputTokens)}
+        />
         <Stat label="Total Cost" value={formatCost(stats.totalCost)} />
       </div>
 
@@ -491,22 +489,10 @@ export function LlmUsageDashboard() {
             <p className="text-xs text-muted-foreground mt-0.5 mb-3">
               Last 30 days
             </p>
-            <ChartContainer
-              config={chartConfig}
-              className="h-48 w-full"
-            >
-              <AreaChart
-                data={data.dailyBreakdown}
-                accessibilityLayer
-              >
+            <ChartContainer config={chartConfig} className="h-48 w-full">
+              <AreaChart data={data.dailyBreakdown} accessibilityLayer>
                 <defs>
-                  <linearGradient
-                    id="costFill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
+                  <linearGradient id="costFill" x1="0" y1="0" x2="0" y2="1">
                     <stop
                       offset="0%"
                       stopColor="var(--color-cost)"

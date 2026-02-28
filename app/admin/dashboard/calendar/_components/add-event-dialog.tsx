@@ -1,4 +1,11 @@
 "use client";
+import { format } from "date-fns";
+import { CalendarIcon, Link as LinkIcon, Loader2, Plus, X } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Dialog,
   DialogContent,
@@ -7,12 +14,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import { TimePicker } from "@/components/ui/time-picker";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   Select,
   SelectContent,
@@ -20,86 +28,69 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { format } from "date-fns";
-import { useState } from "react";
-import { toast } from "sonner";
-import { Plus, X, Link as LinkIcon, Loader2, CalendarIcon } from "lucide-react";
+import { TimePicker } from "@/components/ui/time-picker";
 import { fetchFavicon } from "@/lib/fetch-favicon";
+import { cn } from "@/lib/utils";
 
-
-function getSmartNotificationOptions(eventTime: string): Array<{ value: string; label: string }> {
+function getSmartNotificationOptions(
+  eventTime: string,
+): Array<{ value: string; label: string }> {
   const [hours, minutes] = eventTime.split(":").map(Number);
-  const eventMinutes = hours * 60 + minutes; 
-  
+  const eventMinutes = hours * 60 + minutes;
+
   const options: Array<{ value: string; label: string }> = [];
-  const addedValues = new Set<string>(); 
-  
+  const addedValues = new Set<string>();
+
   const addOption = (value: string, label: string) => {
     if (!addedValues.has(value)) {
       options.push({ value, label });
       addedValues.add(value);
     }
   };
-  
-  
+
   if (hours < 12) {
     addOption("0", "At time of event");
     addOption("5", "5 minutes before");
     addOption("15", "15 minutes before");
     addOption("30", "30 minutes before");
     addOption("60", "1 hour before");
-    
-    
+
     if (hours >= 9) {
       const minutesToDayBefore9AM = eventMinutes + (24 * 60 - 9 * 60);
       addOption(minutesToDayBefore9AM.toString(), "Day before at 9 AM");
     }
-  }
-  
-  else if (hours < 18) {
+  } else if (hours < 18) {
     addOption("0", "At time of event");
     addOption("15", "15 minutes before");
     addOption("30", "30 minutes before");
     addOption("60", "1 hour before");
     addOption("120", "2 hours before");
-    
-    
+
     if (hours >= 11) {
       const minutesToSameDay9AM = eventMinutes - 9 * 60;
       if (minutesToSameDay9AM > 0) {
         addOption(minutesToSameDay9AM.toString(), "Same day at 9 AM");
       }
     }
-  }
-  
-  else {
+  } else {
     addOption("0", "At time of event");
     addOption("30", "30 minutes before");
     addOption("60", "1 hour before");
     addOption("120", "2 hours before");
-    
-    
+
     const minutesToSameDay9AM = eventMinutes - 9 * 60;
     addOption(minutesToSameDay9AM.toString(), "Same day at 9 AM");
-    
-    
+
     const minutesToSameDay5PM = eventMinutes - 17 * 60;
     if (minutesToSameDay5PM > 0) {
       addOption(minutesToSameDay5PM.toString(), "Same day at 5 PM");
     }
   }
-  
-  
+
   addOption("1440", "1 day before");
   addOption("2880", "2 days before");
   addOption("10080", "1 week before");
-  
+
   return options;
 }
 
@@ -150,7 +141,6 @@ export const AddEventDialog = ({
     }
 
     try {
-      
       const icon = await fetchFavicon(newLink.url);
       const linkToAdd = { ...newLink, icon };
 
@@ -162,7 +152,7 @@ export const AddEventDialog = ({
       setNewLink({ label: "", url: "", icon: undefined });
     } catch (error) {
       console.error("Error adding link:", error);
-      
+
       setFormData({
         ...formData,
         links: [...formData.links, { ...newLink }],
@@ -187,7 +177,6 @@ export const AddEventDialog = ({
 
     setSubmitting(true);
     try {
-      
       const [hours, minutes] = formData.time.split(":").map(Number);
       const eventDate = new Date(formData.date);
       eventDate.setHours(hours, minutes, 0, 0);
@@ -209,7 +198,6 @@ export const AddEventDialog = ({
       if (!response.ok) throw new Error("Failed to create event");
       toast.success("Event created successfully");
 
-      
       setFormData({
         title: "",
         place: "",
@@ -279,7 +267,7 @@ export const AddEventDialog = ({
                     variant="outline"
                     className={cn(
                       "w-full justify-start text-left font-normal truncate ",
-                      !formData.date && "text-muted-foreground"
+                      !formData.date && "text-muted-foreground",
                     )}
                   >
                     <CalendarIcon />
@@ -290,7 +278,11 @@ export const AddEventDialog = ({
                     )}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent side="bottom" className="w-auto p-0" align="start">
+                <PopoverContent
+                  side="bottom"
+                  className="w-auto p-0"
+                  align="start"
+                >
                   <CalendarComponent
                     mode="single"
                     selected={formData.date}
@@ -355,7 +347,7 @@ export const AddEventDialog = ({
                         onError={(e) => {
                           e.currentTarget.style.display = "none";
                           e.currentTarget.nextElementSibling?.classList.remove(
-                            "hidden"
+                            "hidden",
                           );
                         }}
                       />
@@ -401,15 +393,20 @@ export const AddEventDialog = ({
                 <Select
                   value={(() => {
                     const options = getSmartNotificationOptions(formData.time);
-                    const currentValue = formData.notifyBeforeMinutes?.toString();
-                    
-                    const valueExists = options.some(opt => opt.value === currentValue);
-                    return valueExists ? currentValue : options[0]?.value || "15";
+                    const currentValue =
+                      formData.notifyBeforeMinutes?.toString();
+
+                    const valueExists = options.some(
+                      (opt) => opt.value === currentValue,
+                    );
+                    return valueExists
+                      ? currentValue
+                      : options[0]?.value || "15";
                   })()}
                   onValueChange={(value) =>
                     setFormData({
                       ...formData,
-                      notifyBeforeMinutes: Number.parseInt(value),
+                      notifyBeforeMinutes: Number.parseInt(value, 10),
                     })
                   }
                 >
@@ -417,11 +414,16 @@ export const AddEventDialog = ({
                     <SelectValue placeholder="Select time " />
                   </SelectTrigger>
                   <SelectContent className="z-99">
-                    {getSmartNotificationOptions(formData.time).map((option, idx) => (
-                      <SelectItem key={`${option.value}-${idx}`} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
+                    {getSmartNotificationOptions(formData.time).map(
+                      (option, idx) => (
+                        <SelectItem
+                          key={`${option.value}-${idx}`}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ),
+                    )}
                   </SelectContent>
                 </Select>
               </div>

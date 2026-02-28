@@ -79,7 +79,9 @@ export default async function TimelinePage() {
 
       <div className="flex items-center gap-4 p-4 border rounded-lg bg-card">
         <div className="flex-1 min-w-0">
-          <p className="text-xs sm:text-sm text-muted-foreground mb-1">Token ID</p>
+          <p className="text-xs sm:text-sm text-muted-foreground mb-1">
+            Token ID
+          </p>
           <code className="text-xs sm:text-sm font-mono truncate block">
             {token._id.toString()}
           </code>
