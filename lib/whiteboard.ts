@@ -75,12 +75,12 @@ export async function updateTodayBoard(data: {
   }
 }
 
-export async function clearTodayBoard(): Promise<boolean> {
+export async function clearTodayBoard(manual=false): Promise<boolean> {
   try {
     await connectDB();
     await Whiteboard.findOneAndUpdate(
       { name: "Today", hasBeenCleared: false },
-      { elements: [], viewState: { x: 0, y: 0, zoom: 1 }, hasBeenCleared: true },
+      { elements: [], viewState: { x: 0, y: 0, zoom: 1 }, hasBeenCleared: manual },
     );
     return true;
   } catch (err) {

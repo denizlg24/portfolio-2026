@@ -51,7 +51,7 @@ export async function DELETE(
   if (authError) return authError;
 
 
-  const success = await clearTodayBoard();
+  const success = await clearTodayBoard(true);
   if (!success) {
     return NextResponse.json(
       { error: "Failed to clear Today board" },
