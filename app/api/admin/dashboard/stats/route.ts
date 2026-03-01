@@ -21,7 +21,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const now = new Date();
-    const todayDayOfWeek = now.getDay();
+    const todayDayOfWeek = now.getDay() + 6;
     const startOfToday = startOfDay(now);
     const endOfToday = endOfDay(now);
     const startOfTomorrow = startOfDay(addDays(now, 1));

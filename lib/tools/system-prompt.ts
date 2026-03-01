@@ -31,6 +31,7 @@ Available data domains:
 - Timeline (view career/education timeline — read-only)
 - Email (list, read emails, delete emails, list email accounts)
 - Now Page (view current 'Now Page' content, update content)
+- Resources (view, create, update, delete resources, check resource health and status)
 
 Guidelines:
 - Be concise. Use markdown formatting when helpful.

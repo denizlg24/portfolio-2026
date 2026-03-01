@@ -6,6 +6,7 @@ import { kanbanTools } from "./kanban";
 import { notesTools } from "./notes";
 import { nowTools } from "./now";
 import { projectsTools } from "./projects";
+import { resourceTools } from "./resources";
 import { timelineTools } from "./timeline";
 import { timetableTools } from "./timetable";
 import type { ToolDefinition, ToolSchema } from "./types";
@@ -21,6 +22,7 @@ const allTools: ToolDefinition[] = [
   ...timelineTools,
   ...emailTools,
   ...nowTools,
+  ...resourceTools,
 ];
 
 const toolMap = new Map<string, ToolDefinition>();
