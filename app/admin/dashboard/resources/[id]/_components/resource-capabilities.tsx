@@ -43,6 +43,7 @@ export function ResourceCapabilities({
           _id: c._id.toString(),
           type: c.type,
           label: c.label,
+          baseUrl: c.baseUrl,
           config: c.config,
           isActive: c.isActive,
         })),
@@ -85,7 +86,6 @@ export function ResourceCapabilities({
             <CapabilitySection
               key={cap._id}
               resourceId={resource._id}
-              resourceUrl={resource.url}
               capability={cap}
               onRefresh={fetchResource}
             />

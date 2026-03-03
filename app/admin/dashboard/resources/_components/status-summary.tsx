@@ -6,15 +6,10 @@ import type { LeanResource } from "./resources-manager";
 function getResourceStatus(
   resource: LeanResource,
 ): "up" | "degraded" | "down" | "unknown" {
-  const hc = resource.healthCheck;
-  if (!hc.enabled || hc.isHealthy === null) return "unknown";
-  if (!hc.isHealthy) return "down";
-  if (
-    hc.lastResponseTimeMs != null &&
-    hc.lastResponseTimeMs > (hc.responseTimeThresholdMs ?? 1000)
-  ) {
-    return "degraded";
-  }
+  const agent = resource.agentService;
+  if (!agent.enabled || agent.lastStatus === null) return "unknown";
+  if (agent.lastStatus === "unreachable") return "down";
+  if (agent.lastStatus === "degraded") return "degraded";
   return "up";
 }
 

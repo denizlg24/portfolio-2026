@@ -1,7 +1,8 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { getUptimeData } from "@/lib/health-check";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
+import { getUptimeData } from "@/lib/resource-agent";
+import { encryptPassword } from "@/lib/safe-email-password";
 import { Resource } from "@/models/Resource";
 
 export async function GET(request: NextRequest) {
@@ -12,13 +13,7 @@ export async function GET(request: NextRequest) {
   const resources = await Resource.find().sort({ createdAt: -1 }).lean();
 
   const resourceIds = resources.map((r) => r._id.toString());
-  const thresholds = new Map(
-    resources.map((r) => [
-      r._id.toString(),
-      r.healthCheck?.responseTimeThresholdMs ?? 1000,
-    ]),
-  );
-  const uptimeMap = await getUptimeData(resourceIds, thresholds);
+  const uptimeMap = await getUptimeData(resourceIds);
 
   return NextResponse.json({
     resources: resources.map((r) => {
@@ -30,11 +25,12 @@ export async function GET(request: NextRequest) {
         url: r.url,
         type: r.type,
         isActive: r.isActive,
-        healthCheck: r.healthCheck,
+        agentService: r.agentService,
         capabilities: r.capabilities.map((c) => ({
           _id: c._id.toString(),
           type: c.type,
           label: c.label,
+          baseUrl: c.baseUrl,
           config: c.config,
           isActive: c.isActive,
         })),
@@ -51,7 +47,7 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   const body = await request.json();
-  const { name, url, type, description, isActive, healthCheck } = body;
+  const { name, url, type, description, isActive, agentService } = body;
 
   if (!name || !url || !type) {
     return NextResponse.json(
@@ -60,6 +56,17 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const sanitizedAgent = agentService
+    ? {
+        enabled: agentService.enabled ?? false,
+        nodeId: agentService.nodeId ?? "",
+        hmacSecret:
+          typeof agentService.hmacSecret === "string" && agentService.hmacSecret.trim()
+            ? encryptPassword(agentService.hmacSecret)
+            : agentService.hmacSecret ?? null,
+      }
+    : {};
+
   await connectDB();
   const resource = await Resource.create({
     name,
@@ -67,7 +74,7 @@ export async function POST(request: NextRequest) {
     type,
     description: description ?? "",
     isActive: isActive ?? true,
-    healthCheck: healthCheck ?? {},
+    agentService: sanitizedAgent,
     capabilities: [],
   });
 

@@ -6,6 +6,7 @@ import {
   MoreVertical,
   Pencil,
   Plus,
+  Power,
   Server,
   Trash2,
   Webhook,
@@ -30,7 +31,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import type { DailyUptimeEntry } from "@/lib/health-check";
+import type { DailyUptimeEntry } from "@/lib/resource-agent";
 import { CreateResourceDialog } from "./create-resource-dialog";
 import type { LeanResource } from "./resources-manager";
 import { UptimeBar } from "./uptime-bar";
@@ -52,15 +53,10 @@ const TYPE_ICONS: Record<string, typeof Cpu> = {
 function getResourceStatus(
   resource: LeanResource,
 ): "up" | "degraded" | "down" | "unknown" {
-  const hc = resource.healthCheck;
-  if (!hc.enabled || hc.isHealthy === null) return "unknown";
-  if (!hc.isHealthy) return "down";
-  if (
-    hc.lastResponseTimeMs != null &&
-    hc.lastResponseTimeMs > (hc.responseTimeThresholdMs ?? 1000)
-  ) {
-    return "degraded";
-  }
+  const agent = resource.agentService;
+  if (!agent.enabled || agent.lastStatus === null) return "unknown";
+  if (agent.lastStatus === "unreachable") return "down";
+  if (agent.lastStatus === "degraded") return "degraded";
   return "up";
 }
 
@@ -91,10 +87,10 @@ const STATUS_CONFIG = {
   },
 };
 
-function getResponseColor(ms: number | null, threshold: number): string {
-  if (ms == null) return "text-muted-foreground";
-  if (ms > threshold) return "text-red-600 dark:text-red-400";
-  if (ms > threshold * 0.7) return "text-yellow-600 dark:text-yellow-400";
+function getMetricColor(percent: number | null): string {
+  if (percent == null) return "text-muted-foreground";
+  if (percent > 90) return "text-red-600 dark:text-red-400";
+  if (percent > 70) return "text-yellow-600 dark:text-yellow-400";
   return "text-accent-strong";
 }
 
@@ -113,12 +109,13 @@ export function ResourceStatusCard({
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [rebooting, setRebooting] = useState(false);
 
   const status = getResourceStatus(resource);
   const cfg = STATUS_CONFIG[status];
   const Icon = TYPE_ICONS[resource.type] ?? Cloud;
-  const hc = resource.healthCheck;
-  const threshold = hc.responseTimeThresholdMs ?? 1000;
+  const agent = resource.agentService;
+  const metrics = agent.lastMetrics;
   const uptime = resource.uptime;
   const emptyHistory: DailyUptimeEntry[] = Array.from(
     { length: 30 },
@@ -159,6 +156,26 @@ export function ResourceStatusCard({
       );
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleReboot = async () => {
+    setRebooting(true);
+    try {
+      const res = await fetch(`/api/admin/resources/${resource._id}/reboot`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error ?? "Failed to reboot");
+      }
+      toast.success("Reboot initiated");
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Failed to reboot resource",
+      );
+    } finally {
+      setRebooting(false);
     }
   };
 
@@ -214,6 +231,15 @@ export function ResourceStatusCard({
                 <Plus className="w-3.5 h-3.5 mr-2" />
                 Capabilities
               </DropdownMenuItem>
+              {agent.enabled && (
+                <DropdownMenuItem
+                  onClick={handleReboot}
+                  disabled={rebooting}
+                >
+                  <Power className="w-3.5 h-3.5 mr-2" />
+                  {rebooting ? "Rebooting..." : "Reboot"}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 onClick={() => setDialog(setDeleteOpen)(true)}
@@ -231,43 +257,51 @@ export function ResourceStatusCard({
           </p>
         )}
 
-        {hc.enabled && (
+        {agent.enabled && (
           <div className="grid grid-cols-3 gap-1.5">
             <div className="rounded-md border px-2 py-1.5 text-center">
               <p className="text-[10px] text-muted-foreground leading-none mb-0.5">
-                Response
+                CPU
               </p>
               <p
-                className={`text-sm font-semibold leading-tight ${getResponseColor(hc.lastResponseTimeMs, threshold)}`}
+                className={`text-sm font-semibold leading-tight ${getMetricColor(metrics?.cpuUsagePercent ?? null)}`}
               >
-                {hc.lastResponseTimeMs != null
-                  ? `${hc.lastResponseTimeMs}ms`
+                {metrics?.cpuUsagePercent != null
+                  ? `${metrics.cpuUsagePercent}%`
                   : "—"}
               </p>
             </div>
             <div className="rounded-md border px-2 py-1.5 text-center">
               <p className="text-[10px] text-muted-foreground leading-none mb-0.5">
-                Uptime
+                RAM
               </p>
-              <p className="text-sm font-semibold leading-tight">
-                {uptime ? `${uptime.uptimePercentage}%` : "—"}
+              <p
+                className={`text-sm font-semibold leading-tight ${getMetricColor(metrics?.memoryUsagePercent ?? null)}`}
+              >
+                {metrics?.memoryUsagePercent != null
+                  ? `${metrics.memoryUsagePercent}%`
+                  : "—"}
               </p>
             </div>
             <div className="rounded-md border px-2 py-1.5 text-center">
               <p className="text-[10px] text-muted-foreground leading-none mb-0.5">
-                Status
+                Disk
               </p>
-              <p className="text-sm font-semibold leading-tight">
-                {hc.lastStatus ?? "—"}
+              <p
+                className={`text-sm font-semibold leading-tight ${getMetricColor(metrics?.diskUsagePercent ?? null)}`}
+              >
+                {metrics?.diskUsagePercent != null
+                  ? `${metrics.diskUsagePercent}%`
+                  : "—"}
               </p>
             </div>
           </div>
         )}
 
-        {hc.enabled && (
+        {agent.enabled && (
           <UptimeBar
             dailyHistory={uptime?.dailyHistory ?? emptyHistory}
-            lastCheckedAt={hc.lastCheckedAt}
+            lastCheckedAt={agent.lastCheckedAt}
           />
         )}
 

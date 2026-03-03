@@ -46,10 +46,9 @@ export function CreateResourceDialog({
   const [type, setType] = useState<ResourceType>("pi");
   const [description, setDescription] = useState("");
   const [isActive, setIsActive] = useState(true);
-  const [healthEnabled, setHealthEnabled] = useState(false);
-  const [intervalMinutes, setIntervalMinutes] = useState(5);
-  const [expectedStatus, setExpectedStatus] = useState(200);
-  const [responseTimeThresholdMs, setResponseTimeThresholdMs] = useState(1000);
+  const [agentEnabled, setAgentEnabled] = useState(false);
+  const [agentNodeId, setAgentNodeId] = useState("");
+  const [hmacSecret, setHmacSecret] = useState("");
 
   useEffect(() => {
     if (open && resource) {
@@ -58,22 +57,18 @@ export function CreateResourceDialog({
       setType(resource.type);
       setDescription(resource.description);
       setIsActive(resource.isActive);
-      setHealthEnabled(resource.healthCheck.enabled);
-      setIntervalMinutes(resource.healthCheck.intervalMinutes);
-      setExpectedStatus(resource.healthCheck.expectedStatus);
-      setResponseTimeThresholdMs(
-        resource.healthCheck.responseTimeThresholdMs ?? 1000,
-      );
+      setAgentEnabled(resource.agentService?.enabled ?? false);
+      setAgentNodeId(resource.agentService?.nodeId ?? "");
+      setHmacSecret("");
     } else if (open && !resource) {
       setName("");
       setUrl("");
       setType("pi");
       setDescription("");
       setIsActive(true);
-      setHealthEnabled(false);
-      setIntervalMinutes(5);
-      setExpectedStatus(200);
-      setResponseTimeThresholdMs(1000);
+      setAgentEnabled(false);
+      setAgentNodeId("");
+      setHmacSecret("");
     }
   }, [open, resource]);
 
@@ -83,18 +78,22 @@ export function CreateResourceDialog({
       return;
     }
 
+    const agentService: Record<string, unknown> = {
+      enabled: agentEnabled,
+      nodeId: agentNodeId,
+    };
+
+    if (hmacSecret.trim()) {
+      agentService.hmacSecret = hmacSecret;
+    }
+
     const payload = {
       name,
       url,
       type,
       description,
       isActive,
-      healthCheck: {
-        enabled: healthEnabled,
-        intervalMinutes,
-        expectedStatus,
-        responseTimeThresholdMs,
-      },
+      agentService,
     };
 
     setLoading(true);
@@ -199,43 +198,39 @@ export function CreateResourceDialog({
           <div className="border rounded-md p-3 space-y-3">
             <div className="flex items-center gap-2">
               <Checkbox
-                id="healthEnabled"
-                checked={healthEnabled}
-                onCheckedChange={(v) => setHealthEnabled(!!v)}
+                id="agentEnabled"
+                checked={agentEnabled}
+                onCheckedChange={(v) => setAgentEnabled(!!v)}
               />
-              <Label htmlFor="healthEnabled" className="font-medium">
-                Enable Health Checks
+              <Label htmlFor="agentEnabled" className="font-medium">
+                Enable Agent Service
               </Label>
             </div>
 
-            {healthEnabled && (
-              <div className="grid grid-cols-2 gap-3">
+            {agentEnabled && (
+              <div className="space-y-3">
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Interval (minutes)</Label>
+                  <Label className="text-xs">Node ID</Label>
                   <Input
-                    value={intervalMinutes}
-                    onChange={(e) => setIntervalMinutes(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-1.5">
-                  <Label className="text-xs">Expected Status</Label>
-                  <Input
-                    value={expectedStatus}
-                    onChange={(e) => setExpectedStatus(Number(e.target.value))}
-                  />
-                </div>
-                <div className="space-y-1.5 col-span-2">
-                  <Label className="text-xs">
-                    Response Time Threshold (ms)
-                  </Label>
-                  <Input
-                    value={responseTimeThresholdMs}
-                    onChange={(e) =>
-                      setResponseTimeThresholdMs(Number(e.target.value))
-                    }
+                    placeholder="pi-zero-1"
+                    value={agentNodeId}
+                    onChange={(e) => setAgentNodeId(e.target.value)}
                   />
                   <p className="text-[10px] text-muted-foreground">
-                    Responses slower than this will be marked as degraded.
+                    Must match the agent&apos;s configured node_id.
+                  </p>
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs">HMAC Secret</Label>
+                  <Input
+                    type="password"
+                    placeholder={isEdit ? "Leave blank to keep current" : "Shared secret for request signing"}
+                    value={hmacSecret}
+                    onChange={(e) => setHmacSecret(e.target.value)}
+                    autoComplete="off"
+                  />
+                  <p className="text-[10px] text-muted-foreground">
+                    Shared secret used to sign requests to the agent service.
                   </p>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { getUptimeData } from "@/lib/health-check";
 import { connectDB } from "@/lib/mongodb";
 import { getAdminSession } from "@/lib/require-admin";
+import { getUptimeData } from "@/lib/resource-agent";
 import { Resource } from "@/models/Resource";
 import {
   type LeanResource,
@@ -16,13 +16,7 @@ export default async function ResourcesPage() {
   const raw = await Resource.find().sort({ createdAt: -1 }).lean();
 
   const resourceIds = raw.map((r) => r._id.toString());
-  const thresholds = new Map(
-    raw.map((r) => [
-      r._id.toString(),
-      r.healthCheck?.responseTimeThresholdMs ?? 1000,
-    ]),
-  );
-  const uptimeMap = await getUptimeData(resourceIds, thresholds);
+  const uptimeMap = await getUptimeData(resourceIds);
 
   const resources: LeanResource[] = raw.map((r) => {
     const id = r._id.toString();
@@ -33,11 +27,12 @@ export default async function ResourcesPage() {
       url: r.url,
       type: r.type,
       isActive: r.isActive,
-      healthCheck: r.healthCheck,
+      agentService: r.agentService,
       capabilities: r.capabilities.map((c) => ({
         _id: c._id.toString(),
         type: c.type,
         label: c.label,
+        baseUrl: c.baseUrl,
         config: c.config,
         isActive: c.isActive,
       })),

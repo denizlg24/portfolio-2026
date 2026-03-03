@@ -32,7 +32,7 @@ export async function GET(
     const { username, password } = getPiCronCredentials(cap);
     const stats = await piCronFetch<PiCronStats>(
       capId,
-      resource.url,
+      cap.baseUrl,
       username,
       password,
       "/api/stats",

@@ -194,14 +194,68 @@ export function createAgenticSSEStream({
             ...(tools?.length ? { tools: tools as Anthropic.Tool[] } : {}),
           });
 
-          stream.on("text", (delta: string) => {
-            send({ type: "delta", text: delta });
-          });
+          const contentBlocks: Anthropic.ContentBlock[] = [];
+          const toolInputBuffers = new Map<number, string>();
+
+          for await (const event of stream) {
+            switch (event.type) {
+              case "content_block_start": {
+                const block = event.content_block;
+                if (block.type === "tool_use") {
+                  send({
+                    type: "tool_call_start",
+                    toolName: block.name,
+                    toolId: block.id,
+                  });
+                  toolInputBuffers.set(event.index, "");
+                }
+                break;
+              }
+
+              case "content_block_delta": {
+                const delta = event.delta;
+                if (delta.type === "text_delta") {
+                  send({ type: "delta", text: delta.text });
+                } else if (delta.type === "input_json_delta") {
+                  const partial = delta.partial_json;
+                  const prev = toolInputBuffers.get(event.index) ?? "";
+                  toolInputBuffers.set(event.index, prev + partial);
+                  send({
+                    type: "tool_input_delta",
+                    toolId: event.index,
+                    delta: partial,
+                  });
+                }
+                break;
+              }
+
+              case "content_block_stop": {
+                break;
+              }
+
+              case "message_start":
+              case "message_delta":
+              case "message_stop":
+                break;
+            }
+          }
 
           const finalMessage = await stream.finalMessage();
 
           totalInputTokens += finalMessage.usage.input_tokens;
           totalOutputTokens += finalMessage.usage.output_tokens;
+
+          for (const block of finalMessage.content) {
+            contentBlocks.push(block);
+            if (block.type === "tool_use") {
+              send({
+                type: "tool_call_complete",
+                toolId: block.id,
+                toolName: block.name,
+                input: block.input as Record<string, unknown>,
+              });
+            }
+          }
 
           workingMessages.push({
             role: "assistant",

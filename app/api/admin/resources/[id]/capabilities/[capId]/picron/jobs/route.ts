@@ -15,7 +15,7 @@ async function getConnection(resourceId: string, capId: string) {
     throw new Error("PiCron capability not found");
 
   const { username, password } = getPiCronCredentials(cap);
-  return { baseUrl: resource.url, username, password, cacheKey: capId };
+  return { baseUrl: cap.baseUrl, username, password, cacheKey: capId };
 }
 
 export async function GET(

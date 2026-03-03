@@ -67,7 +67,7 @@ interface DashboardStats {
     _id: string;
     name: string;
     type: string;
-    isHealthy: boolean | null;
+    status: "healthy" | "degraded" | "unreachable" | null;
     lastCheckedAt: Date | null;
   }>;
   emails: {
@@ -216,11 +216,11 @@ function ActivityRow({
 function ResourceDot({
   name,
   type,
-  isHealthy,
+  status,
 }: {
   name: string;
   type: string;
-  isHealthy: boolean | null;
+  status: "healthy" | "degraded" | "unreachable" | null;
 }) {
   const typeIcons: Record<string, string> = {
     pi: "RPi",
@@ -233,11 +233,13 @@ function ResourceDot({
     <div className="flex items-center gap-2 py-1">
       <span
         className={`w-1.5 h-1.5 rounded-full shrink-0 ${
-          isHealthy === true
+          status === "healthy"
             ? "bg-accent"
-            : isHealthy === false
-              ? "bg-destructive"
-              : "bg-muted"
+            : status === "degraded"
+              ? "bg-yellow-500"
+              : status === "unreachable"
+                ? "bg-destructive"
+                : "bg-muted"
         }`}
       />
       <span className="text-xs text-foreground uppercase tracking-wider w-7 shrink-0">
@@ -632,7 +634,7 @@ export function DashboardOverview() {
                       key={resource._id}
                       name={resource.name}
                       type={resource.type}
-                      isHealthy={resource.isHealthy}
+                      status={resource.status}
                     />
                   ))}
                 </div>

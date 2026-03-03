@@ -4,6 +4,7 @@ export interface ICapability {
   _id: mongoose.Types.ObjectId;
   type: string;
   label: string;
+  baseUrl: string;
   config: Record<string, unknown>;
   isActive: boolean;
 }
@@ -12,19 +13,28 @@ export interface ILeanCapability {
   _id: string;
   type: string;
   label: string;
+  baseUrl: string;
   config: Record<string, unknown>;
   isActive: boolean;
 }
 
-export interface IHealthCheck {
+export interface IAgentServiceMetrics {
+  cpuUsagePercent: number | null;
+  memoryUsagePercent: number | null;
+  diskUsagePercent: number | null;
+}
+
+export interface IAgentService {
   enabled: boolean;
-  intervalMinutes: number;
-  expectedStatus: number;
-  responseTimeThresholdMs: number;
+  nodeId: string;
+  hmacSecret: {
+    ciphertext: string;
+    iv: string;
+    authTag: string;
+  } | null;
   lastCheckedAt: Date | null;
-  lastStatus: number | null;
-  lastResponseTimeMs: number | null;
-  isHealthy: boolean | null;
+  lastStatus: "healthy" | "degraded" | "unreachable" | null;
+  lastMetrics: IAgentServiceMetrics | null;
 }
 
 export interface IResource extends Document {
@@ -33,7 +43,7 @@ export interface IResource extends Document {
   url: string;
   type: "pi" | "vps" | "api" | "service";
   isActive: boolean;
-  healthCheck: IHealthCheck;
+  agentService: IAgentService;
   capabilities: Types.DocumentArray<ICapability>;
   createdAt: Date;
   updatedAt: Date;
@@ -46,32 +56,44 @@ export interface ILeanResource {
   url: string;
   type: "pi" | "vps" | "api" | "service";
   isActive: boolean;
-  healthCheck: IHealthCheck;
+  agentService: IAgentService;
   capabilities: ILeanCapability[];
   createdAt: string;
   updatedAt: string;
 }
 
-const CapabilitySchema = new Schema({
-  type: { type: String, required: true },
-  label: { type: String, required: true },
-  config: { type: Schema.Types.Mixed, required: true },
-  isActive: { type: Boolean, default: true },
-});
-
-const HealthCheckSchema = new Schema(
+const AgentServiceMetricsSchema = new Schema(
   {
-    enabled: { type: Boolean, default: false },
-    intervalMinutes: { type: Number, default: 5 },
-    expectedStatus: { type: Number, default: 200 },
-    responseTimeThresholdMs: { type: Number, default: 1000 },
-    lastCheckedAt: { type: Date, default: null },
-    lastStatus: { type: Number, default: null },
-    lastResponseTimeMs: { type: Number, default: null },
-    isHealthy: { type: Boolean, default: null },
+    cpuUsagePercent: { type: Number, default: null },
+    memoryUsagePercent: { type: Number, default: null },
+    diskUsagePercent: { type: Number, default: null },
   },
   { _id: false },
 );
+
+const AgentServiceSchema = new Schema(
+  {
+    enabled: { type: Boolean, default: false },
+    nodeId: { type: String, default: "" },
+    hmacSecret: { type: Schema.Types.Mixed, default: null },
+    lastCheckedAt: { type: Date, default: null },
+    lastStatus: {
+      type: String,
+      enum: ["healthy", "degraded", "unreachable", null],
+      default: null,
+    },
+    lastMetrics: { type: AgentServiceMetricsSchema, default: null },
+  },
+  { _id: false },
+);
+
+const CapabilitySchema = new Schema({
+  type: { type: String, required: true },
+  label: { type: String, required: true },
+  baseUrl: { type: String, required: true },
+  config: { type: Schema.Types.Mixed, required: true },
+  isActive: { type: Boolean, default: true },
+});
 
 const ResourceSchema: Schema = new Schema(
   {
@@ -84,7 +106,7 @@ const ResourceSchema: Schema = new Schema(
       required: true,
     },
     isActive: { type: Boolean, default: true },
-    healthCheck: { type: HealthCheckSchema, default: () => ({}) },
+    agentService: { type: AgentServiceSchema, default: () => ({}) },
     capabilities: [CapabilitySchema],
   },
   { timestamps: true },

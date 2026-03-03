@@ -13,11 +13,11 @@ export async function POST(
 
   const { id } = await params;
   const body = await request.json();
-  const { type, label, isActive, ...rest } = body;
+  const { type, label, baseUrl, isActive, ...rest } = body;
 
-  if (!type || !label) {
+  if (!type || !label || !baseUrl) {
     return NextResponse.json(
-      { error: "type and label are required" },
+      { error: "type, label, and baseUrl are required" },
       { status: 400 },
     );
   }
@@ -42,7 +42,7 @@ export async function POST(
     id,
     {
       $push: {
-        capabilities: { type, label, config, isActive: isActive ?? true },
+        capabilities: { type, label, baseUrl, config, isActive: isActive ?? true },
       },
     },
     { new: true },

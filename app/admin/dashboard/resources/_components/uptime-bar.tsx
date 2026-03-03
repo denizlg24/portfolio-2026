@@ -7,7 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import type { DailyUptimeEntry } from "@/lib/health-check";
+import type { DailyUptimeEntry } from "@/lib/resource-agent";
 
 const STATUS_COLORS: Record<DailyUptimeEntry["status"], string> = {
   up: "bg-accent",

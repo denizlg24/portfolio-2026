@@ -32,7 +32,7 @@ export async function POST(
     const { username, password } = getPiCronCredentials(cap);
     const result = await piCronFetch<{ status: string }>(
       capId,
-      resource.url,
+      cap.baseUrl,
       username,
       password,
       `/api/jobs/${jobId}/trigger`,

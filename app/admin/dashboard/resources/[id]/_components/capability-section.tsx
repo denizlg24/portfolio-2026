@@ -21,14 +21,12 @@ const TYPE_LABELS: Record<string, string> = {
 
 interface CapabilitySectionProps {
   resourceId: string;
-  resourceUrl: string;
   capability: ILeanCapability;
   onRefresh: () => void;
 }
 
 export function CapabilitySection({
   resourceId,
-  resourceUrl,
   capability,
   onRefresh,
 }: CapabilitySectionProps) {
@@ -66,6 +64,11 @@ export function CapabilitySection({
             {TYPE_LABELS[capability.type] ?? capability.type}
           </Badge>
           <span className="text-sm font-medium">{capability.label}</span>
+          {capability.baseUrl && (
+            <span className="text-[10px] font-mono text-muted-foreground truncate max-w-[200px]">
+              {capability.baseUrl}
+            </span>
+          )}
           {!capability.isActive && (
             <Badge variant="secondary" className="text-xs">
               Inactive
@@ -88,7 +91,7 @@ export function CapabilitySection({
           resourceId={resourceId}
           capId={capability._id}
           name={capability.label}
-          baseUrl={resourceUrl}
+          baseUrl={capability.baseUrl}
         />
       )}
 

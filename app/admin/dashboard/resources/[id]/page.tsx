@@ -30,6 +30,7 @@ export default async function ResourceDetailPage({ params }: Props) {
       _id: c._id.toString(),
       type: c.type,
       label: c.label,
+      baseUrl: c.baseUrl,
       config: c.config,
       isActive: c.isActive,
     })),

@@ -1,5 +1,7 @@
 import { Resource } from "@/models/Resource";
 import { connectDB } from "../mongodb";
+import { rebootResource, restartService } from "../resource-agent";
+import { encryptPassword } from "../safe-email-password";
 import type { ToolDefinition } from "./types";
 
 export const resourceTools: ToolDefinition[] = [
@@ -66,7 +68,7 @@ export const resourceTools: ToolDefinition[] = [
     schema: {
       name: "get_resource_health",
       description:
-        "Get the health status of a resource by its ID. Returns health check details.",
+        "Get the health status and system metrics (CPU, RAM, disk) of a resource by its ID.",
       input_schema: {
         type: "object",
         properties: {
@@ -87,21 +89,17 @@ export const resourceTools: ToolDefinition[] = [
       if (!resource) {
         return { success: false, message: "Resource not found" };
       }
-      const health = resource.healthCheck;
-      const status = health.isHealthy
-        ? health.lastResponseTimeMs
-          ? health.lastResponseTimeMs > 1000
-            ? "degraded"
-            : "healthy"
-          : "unknown"
-        : "down";
+      const agent = resource.agentService;
       return {
         id: resource._id.toString(),
         name: resource.name,
-        health: {
-          ...health,
+        agentService: {
+          enabled: agent?.enabled ?? false,
+          lastCheckedAt: agent?.lastCheckedAt ?? null,
+          lastStatus: agent?.lastStatus ?? null,
+          lastMetrics: agent?.lastMetrics ?? null,
         },
-        status,
+        status: agent?.lastStatus ?? "unknown",
       };
     },
   },
@@ -109,7 +107,7 @@ export const resourceTools: ToolDefinition[] = [
     schema: {
       name: "get_healthy_resources",
       description:
-        "Get all healthy resources. Returns a list of healthy resources with their details.",
+        "Get all healthy resources. Returns a list of resources with healthy agent service status.",
       input_schema: {
         type: "object",
         properties: {},
@@ -120,13 +118,14 @@ export const resourceTools: ToolDefinition[] = [
     execute: async () => {
       await connectDB();
       const resources = await Resource.find({
-        "healthCheck.isHealthy": true,
+        "agentService.lastStatus": "healthy",
       }).lean();
       return resources.map((r) => ({
         id: r._id.toString(),
         name: r.name,
-        health: {
-          ...r.healthCheck,
+        agentService: {
+          lastStatus: r.agentService?.lastStatus,
+          lastMetrics: r.agentService?.lastMetrics,
         },
       }));
     },
@@ -153,55 +152,40 @@ export const resourceTools: ToolDefinition[] = [
             type: "boolean",
             description: "Whether the resource is active (optional)",
           },
-          healthEnabled: {
+          agentServiceEnabled: {
             type: "boolean",
-            description: "Enable health checks for this resource",
+            description: "Enable agent service monitoring for this resource",
           },
-          intervalMinutes: {
-            type: "number",
-            description:
-              "Health check interval in minutes (optional, default: 5)",
+          agentServiceNodeId: {
+            type: "string",
+            description: "Node ID for the agent service, must match the agent's configured node_id (optional)",
           },
-          expectedStatus: {
-            type: "number",
-            description:
-              "Expected HTTP status code for health checks (optional, default: 200)",
-          },
-          responseTimeThresholdMs: {
-            type: "number",
-            description:
-              "Response time threshold in milliseconds for health checks (optional, default: 1000)",
+          agentServiceHmacSecret: {
+            type: "string",
+            description: "HMAC shared secret for signing requests to the agent (optional)",
           },
         },
-        required: ["name", "url", "type", "healthEnabled"],
+        required: ["name", "url", "type"],
       },
     },
     isWrite: true,
     category: "resources",
     execute: async (input) => {
-      const {
-        name,
-        url,
-        type,
-        description,
-        isActive,
-        healthEnabled,
-        intervalMinutes,
-        expectedStatus,
-        responseTimeThresholdMs,
-      } = input;
+      const { name, url, type, description, isActive } = input;
       await connectDB();
+      const hmacSecret = typeof input.agentServiceHmacSecret === "string" && (input.agentServiceHmacSecret as string).trim()
+        ? encryptPassword(input.agentServiceHmacSecret as string)
+        : null;
       const newResource = new Resource({
         name,
         url,
         type,
         description,
         isActive,
-        healthCheck: {
-          enabled: healthEnabled,
-          intervalMinutes: intervalMinutes ?? 5,
-          expectedStatus: expectedStatus ?? 200,
-          responseTimeThresholdMs: responseTimeThresholdMs ?? 1000,
+        agentService: {
+          enabled: input.agentServiceEnabled ?? false,
+          nodeId: (input.agentServiceNodeId as string) ?? "",
+          hmacSecret,
         },
       });
       await newResource.save();
@@ -273,25 +257,17 @@ export const resourceTools: ToolDefinition[] = [
             type: "boolean",
             description: "Whether the resource is active (optional)",
           },
-          healthEnabled: {
+          agentServiceEnabled: {
             type: "boolean",
-            description:
-              "Whether health checks are enabled for the resource (optional)",
+            description: "Enable/disable agent service monitoring (optional)",
           },
-          intervalMinutes: {
-            type: "number",
-            description:
-              "Health check interval in minutes (optional, default: 5)",
+          agentServiceNodeId: {
+            type: "string",
+            description: "Agent service node ID (optional)",
           },
-          expectedStatus: {
-            type: "number",
-            description:
-              "Expected HTTP status code for health checks (optional, default: 200)",
-          },
-          responseTimeThresholdMs: {
-            type: "number",
-            description:
-              "Response time threshold in milliseconds for health checks (optional, default: 1000)",
+          agentServiceHmacSecret: {
+            type: "string",
+            description: "HMAC shared secret for signing requests to the agent (optional, leave empty to keep current)",
           },
         },
         required: ["id"],
@@ -300,34 +276,28 @@ export const resourceTools: ToolDefinition[] = [
     isWrite: true,
     category: "resources",
     execute: async (input) => {
-      const {
-        id,
-        name,
-        url,
-        type,
-        description,
-        isActive,
-        healthEnabled,
-        intervalMinutes,
-        expectedStatus,
-        responseTimeThresholdMs,
-      } = input;
+      const { id, name, url, type, description, isActive } = input;
       await connectDB();
+
+      const updates: Record<string, unknown> = {};
+      if (name !== undefined) updates.name = name;
+      if (url !== undefined) updates.url = url;
+      if (type !== undefined) updates.type = type;
+      if (description !== undefined) updates.description = description;
+      if (isActive !== undefined) updates.isActive = isActive;
+      if (input.agentServiceEnabled !== undefined) {
+        updates["agentService.enabled"] = input.agentServiceEnabled;
+      }
+      if (input.agentServiceNodeId !== undefined) {
+        updates["agentService.nodeId"] = input.agentServiceNodeId;
+      }
+      if (typeof input.agentServiceHmacSecret === "string" && (input.agentServiceHmacSecret as string).trim()) {
+        updates["agentService.hmacSecret"] = encryptPassword(input.agentServiceHmacSecret as string);
+      }
+
       const updatedResource = await Resource.findByIdAndUpdate(
         id,
-        {
-          name,
-          url,
-          type,
-          description,
-          isActive,
-          healthCheck: {
-            enabled: healthEnabled,
-            intervalMinutes,
-            expectedStatus,
-            responseTimeThresholdMs,
-          },
-        },
+        { $set: updates },
         { new: true },
       );
       if (!updatedResource) {
@@ -338,6 +308,69 @@ export const resourceTools: ToolDefinition[] = [
         name: updatedResource.name,
         url: updatedResource.url,
         type: updatedResource.type,
+      };
+    },
+  },
+  {
+    schema: {
+      name: "reboot_resource",
+      description:
+        "Reboot a resource via its agent service. Requires agent service to be enabled.",
+      input_schema: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "ID of the resource to reboot",
+          },
+        },
+        required: ["id"],
+      },
+    },
+    isWrite: true,
+    category: "resources",
+    execute: async (input) => {
+      const { id } = input;
+      await connectDB();
+      const resource = await Resource.findById(id);
+      if (!resource) throw new Error("Resource not found");
+      const result = await rebootResource(resource);
+      if (!result.success) throw new Error(result.error ?? "Reboot failed");
+      return { success: true, message: `Reboot initiated for ${resource.name}` };
+    },
+  },
+  {
+    schema: {
+      name: "restart_resource_service",
+      description:
+        "Restart a specific service on a resource via its agent service.",
+      input_schema: {
+        type: "object",
+        properties: {
+          id: {
+            type: "string",
+            description: "ID of the resource",
+          },
+          serviceName: {
+            type: "string",
+            description: "Name of the service to restart (e.g. 'nginx', 'picron')",
+          },
+        },
+        required: ["id", "serviceName"],
+      },
+    },
+    isWrite: true,
+    category: "resources",
+    execute: async (input) => {
+      const { id, serviceName } = input;
+      await connectDB();
+      const resource = await Resource.findById(id);
+      if (!resource) throw new Error("Resource not found");
+      const result = await restartService(resource, serviceName as string);
+      if (!result.success) throw new Error(result.error ?? "Restart failed");
+      return {
+        success: true,
+        message: `Service "${serviceName}" restart initiated on ${resource.name}`,
       };
     },
   },

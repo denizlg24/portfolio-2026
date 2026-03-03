@@ -32,7 +32,7 @@ export async function GET(
     const { username, password } = getPiCronCredentials(cap);
     const history = await piCronFetch<PiCronHistoryEntry[]>(
       capId,
-      resource.url,
+      cap.baseUrl,
       username,
       password,
       `/api/jobs/${jobId}/history`,

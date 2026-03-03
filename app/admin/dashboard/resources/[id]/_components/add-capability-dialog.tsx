@@ -37,6 +37,7 @@ export function AddCapabilityDialog({
   const [loading, setLoading] = useState(false);
   const [type, setType] = useState("picron");
   const [label, setLabel] = useState("");
+  const [baseUrl, setBaseUrl] = useState("");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
 
@@ -44,6 +45,7 @@ export function AddCapabilityDialog({
     if (open) {
       setType("picron");
       setLabel("");
+      setBaseUrl("");
       setUsername("");
       setPassword("");
     }
@@ -55,12 +57,17 @@ export function AddCapabilityDialog({
       return;
     }
 
+    if (!baseUrl.trim()) {
+      toast.error("Base URL is required.");
+      return;
+    }
+
     if (type === "picron" && (!username.trim() || !password.trim())) {
       toast.error("Username and password are required for PiCron.");
       return;
     }
 
-    const payload: Record<string, unknown> = { type, label };
+    const payload: Record<string, unknown> = { type, label, baseUrl };
 
     if (type === "picron") {
       payload.username = username;
@@ -123,6 +130,18 @@ export function AddCapabilityDialog({
               value={label}
               onChange={(e) => setLabel(e.target.value)}
             />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Base URL</Label>
+            <Input
+              placeholder="http://raspberrypi.local:8080"
+              value={baseUrl}
+              onChange={(e) => setBaseUrl(e.target.value)}
+            />
+            <p className="text-[10px] text-muted-foreground">
+              The base URL for this capability&apos;s API.
+            </p>
           </div>
 
           {type === "picron" && (

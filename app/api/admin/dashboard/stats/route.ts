@@ -80,7 +80,7 @@ export async function GET(request: NextRequest) {
       .lean();
 
     const resources = await Resource.find({ isActive: true })
-      .select("name type healthCheck.isHealthy healthCheck.lastCheckedAt")
+      .select("name type agentService.lastStatus agentService.lastCheckedAt")
       .lean();
 
     const [totalEmails, unreadEmails] = await Promise.all([
@@ -154,8 +154,8 @@ export async function GET(request: NextRequest) {
         _id: String(r._id),
         name: r.name,
         type: r.type,
-        isHealthy: r.healthCheck?.isHealthy ?? null,
-        lastCheckedAt: r.healthCheck?.lastCheckedAt ?? null,
+        status: r.agentService?.lastStatus ?? null,
+        lastCheckedAt: r.agentService?.lastCheckedAt ?? null,
       })),
       emails: {
         total: totalEmails,

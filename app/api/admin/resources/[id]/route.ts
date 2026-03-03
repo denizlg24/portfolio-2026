@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
+import { encryptPassword } from "@/lib/safe-email-password";
 import { Resource } from "@/models/Resource";
 
 function serializeResource(r: any) {
@@ -11,11 +12,12 @@ function serializeResource(r: any) {
     url: r.url,
     type: r.type,
     isActive: r.isActive,
-    healthCheck: r.healthCheck,
+    agentService: r.agentService,
     capabilities: (r.capabilities ?? []).map((c: any) => ({
       _id: c._id.toString(),
       type: c.type,
       label: c.label,
+      baseUrl: c.baseUrl,
       config: c.config,
       isActive: c.isActive,
     })),
@@ -50,6 +52,10 @@ export async function PATCH(
 
   const { id } = await params;
   const body = await request.json();
+
+  if (body.agentService && typeof body.agentService.hmacSecret === "string" && body.agentService.hmacSecret.trim()) {
+    body.agentService.hmacSecret = encryptPassword(body.agentService.hmacSecret);
+  }
 
   await connectDB();
   const resource = await Resource.findByIdAndUpdate(id, body, {
