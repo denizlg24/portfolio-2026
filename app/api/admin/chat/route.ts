@@ -23,7 +23,7 @@ function sanitizeContentBlock(
         type: "tool_use",
         id: block.id as string,
         name: block.name as string,
-        input: block.input as Record<string, unknown>,
+        input: (block.input as Record<string, unknown>) ?? {},
       };
     case "tool_result": {
       const result: Anthropic.ToolResultBlockParam = {

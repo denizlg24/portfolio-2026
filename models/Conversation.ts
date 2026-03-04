@@ -52,7 +52,7 @@ const ConversationSchema = new mongoose.Schema<IConversation>(
       default: [],
     },
   },
-  { timestamps: true },
+  { timestamps: true, minimize: false },
 );
 
 export const Conversation: mongoose.Model<IConversation> =
