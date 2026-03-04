@@ -1,5 +1,6 @@
 import {
   createCard,
+  createColumn,
   getAllBoards,
   getFullBoard,
   updateCard,
@@ -196,15 +197,22 @@ export const kanbanTools: ToolDefinition[] = [
     },
   },
   {
-    schema:{
+    schema: {
       name: "create_kanban_board",
-      description: "Create a new kanban board with a title and optional description.",
+      description:
+        "Create a new kanban board with a title and optional description.",
       input_schema: {
         type: "object",
         properties: {
           title: { type: "string", description: "Board title" },
-          description: { type: "string", description: "Board description (optional)" },
-          color: { type: "string", description: "Board color in hex (optional)" },
+          description: {
+            type: "string",
+            description: "Board description (optional)",
+          },
+          color: {
+            type: "string",
+            description: "Board color in hex (optional)",
+          },
         },
         required: ["title"],
       },
@@ -222,7 +230,7 @@ export const kanbanTools: ToolDefinition[] = [
       return {
         _id: board._id.toString(),
       };
-    }
+    },
   },
   {
     schema: {
@@ -245,37 +253,53 @@ export const kanbanTools: ToolDefinition[] = [
       return { success: true };
     },
   },
-  {schema: {
-    name: "update_kanban_board",
-    description: "Update a kanban board's title, description, color, or archive it.",
-    input_schema: {
-      type: "object",
-      properties: {
-        id: { type: "string", description: "Board ID" },
-        title: { type: "string", description: "New title (optional)" },
-        description: { type: "string", description: "New description (optional)" },
-        color: { type: "string", description: "New color in hex (optional)" },
-        isArchived: { type: "boolean", description: "Archive or unarchive the board (optional)" },
+  {
+    schema: {
+      name: "update_kanban_board",
+      description:
+        "Update a kanban board's title, description, color, or archive it.",
+      input_schema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Board ID" },
+          title: { type: "string", description: "New title (optional)" },
+          description: {
+            type: "string",
+            description: "New description (optional)",
+          },
+          color: { type: "string", description: "New color in hex (optional)" },
+          isArchived: {
+            type: "boolean",
+            description: "Archive or unarchive the board (optional)",
+          },
+        },
+        required: ["id"],
       },
-      required: ["id"],
     },
-  }, isWrite: true, category:"kanban", execute: async (input) => {
-    const data: Record<string, unknown> = {};
-    if (input.title !== undefined) data.title = input.title;
-    if (input.description !== undefined) data.description = input.description;
-    if (input.color !== undefined) data.color = input.color;
-    if (input.isArchived !== undefined) data.isArchived = input.isArchived;
-    await connectDB();
-    const board = await KanbanBoard.findByIdAndUpdate(input.id as string, data, { new: true });
-    if (!board) return { success: false, message: "Board not found" } ;
-    return {
-      _id: board._id.toString(),
-      title: board.title,
-      description: board.description,
-      color: board.color,
-      isArchived: board.isArchived,
-    };
-  }},
+    isWrite: true,
+    category: "kanban",
+    execute: async (input) => {
+      const data: Record<string, unknown> = {};
+      if (input.title !== undefined) data.title = input.title;
+      if (input.description !== undefined) data.description = input.description;
+      if (input.color !== undefined) data.color = input.color;
+      if (input.isArchived !== undefined) data.isArchived = input.isArchived;
+      await connectDB();
+      const board = await KanbanBoard.findByIdAndUpdate(
+        input.id as string,
+        data,
+        { new: true },
+      );
+      if (!board) return { success: false, message: "Board not found" };
+      return {
+        _id: board._id.toString(),
+        title: board.title,
+        description: board.description,
+        color: board.color,
+        isArchived: board.isArchived,
+      };
+    },
+  },
   {
     schema: {
       name: "list_kanban_cards",
@@ -285,7 +309,10 @@ export const kanbanTools: ToolDefinition[] = [
         type: "object",
         properties: {
           boardId: { type: "string", description: "Board ID" },
-          columnId: { type: "string", description: "Column ID to filter by (optional)" },
+          columnId: {
+            type: "string",
+            description: "Column ID to filter by (optional)",
+          },
         },
         required: ["boardId"],
       },
@@ -306,7 +333,7 @@ export const kanbanTools: ToolDefinition[] = [
         cards = cards.filter((card) => card.columnId === input.columnId);
       }
       return cards;
-    }
+    },
   },
   {
     schema: {
@@ -324,7 +351,10 @@ export const kanbanTools: ToolDefinition[] = [
               properties: {
                 id: { type: "string", description: "Card ID" },
                 columnId: { type: "string", description: "New column ID" },
-                order: { type: "number", description: "New order index within the column" },
+                order: {
+                  type: "number",
+                  description: "New order index within the column",
+                },
               },
               required: ["id", "columnId", "order"],
             },
@@ -336,7 +366,11 @@ export const kanbanTools: ToolDefinition[] = [
     isWrite: true,
     category: "kanban",
     execute: async (input) => {
-      const items = input.items as { id: string; columnId: string; order: number }[];
+      const items = input.items as {
+        id: string;
+        columnId: string;
+        order: number;
+      }[];
       await connectDB();
       for (const item of items) {
         const columnId = new mongoose.Types.ObjectId(item.columnId);
@@ -344,9 +378,37 @@ export const kanbanTools: ToolDefinition[] = [
           columnId,
           order: item.order,
         });
-        if (!card) return {success:false, message: `Card with ID ${item.id} not found`};
+        if (!card)
+          return {
+            success: false,
+            message: `Card with ID ${item.id} not found`,
+          };
       }
-      return {success:true};
-    }
-  }
+      return { success: true };
+    },
+  },
+  {
+    schema: {
+      name: "create_kanban_column",
+      description: "Create a new column on a kanban board.",
+      input_schema: {
+        type: "object",
+        properties: {
+          boardId: { type: "string", description: "Board ID" },
+          title: { type: "string", description: "Column title" },
+        },
+        required: ["boardId", "title"],
+      },
+    },
+    isWrite: true,
+    category: "kanban",
+    execute: async (input) => {
+      const board = await getFullBoard(input.boardId as string);
+      if (!board) return { success: false, message: "Board not found" };
+      const column = await createColumn(input.boardId as string, {
+        title: input.title as string,
+      });
+      return column;
+    },
+  },
 ];

@@ -169,4 +169,25 @@ export const notesTools: ToolDefinition[] = [
       };
     },
   },
+  {
+    schema: {
+      name: "delete_note",
+      description: "Delete a note by its ID.",
+      input_schema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Note ID" },
+        },
+        required: ["id"],
+      },
+    },
+    isWrite: true,
+    category: "notes",
+    execute: async (input) => {
+      await connectDB();
+      const note = await Note.findByIdAndDelete(input.id as string);
+      if (!note) throw new Error("Note not found");
+      return { success: true };
+    },
+  },
 ];
