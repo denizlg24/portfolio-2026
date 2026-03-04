@@ -12,6 +12,47 @@ import { buildSystemPrompt } from "@/lib/tools/system-prompt";
 
 export const maxDuration = 300;
 
+function sanitizeContentBlock(
+  block: Record<string, unknown>,
+): Anthropic.ContentBlockParam {
+  switch (block.type) {
+    case "text":
+      return { type: "text", text: block.text as string };
+    case "tool_use":
+      return {
+        type: "tool_use",
+        id: block.id as string,
+        name: block.name as string,
+        input: block.input as Record<string, unknown>,
+      };
+    case "tool_result": {
+      const result: Anthropic.ToolResultBlockParam = {
+        type: "tool_result",
+        tool_use_id: block.tool_use_id as string,
+      };
+      if (block.content !== undefined) {
+        result.content = block.content as string;
+      }
+      if (block.is_error) {
+        result.is_error = true;
+      }
+      return result;
+    }
+    default:
+      return block as unknown as Anthropic.ContentBlockParam;
+  }
+}
+
+function sanitizeContent(
+  content: string | unknown[],
+): string | Anthropic.ContentBlockParam[] {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return content as string;
+  return content.map((block) =>
+    sanitizeContentBlock(block as Record<string, unknown>),
+  );
+}
+
 export const POST = async (req: NextRequest) => {
   const adminError = await requireAdmin(req);
   if (adminError) return adminError;
@@ -72,7 +113,7 @@ export const POST = async (req: NextRequest) => {
         for (const msg of conversation.messages) {
           messages.push({
             role: msg.role,
-            content: msg.content as string | Anthropic.ContentBlockParam[],
+            content: sanitizeContent(msg.content),
           });
         }
       }
@@ -118,7 +159,7 @@ export const POST = async (req: NextRequest) => {
 
       const messagesToStore = msgs.map((m) => ({
         role: m.role as "user" | "assistant",
-        content: m.content,
+        content: sanitizeContent(m.content as string | unknown[]),
         ...(tokenUsage && m === msgs[msgs.length - 1] && m.role === "assistant"
           ? { tokenUsage }
           : {}),

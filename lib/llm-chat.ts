@@ -477,6 +477,18 @@ export function createAgenticSSEStream({
         });
       } catch (err) {
         const message = err instanceof Error ? err.message : "Stream error";
+        console.error("Agentic stream error:", err);
+        if (
+          err &&
+          typeof err === "object" &&
+          "status" in err &&
+          "error" in err
+        ) {
+          console.error(
+            "Anthropic API error details:",
+            JSON.stringify((err as { error: unknown }).error, null, 2),
+          );
+        }
         try {
           send({ type: "error", error: message });
           controller.close();
