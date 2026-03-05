@@ -9,6 +9,8 @@ function estimateReadTime(content: string): number {
 }
 
 export const blogTools: ToolDefinition[] = [
+  // ── Read ────────────────────────────────────────────────
+
   {
     schema: {
       name: "list_blogs",
@@ -86,6 +88,9 @@ export const blogTools: ToolDefinition[] = [
       }));
     },
   },
+
+  // ── Write ───────────────────────────────────────────────
+
   {
     schema: {
       name: "create_blog",
@@ -115,8 +120,7 @@ export const blogTools: ToolDefinition[] = [
           },
           isActive: {
             type: "boolean",
-            description:
-              "Whether the blog post is published (default: true)",
+            description: "Whether the blog post is published (default: true)",
           },
         },
         required: ["title", "slug", "content", "excerpt"],
@@ -206,6 +210,27 @@ export const blogTools: ToolDefinition[] = [
         isActive: blog.isActive,
         timeToRead: blog.timeToRead,
       };
+    },
+  },
+  {
+    schema: {
+      name: "delete_blog",
+      description: "Delete a blog post by its ID.",
+      input_schema: {
+        type: "object",
+        properties: {
+          id: { type: "string", description: "Blog post ID to delete" },
+        },
+        required: ["id"],
+      },
+    },
+    isWrite: true,
+    category: "blog",
+    execute: async (input) => {
+      await connectDB();
+      const blog = await Blog.findByIdAndDelete(input.id as string).lean();
+      if (!blog) throw new Error("Blog post not found");
+      return { success: true };
     },
   },
 ];

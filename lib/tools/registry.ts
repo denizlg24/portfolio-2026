@@ -12,16 +12,23 @@ import { timetableTools } from "./timetable";
 import type { ToolDefinition, ToolSchema } from "./types";
 
 const allTools: ToolDefinition[] = [
-  ...calendarTools,
+  // Productivity
   ...kanbanTools,
   ...notesTools,
+  ...calendarTools,
   ...timetableTools,
-  ...contactsTools,
+
+  // Content
   ...blogTools,
   ...projectsTools,
   ...timelineTools,
-  ...emailTools,
   ...nowTools,
+
+  // Communication
+  ...contactsTools,
+  ...emailTools,
+
+  // Infrastructure
   ...resourceTools,
 ];
 
