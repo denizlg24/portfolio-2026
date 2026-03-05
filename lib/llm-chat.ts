@@ -1,7 +1,7 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { anthropic, calculateCost, getMaxTokens, logLlmUsage } from "@/lib/llm";
 import { getToolByName, isWriteTool } from "@/lib/tools/registry";
-import type { ToolSchema } from "@/lib/tools/types";
+import type { TokenUsage } from "@/models/Conversation";
 
 const MAX_ITERATIONS = 15;
 
@@ -9,12 +9,12 @@ interface AgenticStreamParams {
   system: string;
   messages: Anthropic.MessageParam[];
   model: string;
-  tools?: (ToolSchema | Anthropic.Tool)[];
+  tools?: Anthropic.ToolUnion[];
   source: string;
   toolApprovals?: Record<string, boolean>;
   onPersist?: (
     messages: Anthropic.MessageParam[],
-    tokenUsage?: { inputTokens: number; outputTokens: number; costUsd: number },
+    tokenUsage?: TokenUsage,
   ) => Promise<void>;
 }
 
@@ -191,7 +191,7 @@ export function createAgenticSSEStream({
             max_tokens: maxTokens,
             system,
             messages: workingMessages,
-            ...(tools?.length ? { tools: tools as Anthropic.Tool[] } : {}),
+            ...(tools?.length ? { tools } : {}),
           });
 
           const contentBlocks: Anthropic.ContentBlock[] = [];

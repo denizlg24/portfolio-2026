@@ -9,29 +9,34 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { requireAdmin } from "@/lib/require-admin";
 import { getToolSchemas } from "@/lib/tools/registry";
 import { buildSystemPrompt } from "@/lib/tools/system-prompt";
+import type {
+  IConversationMessage,
+  StoredContentBlock,
+  TokenUsage,
+} from "@/models/Conversation";
 
 export const maxDuration = 300;
 
 function sanitizeContentBlock(
-  block: Record<string, unknown>,
+  block: StoredContentBlock,
 ): Anthropic.ContentBlockParam {
   switch (block.type) {
     case "text":
-      return { type: "text", text: block.text as string };
+      return { type: "text", text: block.text ?? "" };
     case "tool_use":
       return {
         type: "tool_use",
-        id: block.id as string,
-        name: block.name as string,
-        input: (block.input as Record<string, unknown>) ?? {},
+        id: block.id ?? "",
+        name: block.name ?? "",
+        input: block.input ?? {},
       };
     case "tool_result": {
       const result: Anthropic.ToolResultBlockParam = {
         type: "tool_result",
-        tool_use_id: block.tool_use_id as string,
+        tool_use_id: block.tool_use_id ?? "",
       };
       if (block.content !== undefined) {
-        result.content = block.content as string;
+        result.content = block.content;
       }
       if (block.is_error) {
         result.is_error = true;
@@ -39,18 +44,45 @@ function sanitizeContentBlock(
       return result;
     }
     default:
-      return block as unknown as Anthropic.ContentBlockParam;
+      return { type: "text", text: "" };
   }
 }
 
 function sanitizeContent(
-  content: string | unknown[],
+  content: string | StoredContentBlock[],
 ): string | Anthropic.ContentBlockParam[] {
   if (typeof content === "string") return content;
-  if (!Array.isArray(content)) return content as string;
-  return content.map((block) =>
-    sanitizeContentBlock(block as Record<string, unknown>),
-  );
+  if (!Array.isArray(content)) return String(content);
+  return content.map((block) => sanitizeContentBlock(block));
+}
+
+function messageContentToStored(
+  content: string | Anthropic.ContentBlockParam[],
+): string | StoredContentBlock[] {
+  if (typeof content === "string") return content;
+  return content.map((block): StoredContentBlock => {
+    switch (block.type) {
+      case "text":
+        return { type: "text", text: block.text };
+      case "tool_use":
+        return {
+          type: "tool_use",
+          id: block.id,
+          name: block.name,
+          input: block.input as Record<string, unknown>,
+        };
+      case "tool_result":
+        return {
+          type: "tool_result",
+          tool_use_id: block.tool_use_id,
+          content:
+            typeof block.content === "string" ? block.content : undefined,
+          is_error: block.is_error ?? undefined,
+        };
+      default:
+        return { type: block.type };
+    }
+  });
 }
 
 export const POST = async (req: NextRequest) => {
@@ -106,15 +138,20 @@ export const POST = async (req: NextRequest) => {
     }
 
     const messages: Anthropic.MessageParam[] = [];
+    const existingTokenUsage = new Map<number, TokenUsage>();
 
     if (conversationId) {
       const conversation = await getConversation(conversationId);
       if (conversation) {
         for (const msg of conversation.messages) {
+          const index = messages.length;
           messages.push({
             role: msg.role,
             content: sanitizeContent(msg.content),
           });
+          if (msg.tokenUsage) {
+            existingTokenUsage.set(index, msg.tokenUsage);
+          }
         }
       }
     }
@@ -125,46 +162,50 @@ export const POST = async (req: NextRequest) => {
       messages.push({ role: "user", content: userContent });
     }
 
-    const tools: Anthropic.Tool[] = [];
+    const tools: Anthropic.ToolUnion[] = [];
     if (toolsEnabled) {
       const schemas = getToolSchemas();
       for (const schema of schemas) {
         tools.push({
           name: schema.name,
           description: schema.description,
-          input_schema: schema.input_schema as Anthropic.Tool.InputSchema,
+          input_schema: schema.input_schema,
         });
       }
     }
 
     if (webSearchEnabled) {
-      tools.push({
+      const webSearchTool: Anthropic.WebSearchTool20250305 = {
         type: "web_search_20250305",
         name: "web_search",
         max_uses: 5,
-      } as unknown as Anthropic.Tool);
+      };
+      tools.push(webSearchTool);
     }
 
     const system = buildSystemPrompt();
 
     const onPersist = async (
       msgs: Anthropic.MessageParam[],
-      tokenUsage?: {
-        inputTokens: number;
-        outputTokens: number;
-        costUsd: number;
-      },
+      tokenUsage?: TokenUsage,
     ) => {
       if (!conversationId) return;
 
-      const messagesToStore = msgs.map((m) => ({
-        role: m.role as "user" | "assistant",
-        content: sanitizeContent(m.content as string | unknown[]),
-        ...(tokenUsage && m === msgs[msgs.length - 1] && m.role === "assistant"
-          ? { tokenUsage }
-          : {}),
-        createdAt: new Date(),
-      }));
+      const messagesToStore: IConversationMessage[] = msgs.map((m, i) => {
+        const preserved = existingTokenUsage.get(i);
+        const isLastAssistant = i === msgs.length - 1 && m.role === "assistant";
+
+        return {
+          role: m.role,
+          content: messageContentToStored(m.content),
+          ...(isLastAssistant && tokenUsage
+            ? { tokenUsage }
+            : preserved
+              ? { tokenUsage: preserved }
+              : {}),
+          createdAt: new Date(),
+        };
+      });
 
       await updateConversationMessages(conversationId, messagesToStore);
     };

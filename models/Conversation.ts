@@ -1,13 +1,26 @@
 import mongoose from "mongoose";
 
+export interface StoredContentBlock {
+  type: string;
+  text?: string;
+  id?: string;
+  name?: string;
+  input?: Record<string, unknown>;
+  tool_use_id?: string;
+  content?: string;
+  is_error?: boolean;
+}
+
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  costUsd: number;
+}
+
 export interface IConversationMessage {
   role: "user" | "assistant";
-  content: string | unknown[];
-  tokenUsage?: {
-    inputTokens: number;
-    outputTokens: number;
-    costUsd: number;
-  };
+  content: string | StoredContentBlock[];
+  tokenUsage?: TokenUsage;
   createdAt: Date;
 }
 
