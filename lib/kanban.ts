@@ -104,7 +104,7 @@ export async function getBoardColumns(
 
 export async function createColumn(
   boardId: string,
-  data: { title: string; color?: string; wipLimit?: number },
+  data: { title: string; color?: string; wipLimit?: number, icon?: string },
 ) {
   await connectDB();
   const lastCol = await KanbanColumn.findOne({ boardId })
@@ -121,7 +121,7 @@ export async function createColumn(
 
 export async function updateColumn(
   id: string,
-  data: Partial<{ title: string; color: string; wipLimit: number }>,
+  data: Partial<{ title: string; color: string; wipLimit: number, icon: string }>,
 ) {
   await connectDB();
   const column = await KanbanColumn.findByIdAndUpdate(id, data, {

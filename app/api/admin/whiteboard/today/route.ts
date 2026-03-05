@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { collectDayDataToJournal } from "@/lib/journal";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   clearTodayBoard,
@@ -41,6 +42,8 @@ export async function PUT(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
+
+  await collectDayDataToJournal(new Date(), { includeWhiteboard: true });
 
   const success = await clearTodayBoard(true);
   if (!success) {

@@ -56,7 +56,7 @@ const WhiteboardElementSchema = new mongoose.Schema(
   { _id: false },
 );
 
-const WhiteboardSchema = new mongoose.Schema<IWhiteboard>(
+export const WhiteboardSchema = new mongoose.Schema<IWhiteboard>(
   {
     name: { type: String, required: true },
     elements: [WhiteboardElementSchema],

@@ -31,13 +31,13 @@ export async function POST(
   try {
     const { boardId } = await params;
     const body = await request.json();
-    const { title, color, wipLimit } = body;
+    const { title, color, wipLimit, icon } = body;
 
     if (!title) {
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
 
-    const column = await createColumn(boardId, { title, color, wipLimit });
+    const column = await createColumn(boardId, { title, color, wipLimit, icon });
     return NextResponse.json({ column }, { status: 201 });
   } catch (_error) {
     return NextResponse.json(

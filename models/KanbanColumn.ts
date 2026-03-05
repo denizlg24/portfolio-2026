@@ -4,6 +4,7 @@ export interface IKanbanColumn extends Document {
   boardId: mongoose.Types.ObjectId;
   title: string;
   color?: string;
+  icon?:string;
   order: number;
   wipLimit?: number;
   createdAt: Date;
@@ -15,6 +16,7 @@ export interface ILeanKanbanColumn {
   boardId: string;
   title: string;
   color?: string;
+  icon?: string;
   order: number;
   wipLimit?: number;
   createdAt: Date;
@@ -31,6 +33,7 @@ const KanbanColumnSchema = new mongoose.Schema<IKanbanColumn>(
     },
     title: { type: String, required: true },
     color: { type: String },
+    icon: { type: String },
     order: { type: Number, required: true, default: 0 },
     wipLimit: { type: Number },
   },

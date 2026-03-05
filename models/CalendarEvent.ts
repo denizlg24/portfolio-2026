@@ -42,7 +42,7 @@ const LinkSchema = new mongoose.Schema({
   url: { type: String, required: true },
 });
 
-const CalendarEventSchema = new mongoose.Schema<ICalendarEvent>({
+export const CalendarEventSchema = new mongoose.Schema<ICalendarEvent>({
   date: { type: Date, required: true },
   title: { type: String, required: true },
   place: { type: String },

@@ -11,6 +11,45 @@ import { KanbanBoard } from "@/models/KanbanBoard";
 import { KanbanCard } from "@/models/KanbanCard";
 import mongoose from "mongoose";
 
+const COLUMN_ICON_MAP = [
+  "circle",
+  "clock",
+  "inbox",
+  "list-todo",
+  "loader",
+  "play",
+  "arrow-right",
+  "pencil",
+  "code",
+  "eye",
+  "search",
+  "test-tube",
+  "check-circle",
+  "check",
+  "rocket",
+  "flag",
+  "milestone",
+  "target",
+  "star",
+  "sparkles",
+  "zap",
+  "flame",
+  "lightbulb",
+  "bug",
+  "shield",
+  "alert-circle",
+  "x-circle",
+  "heart",
+  "bookmark",
+  "message-square",
+  "calendar",
+  "archive",
+  "folder",
+  "layers",
+  "settings",
+  "truck",
+];
+
 export const kanbanTools: ToolDefinition[] = [
   {
     schema: {
@@ -396,6 +435,18 @@ export const kanbanTools: ToolDefinition[] = [
         properties: {
           boardId: { type: "string", description: "Board ID" },
           title: { type: "string", description: "Column title" },
+          color: {
+            type: "string",
+            description: "Column color in hex (optional)",
+          },
+          wipLimit: {
+            type: "number",
+            description: "Work in progress limit (optional)",
+          },
+          icon: {
+            type: "string",
+            description: `Column icon (optional) - Must be one of: ${COLUMN_ICON_MAP.join(", ")}`,
+          },
         },
         required: ["boardId", "title"],
       },
@@ -405,8 +456,18 @@ export const kanbanTools: ToolDefinition[] = [
     execute: async (input) => {
       const board = await getFullBoard(input.boardId as string);
       if (!board) return { success: false, message: "Board not found" };
+
+      if (input.icon && !COLUMN_ICON_MAP.includes(input.icon as string)) {
+        return {
+          success: false,
+          message: `Invalid icon. Must be one of: ${COLUMN_ICON_MAP.join(", ")}`,
+        };
+      }
       const column = await createColumn(input.boardId as string, {
         title: input.title as string,
+        color: input.color as string | undefined,
+        wipLimit: input.wipLimit as number | undefined,
+        icon: input.icon as string | undefined,
       });
       return column;
     },
