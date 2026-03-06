@@ -19,10 +19,11 @@ export const maxDuration = 300;
 
 function sanitizeContentBlock(
   block: StoredContentBlock,
-): Anthropic.ContentBlockParam {
+): Anthropic.ContentBlockParam | null {
   switch (block.type) {
     case "text":
-      return { type: "text", text: block.text ?? "" };
+      if (!block.text) return null;
+      return { type: "text", text: block.text };
     case "tool_use":
       return {
         type: "tool_use",
@@ -44,7 +45,7 @@ function sanitizeContentBlock(
       return result;
     }
     default:
-      return { type: "text", text: "" };
+      return null;
   }
 }
 
@@ -53,7 +54,11 @@ function sanitizeContent(
 ): string | Anthropic.ContentBlockParam[] {
   if (typeof content === "string") return content;
   if (!Array.isArray(content)) return String(content);
-  return content.map((block) => sanitizeContentBlock(block));
+  const blocks = content
+    .map((block) => sanitizeContentBlock(block))
+    .filter((block): block is Anthropic.ContentBlockParam => block !== null);
+  if (blocks.length === 0) return "(empty)";
+  return blocks;
 }
 
 function messageContentToStored(
