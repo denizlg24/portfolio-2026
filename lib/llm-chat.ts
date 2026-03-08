@@ -329,10 +329,12 @@ export function createAgenticSSEStream({
           });
 
           if (finalMessage.stop_reason === "tool_use") {
-            const toolUseBlocks = finalMessage.content.filter(
-              (block): block is Anthropic.ToolUseBlock =>
-                block.type === "tool_use",
-            );
+            const toolUseBlocks: Anthropic.ToolUseBlock[] = [];
+            for (const block of finalMessage.content) {
+              if (block.type === "tool_use") {
+                toolUseBlocks.push(block);
+              }
+            }
 
             const readTools = toolUseBlocks.filter((t) => !isWriteTool(t.name));
             const writeTools = toolUseBlocks.filter((t) => isWriteTool(t.name));
