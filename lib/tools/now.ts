@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { connectDB } from "@/lib/mongodb";
 import NowPage from "@/models/NowPage";
 import type { ToolDefinition } from "./types";
@@ -52,6 +53,12 @@ export const nowTools: ToolDefinition[] = [
         { new: true, upsert: true },
       );
       if (!now) return { success: false, error: "Now page not found" };
+
+      revalidatePath("/", "layout");
+      revalidatePath("/", "page");
+      revalidatePath("/now", "layout");
+      revalidatePath("/now", "page");
+
       return {
         success: true,
         content: now.content,

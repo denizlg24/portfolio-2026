@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { getAllBlogs, getBlogById, getFilteredActiveBlogs } from "@/lib/blog";
 import { Blog } from "@/models/Blog";
 import { connectDB } from "../mongodb";
@@ -141,6 +142,12 @@ export const blogTools: ToolDefinition[] = [
         isActive: input.isActive !== false,
       });
       const blog = await doc.save();
+
+      revalidatePath("/", "layout");
+      revalidatePath("/", "page");
+      revalidatePath("/blog", "layout");
+      revalidatePath("/blog", "page");
+
       return {
         _id: blog._id.toString(),
         title: blog.title,
@@ -201,6 +208,13 @@ export const blogTools: ToolDefinition[] = [
       }).lean();
       if (!blog) throw new Error("Blog post not found");
 
+      revalidatePath("/", "layout");
+      revalidatePath("/", "page");
+      revalidatePath("/blog", "layout");
+      revalidatePath("/blog", "page");
+      revalidatePath(`/blog/${blog.slug}`, "layout");
+      revalidatePath(`/blog/${blog.slug}`, "page");
+
       return {
         _id: blog._id.toString(),
         title: blog.title,
@@ -230,6 +244,12 @@ export const blogTools: ToolDefinition[] = [
       await connectDB();
       const blog = await Blog.findByIdAndDelete(input.id as string).lean();
       if (!blog) throw new Error("Blog post not found");
+
+      revalidatePath("/", "layout");
+      revalidatePath("/", "page");
+      revalidatePath("/blog", "layout");
+      revalidatePath("/blog", "page");
+
       return { success: true };
     },
   },

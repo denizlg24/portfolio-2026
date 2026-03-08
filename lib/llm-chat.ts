@@ -1,9 +1,34 @@
 import type Anthropic from "@anthropic-ai/sdk";
+import { APIError } from "@anthropic-ai/sdk";
 import { anthropic, calculateCost, getMaxTokens, logLlmUsage } from "@/lib/llm";
 import { getToolByName, isWriteTool } from "@/lib/tools/registry";
 import type { TokenUsage } from "@/models/Conversation";
 
 const MAX_ITERATIONS = 15;
+const MAX_RATE_LIMIT_RETRIES = 3;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getRetryAfterMs(err: unknown): number {
+  if (err instanceof APIError && err.headers) {
+    const retryAfter = err.headers["retry-after"];
+    if (retryAfter) {
+      const seconds = Number.parseFloat(retryAfter);
+      if (!Number.isNaN(seconds)) return Math.ceil(seconds) * 1000;
+    }
+  }
+  return 15_000;
+}
+
+function isRateLimitError(err: unknown): boolean {
+  return err instanceof APIError && err.status === 429;
+}
+
+function isOverloadedError(err: unknown): boolean {
+  return err instanceof APIError && err.status === 529;
+}
 
 interface AgenticStreamParams {
   system: string;
@@ -186,18 +211,59 @@ export function createAgenticSSEStream({
 
           const maxTokens = getMaxTokens(model);
 
-          const stream = anthropic.messages.stream({
-            model: model as Anthropic.Model,
-            max_tokens: maxTokens,
-            system,
-            messages: workingMessages,
-            ...(tools?.length ? { tools } : {}),
-          });
+          let stream: ReturnType<typeof anthropic.messages.stream>;
+          let streamStarted = false;
+
+          for (
+            let rateLimitAttempt = 0;
+            rateLimitAttempt <= MAX_RATE_LIMIT_RETRIES;
+            rateLimitAttempt++
+          ) {
+            try {
+              stream = anthropic.messages.stream({
+                model: model as Anthropic.Model,
+                max_tokens: maxTokens,
+                system,
+                messages: workingMessages,
+                ...(tools?.length ? { tools } : {}),
+              });
+
+              // Force the stream to connect so rate limit errors surface early
+              await stream.emitted("connect");
+              streamStarted = true;
+              break;
+            } catch (err) {
+              if (
+                (isRateLimitError(err) || isOverloadedError(err)) &&
+                rateLimitAttempt < MAX_RATE_LIMIT_RETRIES
+              ) {
+                const retryAfterMs = getRetryAfterMs(err);
+                send({
+                  type: "rate_limit_backoff",
+                  retryAfterMs,
+                  attempt: rateLimitAttempt + 1,
+                  maxAttempts: MAX_RATE_LIMIT_RETRIES,
+                });
+                await sleep(retryAfterMs);
+                continue;
+              }
+              throw err;
+            }
+          }
+
+          if (!streamStarted) {
+            send({
+              type: "error",
+              error: "Rate limit exceeded after maximum retries",
+            });
+            controller.close();
+            return;
+          }
 
           const contentBlocks: Anthropic.ContentBlock[] = [];
           const toolInputBuffers = new Map<number, string>();
 
-          for await (const event of stream) {
+          for await (const event of stream!) {
             switch (event.type) {
               case "content_block_start": {
                 const block = event.content_block;
