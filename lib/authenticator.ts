@@ -3,31 +3,40 @@ import { connectDB } from "./mongodb";
 import { encryptPassword, decryptPassword } from "./safe-email-password";
 import {
   AuthenticatorAccount,
-  type ILeanAuthenticatorAccount,
   type TotpAlgorithm,
 } from "@/models/AuthenticatorAccount";
 
-interface ParsedOtpUri {
+const VALID_ALGORITHMS: Set<string> = new Set(["SHA1", "SHA256", "SHA512"]);
+
+function isTotpAlgorithm(value: string): value is TotpAlgorithm {
+  return VALID_ALGORITHMS.has(value);
+}
+
+function toPublicAccount(doc: {
+  _id: { toString(): string };
   label: string;
   issuer: string;
   accountName: string;
-  secret: string;
   algorithm: TotpAlgorithm;
   digits: number;
   period: number;
-}
-
-function toLean(
-  doc: Record<string, unknown> & { _id: { toString(): string } },
-): Omit<ILeanAuthenticatorAccount, "secret"> {
-  const { secret: _secret, ...rest } = doc;
+  createdAt: Date;
+  updatedAt: Date;
+}) {
   return {
-    ...rest,
     _id: doc._id.toString(),
-  } as Omit<ILeanAuthenticatorAccount, "secret">;
+    label: doc.label,
+    issuer: doc.issuer,
+    accountName: doc.accountName,
+    algorithm: doc.algorithm,
+    digits: doc.digits,
+    period: doc.period,
+    createdAt: doc.createdAt,
+    updatedAt: doc.updatedAt,
+  };
 }
 
-export function parseOtpAuthUri(uri: string): ParsedOtpUri {
+export function parseOtpAuthUri(uri: string) {
   const parsed = OTPAuth.URI.parse(uri);
 
   if (!(parsed instanceof OTPAuth.TOTP)) {
@@ -36,27 +45,27 @@ export function parseOtpAuthUri(uri: string): ParsedOtpUri {
 
   const labelParts = parsed.label.split(":");
   const accountName =
-    labelParts.length > 1 ? labelParts.slice(1).join(":").trim() : parsed.label;
+    labelParts.length > 1
+      ? labelParts.slice(1).join(":").trim()
+      : parsed.label;
 
   return {
     label: parsed.issuer || parsed.label.split(":")[0].trim(),
     issuer: parsed.issuer,
     accountName,
     secret: parsed.secret.base32,
-    algorithm: (parsed.algorithm || "SHA1") as TotpAlgorithm,
+    algorithm: isTotpAlgorithm(parsed.algorithm) ? parsed.algorithm : ("SHA1" as const),
     digits: parsed.digits || 6,
     period: parsed.period || 30,
   };
 }
 
-export async function getAllAccounts(): Promise<
-  Omit<ILeanAuthenticatorAccount, "secret">[]
-> {
+export async function getAllAccounts() {
   await connectDB();
   const accounts = await AuthenticatorAccount.find()
     .sort({ createdAt: -1 })
     .lean();
-  return accounts.map((a) => toLean(a as Record<string, unknown> & { _id: { toString(): string } }));
+  return accounts.map(toPublicAccount);
 }
 
 export async function createAccount(data: {
@@ -67,7 +76,7 @@ export async function createAccount(data: {
   algorithm?: TotpAlgorithm;
   digits?: number;
   period?: number;
-}): Promise<Omit<ILeanAuthenticatorAccount, "secret">> {
+}) {
   await connectDB();
   const encrypted = encryptPassword(data.secret);
   const account = await AuthenticatorAccount.create({
@@ -79,16 +88,11 @@ export async function createAccount(data: {
     digits: data.digits ?? 6,
     period: data.period ?? 30,
   });
-  return toLean(account.toObject());
+  return toPublicAccount(account);
 }
 
-export async function importAccounts(
-  uris: string[],
-): Promise<{
-  imported: Omit<ILeanAuthenticatorAccount, "secret">[];
-  errors: { uri: string; error: string }[];
-}> {
-  const imported: Omit<ILeanAuthenticatorAccount, "secret">[] = [];
+export async function importAccounts(uris: string[]) {
+  const imported: ReturnType<typeof toPublicAccount>[] = [];
   const errors: { uri: string; error: string }[] = [];
 
   for (const uri of uris) {
@@ -107,14 +111,7 @@ export async function importAccounts(
   return { imported, errors };
 }
 
-export async function generateCodes(): Promise<
-  {
-    _id: string;
-    code: string;
-    period: number;
-    remaining: number;
-  }[]
-> {
+export async function generateCodes() {
   await connectDB();
   const accounts = await AuthenticatorAccount.find().lean();
   const now = Date.now();
@@ -149,17 +146,17 @@ export async function generateCodes(): Promise<
 export async function updateAccount(
   id: string,
   data: Partial<{ label: string; issuer: string; accountName: string }>,
-): Promise<Omit<ILeanAuthenticatorAccount, "secret"> | null> {
+) {
   await connectDB();
   const account = await AuthenticatorAccount.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
   }).lean();
   if (!account) return null;
-  return toLean(account as Record<string, unknown> & { _id: { toString(): string } });
+  return toPublicAccount(account);
 }
 
-export async function deleteAccount(id: string): Promise<boolean> {
+export async function deleteAccount(id: string) {
   await connectDB();
   const result = await AuthenticatorAccount.findByIdAndDelete(id);
   return !!result;

@@ -18,23 +18,6 @@ export interface IAuthenticatorAccount extends Document {
   updatedAt: Date;
 }
 
-export interface ILeanAuthenticatorAccount {
-  _id: string;
-  label: string;
-  issuer: string;
-  accountName: string;
-  secret: {
-    ciphertext: string;
-    iv: string;
-    authTag: string;
-  };
-  algorithm: TotpAlgorithm;
-  digits: number;
-  period: number;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
 const AuthenticatorAccountSchema = new Schema<IAuthenticatorAccount>(
   {
     label: { type: String, required: true },
