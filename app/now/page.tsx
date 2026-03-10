@@ -4,13 +4,13 @@ import { Suspense } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getNowPageContent } from "@/lib/now-page";
+import { GitHubRecentCommits } from "./github-recent-commits";
 import {
-  GitHubRecentCommits,
-  GitHubRecentCommitsSkeleton,
-} from "./github-activity";
-import { GitHubContributions } from "./github-contributions";
+  GitHubContributions,
+  GitHubContributionsSkeleton,
+} from "./github-contributions";
 
-export const revalidate = 604800;
+export const revalidate = 86400;
 
 export const metadata: Metadata = {
   title: {
@@ -79,7 +79,9 @@ export default function Page() {
           check out what i've been working on lately
         </h2>
         <div className="my-12"></div>
-        <GitHubContributions />
+        <Suspense fallback={<GitHubContributionsSkeleton />}>
+          <GitHubContributions />
+        </Suspense>
         <Suspense fallback={<NowPageContentSkeleton />}>
           <NowPageContent />
         </Suspense>
@@ -87,9 +89,7 @@ export default function Page() {
           <h2 className="text-2xl font-calistoga text-left mb-4">
             recent contributions
           </h2>
-          <Suspense fallback={<GitHubRecentCommitsSkeleton />}>
-            <GitHubRecentCommits />
-          </Suspense>
+          <GitHubRecentCommits />
         </div>
       </section>
     </main>
