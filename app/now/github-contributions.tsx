@@ -1,6 +1,4 @@
-"use client";
-
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ContributionDay {
@@ -108,7 +106,7 @@ function ContributionGrid({ data }: { data: ContributionData }) {
   );
 }
 
-function GitHubContributionsSkeleton() {
+export function GitHubContributionsSkeleton() {
   return (
     <div className="w-full max-w-fit mx-auto">
       <div className="overflow-x-auto">
@@ -135,21 +133,46 @@ function GitHubContributionsSkeleton() {
           ))}
         </div>
       </div>
+      <p className="text-xs text-muted-foreground mt-1">
+        - contributions in the last year
+      </p>
     </div>
   );
 }
 
-export function GitHubContributions() {
-  const [data, setData] = useState<ContributionData | null>(null);
+export async function GitHubContributions() {
+  const result = await fetch("https://api.github.com/graphql", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+    },
+    body: JSON.stringify({
+      query: `
+        query ($username: String!) {
+          user(login: $username) {
+            contributionsCollection {
+              contributionCalendar {
+                totalContributions
+                weeks {
+                  contributionDays {
+                    date
+                    contributionCount
+                    contributionLevel
+                  }
+                }
+              }
+            }
+          }
+        }
+      `,
+      variables: { username: "denizlg24" },
+    }),
+  });
 
-  useEffect(() => {
-    fetch("/api/github/contributions")
-      .then((res) => res.json())
-      .then(setData)
-      .catch(() => {});
-  }, []);
-
-  if (!data) return <GitHubContributionsSkeleton />;
+  const json = await result.json();
+  const data: ContributionData =
+    json.data.user.contributionsCollection.contributionCalendar;
 
   return <ContributionGrid data={data} />;
 }
