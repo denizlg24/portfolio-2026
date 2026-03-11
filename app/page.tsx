@@ -63,6 +63,16 @@ export default function Home() {
             className="w-5 h-auto aspect-[1.5] object-contain rounded"
           />
         </h2>
+        <div>
+          <code
+            className="mt-3 inline-flex items-center rounded-md bg-[#252a25] px-3 py-1.5 text-xs font-mono text-[#d2dcb6] shadow-sm"
+            title="Run this in your terminal"
+          >
+            <span className="text-[#a1bc98] select-none mr-1">$</span>
+            ssh me.denizlg24.com
+            <span className="ml-1 inline-block w-0.5 h-3.5 bg-[#a1bc98] animate-caret-blink" />
+          </code>
+        </div>
       </section>
       <section className="w-full max-w-5xl mx-auto px-4 md:grid flex flex-col-reverse grid-cols-5 gap-6 mt-6 items-center">
         <article className="col-span-3 flex flex-col items-start gap-6 w-full">
