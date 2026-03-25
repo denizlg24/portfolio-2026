@@ -45,6 +45,11 @@ const PRICING: Record<string, { input: number; output: number }> = {
   "claude-3-haiku-20240307": { input: 0.25, output: 1.25 },
 };
 
+// Cache pricing multipliers (relative to base input price)
+// Cache writes cost 1.25x base input price, cache reads cost 0.1x base input price
+const CACHE_WRITE_MULTIPLIER = 1.25;
+const CACHE_READ_MULTIPLIER = 0.1;
+
 // Context window and max output tokens per model
 const MODEL_LIMITS: Record<string, { context: number; maxOutput: number }> = {
   // Claude 4.6 family
@@ -91,16 +96,33 @@ export function getContextWindow(model: string): number {
   return (MODEL_LIMITS[model] ?? DEFAULT_LIMITS).context;
 }
 
+export interface CacheUsage {
+  cacheCreationInputTokens: number;
+  cacheReadInputTokens: number;
+}
+
 export function calculateCost(
   model: string,
   inputTokens: number,
   outputTokens: number,
+  cacheUsage?: CacheUsage,
 ): number {
   const pricing = PRICING[model] ?? DEFAULT_PRICING;
-  return (
-    (inputTokens * pricing.input) / 1_000_000 +
-    (outputTokens * pricing.output) / 1_000_000
-  );
+  
+  let inputCost: number;
+  
+  if (cacheUsage) {
+    const cacheWriteCost = (cacheUsage.cacheCreationInputTokens * pricing.input * CACHE_WRITE_MULTIPLIER) / 1_000_000;
+    const cacheReadCost = (cacheUsage.cacheReadInputTokens * pricing.input * CACHE_READ_MULTIPLIER) / 1_000_000;
+    const uncachedInputCost = (inputTokens * pricing.input) / 1_000_000;
+    inputCost = cacheWriteCost + cacheReadCost + uncachedInputCost;
+  } else {
+    
+    inputCost = (inputTokens * pricing.input) / 1_000_000;
+  }
+  
+  const outputCost = (outputTokens * pricing.output) / 1_000_000;
+  return inputCost + outputCost;
 }
 
 async function calculateSafeMaxTokens({
@@ -150,6 +172,7 @@ export type StreamResult = {
   prompt: string;
   source: string;
   inputTokens: number;
+  enableCache?: boolean;
 };
 
 export async function streamGenerate({
@@ -157,11 +180,13 @@ export async function streamGenerate({
   prompt,
   model = "claude-sonnet-4-5-20250929",
   source = "unknown",
+  enableCache = false,
 }: {
   system: string;
   prompt: string;
   model?: Anthropic.Model;
   source?: string;
+  enableCache?: boolean;
 }): Promise<StreamResult> {
   const { maxTokens, inputTokens } = await calculateSafeMaxTokens({
     model,
@@ -174,13 +199,14 @@ export async function streamGenerate({
     max_tokens: maxTokens,
     system,
     messages: [{ role: "user", content: prompt }],
+    ...(enableCache ? { cache_control: { type: "ephemeral" as const } } : {}),
   });
 
-  return { stream, model, system, prompt, source, inputTokens };
+  return { stream, model, system, prompt, source, inputTokens, enableCache };
 }
 
 export function createSSEStream(result: StreamResult): ReadableStream {
-  const { stream, model, system, prompt, source } = result;
+  const { stream, model, system, prompt, source, enableCache } = result;
   let outputTokens = 0;
 
   return new ReadableStream({
@@ -199,14 +225,27 @@ export function createSSEStream(result: StreamResult): ReadableStream {
         const finalMessage = await stream.finalMessage();
         outputTokens = finalMessage.usage.output_tokens;
         const actualInputTokens = finalMessage.usage.input_tokens;
+        
+        const usage = finalMessage.usage as Anthropic.Usage & {
+          cache_creation_input_tokens?: number;
+          cache_read_input_tokens?: number;
+        };
+        const cacheCreationInputTokens = usage.cache_creation_input_tokens ?? 0;
+        const cacheReadInputTokens = usage.cache_read_input_tokens ?? 0;
+        
+        const cacheUsage: CacheUsage | undefined = enableCache ? {
+          cacheCreationInputTokens,
+          cacheReadInputTokens,
+        } : undefined;
 
-        const costUsd = calculateCost(model, actualInputTokens, outputTokens);
+        const costUsd = calculateCost(model, actualInputTokens, outputTokens, cacheUsage);
 
         send({
           type: "done",
           usage: {
             inputTokens: actualInputTokens,
             outputTokens,
+            ...(enableCache ? { cacheCreationInputTokens, cacheReadInputTokens } : {}),
             costUsd,
             model,
           },

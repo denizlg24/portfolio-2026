@@ -1,6 +1,6 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { APIError } from "@anthropic-ai/sdk";
-import { anthropic, calculateCost, getMaxTokens, logLlmUsage } from "@/lib/llm";
+import { anthropic, calculateCost, getMaxTokens, logLlmUsage, type CacheUsage } from "@/lib/llm";
 import { getToolByName, isWriteTool } from "@/lib/tools/registry";
 import type { TokenUsage } from "@/models/Conversation";
 
@@ -55,6 +55,8 @@ export function createAgenticSSEStream({
   const encoder = new TextEncoder();
   let totalInputTokens = 0;
   let totalOutputTokens = 0;
+  let totalCacheCreationInputTokens = 0;
+  let totalCacheReadInputTokens = 0;
   let iterations = 0;
 
   return new ReadableStream({
@@ -225,6 +227,7 @@ export function createAgenticSSEStream({
                 max_tokens: maxTokens,
                 system,
                 messages: workingMessages,
+                cache_control: { type: "ephemeral" },
                 ...(tools?.length ? { tools } : {}),
               });
 
@@ -310,6 +313,12 @@ export function createAgenticSSEStream({
 
           totalInputTokens += finalMessage.usage.input_tokens;
           totalOutputTokens += finalMessage.usage.output_tokens;
+          const usage = finalMessage.usage as Anthropic.Usage & {
+            cache_creation_input_tokens?: number;
+            cache_read_input_tokens?: number;
+          };
+          totalCacheCreationInputTokens += usage.cache_creation_input_tokens ?? 0;
+          totalCacheReadInputTokens += usage.cache_read_input_tokens ?? 0;
 
           for (const block of finalMessage.content) {
             contentBlocks.push(block);
@@ -429,6 +438,11 @@ export function createAgenticSSEStream({
 
               controller.close();
 
+              const cacheUsage: CacheUsage = {
+                cacheCreationInputTokens: totalCacheCreationInputTokens,
+                cacheReadInputTokens: totalCacheReadInputTokens,
+              };
+
               logLlmUsage({
                 llmModel: model,
                 inputTokens: totalInputTokens,
@@ -437,6 +451,7 @@ export function createAgenticSSEStream({
                   model,
                   totalInputTokens,
                   totalOutputTokens,
+                  cacheUsage,
                 ),
                 systemPrompt: system,
                 userPrompt: source,
@@ -507,10 +522,16 @@ export function createAgenticSSEStream({
           break;
         }
 
+        const cacheUsage: CacheUsage = {
+          cacheCreationInputTokens: totalCacheCreationInputTokens,
+          cacheReadInputTokens: totalCacheReadInputTokens,
+        };
+
         const costUsd = calculateCost(
           model,
           totalInputTokens,
           totalOutputTokens,
+          cacheUsage,
         );
 
         if (onPersist) {
@@ -526,6 +547,8 @@ export function createAgenticSSEStream({
           usage: {
             inputTokens: totalInputTokens,
             outputTokens: totalOutputTokens,
+            cacheCreationInputTokens: totalCacheCreationInputTokens,
+            cacheReadInputTokens: totalCacheReadInputTokens,
             costUsd,
             model,
             iterations,
