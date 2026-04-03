@@ -12,13 +12,33 @@ export async function GET(
 
   try {
     const { id } = await params;
+    const { searchParams } = new URL(request.url);
+    const page = Math.max(1, Number(searchParams.get("page") ?? 1));
+    const limit = Math.min(100, Math.max(1, Number(searchParams.get("limit") ?? 50)));
+    const search = searchParams.get("search")?.trim() ?? "";
+
     await connectDB();
 
-    const emails = await EmailModel.find({ accountId: id })
-      .sort({ date: -1 })
-      .limit(100)
-      .lean()
-      .exec();
+    const filter: Record<string, unknown> = { accountId: id };
+
+    if (search) {
+      const regex = { $regex: search, $options: "i" };
+      filter.$or = [
+        { subject: regex },
+        { "from.address": regex },
+        { "from.name": regex },
+      ];
+    }
+
+    const [emails, total] = await Promise.all([
+      EmailModel.find(filter)
+        .sort({ date: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean()
+        .exec(),
+      EmailModel.countDocuments(filter),
+    ]);
 
     return NextResponse.json(
       {
@@ -27,6 +47,10 @@ export async function GET(
           _id: email._id.toString(),
           accountId: String(email.accountId),
         })),
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
       { status: 200 },
     );
