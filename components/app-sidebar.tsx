@@ -7,6 +7,7 @@ import {
   Contact,
   Folder,
   FolderGit2,
+  KeyRound,
   Home,
   Inbox,
   Instagram,
@@ -93,6 +94,11 @@ const items = [
     title: "API Tokens",
     url: "/admin/dashboard/api-tokens",
     icon: Settings,
+  },
+  {
+    title: "Authenticator",
+    url: "/admin/dashboard/authenticator",
+    icon: KeyRound,
   },
   {
     title: "Resources",
