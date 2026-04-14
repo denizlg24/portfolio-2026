@@ -1,5 +1,5 @@
 "use client";
-import { format } from "date-fns";
+import { endOfDay, format, startOfDay } from "date-fns";
 import { isSameDay } from "date-fns/isSameDay";
 import {
   Bell,
@@ -211,8 +211,10 @@ export const CalendarDayDialog = ({
   const fetchEvents = useCallback(async () => {
     setLoading(true);
     try {
+      const start = startOfDay(date);
+      const end = endOfDay(date);
       const response = await fetch(
-        `/api/admin/calendar?date=${date.toISOString()}`,
+        `/api/admin/calendar?start=${start.toISOString()}&end=${end.toISOString()}`,
       );
       if (response.ok) {
         const data = await response.json();
