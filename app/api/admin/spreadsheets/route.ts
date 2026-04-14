@@ -6,7 +6,7 @@ import {
   emptyBook,
   type FortuneSheetBook,
   getAllSpreadsheets,
-  uploadBookToPinata,
+  uploadBookToStorage,
 } from "@/lib/spreadsheets";
 import { Spreadsheet } from "@/models/Spreadsheet";
 
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
 
     const book = content && content.length > 0 ? content : emptyBook();
     const stats = computeStats(book);
-    const uploaded = await uploadBookToPinata(book, `${title}.json`);
+    const uploaded = await uploadBookToStorage(book, `${title}.json`);
 
     await connectDB();
     const doc = await Spreadsheet.create({

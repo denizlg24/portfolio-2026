@@ -2,11 +2,12 @@ import "server-only";
 
 import * as XLSX from "xlsx";
 import { connectDB } from "@/lib/mongodb";
-import { pinata } from "@/lib/pinata";
 import {
-  type ILeanSpreadsheet,
-  Spreadsheet,
-} from "@/models/Spreadsheet";
+  deleteFileFromStorage,
+  downloadJsonFromStorage,
+  uploadFileToStorage,
+} from "@/lib/storage-api";
+import { type ILeanSpreadsheet, Spreadsheet } from "@/models/Spreadsheet";
 
 export interface FortuneSheetCellValue {
   v?: string | number | boolean | null;
@@ -88,7 +89,7 @@ export function emptyBook(): FortuneSheetBook {
   ];
 }
 
-export async function uploadBookToPinata(
+export async function uploadBookToStorage(
   book: FortuneSheetBook,
   filename = "spreadsheet.json",
 ): Promise<{ cid: string; id: string; url: string; size: number }> {
@@ -96,46 +97,50 @@ export async function uploadBookToPinata(
   const blob = new Blob([json], { type: "application/json" });
   const file = new File([blob], filename, { type: "application/json" });
 
-  const uploaded = await pinata.upload.public.file(file);
-  const url = await pinata.gateways.public.convert(uploaded.cid);
+  const uploaded = await uploadFileToStorage(file, "spreadsheet");
 
   return {
-    cid: uploaded.cid,
+    cid: uploaded.id,
     id: uploaded.id,
-    url,
-    size: uploaded.size,
+    url: uploaded.publicUrl,
+    size: uploaded.sizeBytes,
   };
 }
 
-export async function fetchBookFromPinata(
-  cid: string,
+export async function fetchBookFromStorage(
+  fileId: string,
+  legacyUrl?: string,
 ): Promise<FortuneSheetBook> {
-  const url = await pinata.gateways.public.convert(cid);
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) {
-    throw new Error(`Failed to fetch spreadsheet content from Pinata: ${res.status}`);
+  if (
+    !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(
+      fileId,
+    )
+  ) {
+    if (!legacyUrl) {
+      throw new Error("Legacy spreadsheet is missing a readable URL");
+    }
+
+    const response = await fetch(legacyUrl, { cache: "no-store" });
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch legacy spreadsheet content: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as FortuneSheetBook;
   }
-  const data = (await res.json()) as FortuneSheetBook;
-  return data;
+
+  return downloadJsonFromStorage<FortuneSheetBook>(fileId);
 }
 
-export async function unpinFromPinata(
+export async function deleteStoredBook(
   fileId: string | undefined,
-  cid: string,
+  fallbackFileId: string,
 ): Promise<void> {
   try {
-    if (fileId) {
-      await pinata.files.public.delete([fileId]);
-      return;
-    }
-    // Fallback: look up file id by cid
-    const list = await pinata.files.public.list().cid(cid);
-    const files = list?.files ?? [];
-    if (files.length > 0) {
-      await pinata.files.public.delete(files.map((f) => f.id));
-    }
+    await deleteFileFromStorage(fileId ?? fallbackFileId);
   } catch (err) {
-    console.error("Failed to unpin from Pinata:", err);
+    console.error("Failed to delete stored spreadsheet file:", err);
   }
 }
 

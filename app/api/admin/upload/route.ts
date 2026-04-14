@@ -1,6 +1,9 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { pinata } from "@/lib/pinata";
 import { requireAdmin } from "@/lib/require-admin";
+import { uploadFileToStorage } from "@/lib/storage-api";
+
+export const runtime = "nodejs";
+export const maxDuration = 60;
 
 export async function POST(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -14,14 +17,17 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No file provided" }, { status: 400 });
     }
 
-    const { cid } = await pinata.upload.public.file(file);
-    const url = await pinata.gateways.public.convert(cid);
+    const uploaded = await uploadFileToStorage(file, "image");
 
-    return NextResponse.json({ url, hash: cid }, { status: 200 });
-  } catch (error: any) {
-    console.error("Error uploading file:", error);
     return NextResponse.json(
-      { error: "Failed to upload file", details: error.message },
+      { url: uploaded.publicUrl, hash: uploaded.id },
+      { status: 200 },
+    );
+  } catch (error) {
+    const err = error as Error;
+    console.error("Error uploading file:", err);
+    return NextResponse.json(
+      { error: "Failed to upload file", details: err.message },
       { status: 500 },
     );
   }

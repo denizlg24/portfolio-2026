@@ -56,6 +56,7 @@ export default function Home() {
         <h2 className="mt-2 whitespace-nowrap text-sm font-medium sm:text-base text-center inline-flex items-center justify-center gap-1">
           <CurrentAge /> yo software engineer from Portugal
           <Image
+          loading="eager"
             src="/portugal-flag.svg"
             alt="portugal flag"
             width={600}

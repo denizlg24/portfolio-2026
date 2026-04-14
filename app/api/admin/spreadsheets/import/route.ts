@@ -3,7 +3,7 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   computeStats,
-  uploadBookToPinata,
+  uploadBookToStorage,
   xlsxBufferToBook,
 } from "@/lib/spreadsheets";
 import { Spreadsheet } from "@/models/Spreadsheet";
@@ -39,13 +39,18 @@ export async function POST(request: NextRequest) {
     const stats = computeStats(book);
     const finalTitle = title || file.name.replace(/\.(xlsx|xls|csv)$/i, "");
 
-    const uploaded = await uploadBookToPinata(book, `${finalTitle}.json`);
+    const uploaded = await uploadBookToStorage(book, `${finalTitle}.json`);
 
     await connectDB();
     const doc = await Spreadsheet.create({
       title: finalTitle,
       description,
-      tags: tagsRaw ? tagsRaw.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      tags: tagsRaw
+        ? tagsRaw
+            .split(",")
+            .map((t) => t.trim())
+            .filter(Boolean)
+        : [],
       pinataHash: uploaded.cid,
       pinataFileId: uploaded.id,
       pinataUrl: uploaded.url,

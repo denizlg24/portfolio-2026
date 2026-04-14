@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   bookToXlsxBuffer,
-  fetchBookFromPinata,
+  fetchBookFromStorage,
   getSpreadsheetById,
 } from "@/lib/spreadsheets";
 
@@ -25,9 +25,9 @@ export async function GET(
       );
     }
 
-    const book = await fetchBookFromPinata(meta.pinataHash);
+    const book = await fetchBookFromStorage(meta.pinataHash, meta.pinataUrl);
     const buffer = bookToXlsxBuffer(book);
-    const safeName = meta.title.replace(/[^a-z0-9_\-]/gi, "_");
+    const safeName = meta.title.replace(/[^a-z0-9_-]/gi, "_");
 
     return new NextResponse(new Uint8Array(buffer), {
       status: 200,

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { pinata } from "@/lib/pinata";
 import { requireAdmin } from "@/lib/require-admin";
+import { uploadFileToStorage } from "@/lib/storage-api";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -26,17 +26,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const uploaded = await pinata.upload.public.file(file);
-    const url = await pinata.gateways.public.convert(uploaded.cid);
+    const uploaded = await uploadFileToStorage(file, "file");
 
     return NextResponse.json(
       {
-        url,
-        hash: uploaded.cid,
+        url: uploaded.publicUrl,
+        hash: uploaded.id,
         id: uploaded.id,
-        size: uploaded.size,
-        name: uploaded.name,
-        mimeType: uploaded.mime_type,
+        size: uploaded.sizeBytes,
+        name: file.name,
+        mimeType: uploaded.mimeType || file.type || "application/octet-stream",
       },
       { status: 200 },
     );

@@ -3,11 +3,11 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   computeStats,
-  fetchBookFromPinata,
+  deleteStoredBook,
   type FortuneSheetBook,
+  fetchBookFromStorage,
   getSpreadsheetById,
-  unpinFromPinata,
-  uploadBookToPinata,
+  uploadBookToStorage,
 } from "@/lib/spreadsheets";
 import { Spreadsheet } from "@/models/Spreadsheet";
 
@@ -30,15 +30,12 @@ export async function GET(
       );
     }
 
-    const content = await fetchBookFromPinata(meta.pinataHash);
+    const content = await fetchBookFromStorage(meta.pinataHash, meta.pinataUrl);
 
     await connectDB();
     await Spreadsheet.findByIdAndUpdate(id, { lastOpenedAt: new Date() });
 
-    return NextResponse.json(
-      { spreadsheet: meta, content },
-      { status: 200 },
-    );
+    return NextResponse.json({ spreadsheet: meta, content }, { status: 200 });
   } catch (error) {
     const err = error as Error;
     console.error("Error fetching spreadsheet:", err);
@@ -87,7 +84,7 @@ export async function PATCH(
 
     if (content) {
       const stats = computeStats(content);
-      const uploaded = await uploadBookToPinata(
+      const uploaded = await uploadBookToStorage(
         content,
         `${title ?? existing.title}.json`,
       );
@@ -102,9 +99,9 @@ export async function PATCH(
       update.rowCount = stats.rowCount;
       update.colCount = stats.colCount;
 
-      // Unpin old version after successful upload
+      // Delete the previous stored file after the replacement succeeds.
       if (oldCid && oldCid !== uploaded.cid) {
-        unpinFromPinata(oldFileId, oldCid).catch(() => {});
+        deleteStoredBook(oldFileId, oldCid).catch(() => {});
       }
     }
 
@@ -157,7 +154,7 @@ export async function DELETE(
       );
     }
 
-    await unpinFromPinata(doc.pinataFileId, doc.pinataHash);
+    await deleteStoredBook(doc.pinataFileId, doc.pinataHash);
 
     return NextResponse.json(
       { message: "Spreadsheet deleted" },
