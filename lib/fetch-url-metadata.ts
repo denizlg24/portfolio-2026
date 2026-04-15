@@ -10,7 +10,7 @@ export interface UrlMetadata {
 }
 
 const META_TIMEOUT_MS = 8000;
-const MAX_HTML_BYTES = 512 * 1024; // 512KB
+const MAX_HTML_BYTES = 2 * 1024 * 1024; // 2MB (YouTube etc. have huge inline JSON before og tags)
 
 function decodeEntities(s: string): string {
   return s
@@ -70,8 +70,11 @@ export async function fetchUrlMetadata(rawUrl: string): Promise<UrlMetadata> {
       signal: controller.signal,
       headers: {
         "user-agent":
-          "Mozilla/5.0 (compatible; denizlg24-bookmark-bot/1.0)",
-        accept: "text/html,application/xhtml+xml",
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+        accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+        "accept-language": "en-US,en;q=0.9",
+        "accept-encoding": "gzip, deflate, br",
       },
       redirect: "follow",
     });
