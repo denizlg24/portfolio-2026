@@ -100,12 +100,22 @@ export async function POST(request: NextRequest) {
       siteName: meta.siteName,
     });
 
+    const allGroups = await BookmarkGroup.find().select("_id name").lean().exec();
+    const nameToId = new Map<string, string>(
+      allGroups.map((g) => [g.name, String(g._id)] as const),
+    );
+
     const createdGroupIds: string[] = [];
+    const pendingParent: { groupId: string; parentName: string }[] = [];
+
     for (const g of categorization.newGroups) {
       if (!g.name) continue;
-      const existingGroup = await BookmarkGroup.findOne({ name: g.name }).exec();
-      if (existingGroup) {
-        createdGroupIds.push(String(existingGroup._id));
+      const existingId = nameToId.get(g.name);
+      if (existingId) {
+        createdGroupIds.push(existingId);
+        if (g.parentName) {
+          pendingParent.push({ groupId: existingId, parentName: g.parentName });
+        }
         continue;
       }
       const newGroup = await BookmarkGroup.create({
@@ -113,7 +123,50 @@ export async function POST(request: NextRequest) {
         description: g.description,
         autoCreated: true,
       });
-      createdGroupIds.push(String(newGroup._id));
+      const newId = String(newGroup._id);
+      nameToId.set(g.name, newId);
+      createdGroupIds.push(newId);
+      if (g.parentName) {
+        pendingParent.push({ groupId: newId, parentName: g.parentName });
+      }
+    }
+
+    for (const update of categorization.groupUpdates || []) {
+      if (!mongoose.Types.ObjectId.isValid(update.groupId)) continue;
+      const patch: Record<string, unknown> = {};
+      if (update.rename && typeof update.rename === "string") {
+        const trimmed = update.rename.trim();
+        if (trimmed.length > 0) {
+          const clash = nameToId.get(trimmed);
+          if (!clash || clash === update.groupId) {
+            patch.name = trimmed;
+            const oldEntry = [...nameToId.entries()].find(
+              ([, id]) => id === update.groupId,
+            );
+            if (oldEntry) nameToId.delete(oldEntry[0]);
+            nameToId.set(trimmed, update.groupId);
+          }
+        }
+      }
+      if (update.parentName === null) {
+        patch.parentId = null;
+      } else if (update.parentName) {
+        pendingParent.push({
+          groupId: update.groupId,
+          parentName: update.parentName,
+        });
+      }
+      if (Object.keys(patch).length > 0) {
+        await BookmarkGroup.findByIdAndUpdate(update.groupId, patch).exec();
+      }
+    }
+
+    for (const { groupId, parentName } of pendingParent) {
+      const parentId = nameToId.get(parentName);
+      if (!parentId || parentId === groupId) continue;
+      await BookmarkGroup.findByIdAndUpdate(groupId, {
+        parentId: new mongoose.Types.ObjectId(parentId),
+      }).exec();
     }
 
     const validJoinIds = categorization.joinGroupIds.filter((id) =>

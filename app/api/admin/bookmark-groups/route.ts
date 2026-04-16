@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import {
@@ -38,10 +39,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "name required" }, { status: 400 });
     }
     await connectDB();
+    const parentId =
+      typeof body.parentId === "string" &&
+      mongoose.Types.ObjectId.isValid(body.parentId)
+        ? new mongoose.Types.ObjectId(body.parentId)
+        : null;
     const group = await BookmarkGroup.create({
       name: body.name,
       description: body.description,
       color: body.color,
+      parentId,
       autoCreated: false,
     });
     return NextResponse.json(

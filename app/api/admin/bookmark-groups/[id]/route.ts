@@ -26,6 +26,17 @@ export async function PATCH(
     if (typeof body.name === "string") update.name = body.name;
     if (typeof body.description === "string") update.description = body.description;
     if (typeof body.color === "string") update.color = body.color;
+    if ("parentId" in body) {
+      if (body.parentId === null || body.parentId === "") {
+        update.parentId = null;
+      } else if (
+        typeof body.parentId === "string" &&
+        mongoose.Types.ObjectId.isValid(body.parentId) &&
+        body.parentId !== id
+      ) {
+        update.parentId = new mongoose.Types.ObjectId(body.parentId);
+      }
+    }
     const group = await BookmarkGroup.findByIdAndUpdate(id, update, {
       new: true,
       runValidators: true,
@@ -55,10 +66,17 @@ export async function DELETE(
     if (!group) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    await Bookmark.updateMany(
-      { groupIds: new mongoose.Types.ObjectId(id) },
-      { $pull: { groupIds: new mongoose.Types.ObjectId(id) } },
-    );
+    const objectId = new mongoose.Types.ObjectId(id);
+    await Promise.all([
+      Bookmark.updateMany(
+        { groupIds: objectId },
+        { $pull: { groupIds: objectId } },
+      ),
+      BookmarkGroup.updateMany(
+        { parentId: objectId },
+        { $set: { parentId: null } },
+      ),
+    ]);
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting group:", error);
