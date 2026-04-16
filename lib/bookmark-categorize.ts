@@ -51,6 +51,7 @@ Grouping rules (critical — read carefully):
 - If existing groups are narrower siblings of a broader concept that the new bookmark also fits (e.g., "CS Papers", "IT Papers" + new "AI Paper"), create the broader parent ("Papers") in newGroups, then emit groupUpdates that set parentName of the narrow existing groups to the new parent. The new bookmark should join the broader parent directly (joinGroupIds / newGroups).
 - Avoid creating sibling sub-groups preemptively. If only one specialization exists so far, keep the new bookmark in the broader family rather than inventing a second specialization.
 - parentName refers to a group's \`name\` (either an existing group or another entry in this response's newGroups).
+- No redundant ancestors: if \`joinGroupIds\` includes a group, do NOT also include any of its ancestors. The bookmark should sit at the most specific applicable group only. It may still belong to multiple groups across different branches of the hierarchy.
 
 Naming & tags:
 - Group names: short, Title Case, conceptual (e.g., "Papers", "Frontend Performance", "Vector Databases").
@@ -71,7 +72,8 @@ Output ONLY a single JSON object matching this schema, with no prose, no markdow
 Rules:
 - Strongly prefer joining existing groups. Only create a new group if clearly distinct.
 - parentName may reference an existing group's name to nest the new group.
-- Group names: short, Title Case, conceptual.`;
+- Group names: short, Title Case, conceptual.
+- No redundant ancestors: if \`joinGroupIds\` includes a group, do NOT also include any of its ancestors. Sit at the most specific applicable group only.`;
 
 interface CompactBookmark {
   _id: string;

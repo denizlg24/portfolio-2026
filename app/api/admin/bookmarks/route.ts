@@ -10,6 +10,10 @@ import {
   type ILeanBookmarkGroup,
 } from "@/models/BookmarkGroup";
 import { BookmarkEdge, type ILeanBookmarkEdge } from "@/models/BookmarkEdge";
+import {
+  buildAncestorMap,
+  pruneRedundantAncestors,
+} from "@/lib/bookmark-group-hierarchy";
 
 function serializeBookmark(b: ILeanBookmark) {
   return {
@@ -228,10 +232,29 @@ export async function POST(request: NextRequest) {
         mongoose.Types.ObjectId.isValid(id),
       );
       tags = [...new Set([...manualTags, ...categorization.tags])];
-      groupIds = [
+      const mergedIds = [
         ...new Set([...manualGroupIds, ...validJoinIds, ...createdGroupIds]),
-      ].map((id) => new mongoose.Types.ObjectId(id));
+      ];
+      groupIds = mergedIds.map((id) => new mongoose.Types.ObjectId(id));
       relatedBookmarkIds = categorization.relatedBookmarkIds;
+    }
+
+    if (groupIds.length > 1) {
+      const groupsForPrune = await BookmarkGroup.find()
+        .select("_id parentId")
+        .lean<Array<{ _id: mongoose.Types.ObjectId; parentId?: mongoose.Types.ObjectId | null }>>()
+        .exec();
+      const ancestorMap = buildAncestorMap(
+        groupsForPrune.map((g) => ({
+          _id: String(g._id),
+          parentId: g.parentId ? String(g.parentId) : null,
+        })),
+      );
+      const pruned = pruneRedundantAncestors(
+        groupIds.map((id) => id.toString()),
+        ancestorMap,
+      );
+      groupIds = pruned.map((id) => new mongoose.Types.ObjectId(id));
     }
 
     const bookmark = await Bookmark.create({

@@ -4,6 +4,11 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { Bookmark, type ILeanBookmark } from "@/models/Bookmark";
 import { BookmarkEdge } from "@/models/BookmarkEdge";
+import { BookmarkGroup } from "@/models/BookmarkGroup";
+import {
+  buildAncestorMap,
+  pruneRedundantAncestors,
+} from "@/lib/bookmark-group-hierarchy";
 
 function serialize(b: ILeanBookmark) {
   return {
@@ -54,12 +59,36 @@ export async function PATCH(
         .filter((t: string) => t.length > 0);
     }
     if (Array.isArray(body.groupIds)) {
-      update.groupIds = body.groupIds
-        .filter(
-          (g: unknown): g is string =>
-            typeof g === "string" && mongoose.Types.ObjectId.isValid(g),
-        )
-        .map((g: string) => new mongoose.Types.ObjectId(g));
+      const validIds: string[] = body.groupIds.filter(
+        (g: unknown): g is string =>
+          typeof g === "string" && mongoose.Types.ObjectId.isValid(g),
+      );
+      const deduped = [...new Set(validIds)];
+      if (deduped.length > 1) {
+        const groupsForPrune = await BookmarkGroup.find()
+          .select("_id parentId")
+          .lean<
+            Array<{
+              _id: mongoose.Types.ObjectId;
+              parentId?: mongoose.Types.ObjectId | null;
+            }>
+          >()
+          .exec();
+        const ancestorMap = buildAncestorMap(
+          groupsForPrune.map((g) => ({
+            _id: String(g._id),
+            parentId: g.parentId ? String(g.parentId) : null,
+          })),
+        );
+        const pruned = pruneRedundantAncestors(deduped, ancestorMap);
+        update.groupIds = pruned.map(
+          (g: string) => new mongoose.Types.ObjectId(g),
+        );
+      } else {
+        update.groupIds = deduped.map(
+          (g: string) => new mongoose.Types.ObjectId(g),
+        );
+      }
     }
     if (typeof body.content === "string") update.content = body.content;
     if (typeof body.title === "string") update.title = body.title;
