@@ -227,10 +227,10 @@ export async function POST(request: NextRequest) {
       const validJoinIds = categorization.joinGroupIds.filter((id) =>
         mongoose.Types.ObjectId.isValid(id),
       );
-      tags = categorization.tags;
-      groupIds = [...new Set([...validJoinIds, ...createdGroupIds])].map(
-        (id) => new mongoose.Types.ObjectId(id),
-      );
+      tags = [...new Set([...manualTags, ...categorization.tags])];
+      groupIds = [
+        ...new Set([...manualGroupIds, ...validJoinIds, ...createdGroupIds]),
+      ].map((id) => new mongoose.Types.ObjectId(id));
       relatedBookmarkIds = categorization.relatedBookmarkIds;
     }
 
