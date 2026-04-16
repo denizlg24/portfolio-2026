@@ -1,5 +1,7 @@
 import mongoose, { type Document, Schema } from "mongoose";
 
+export type BookmarkStatus = "open" | "archived";
+
 export interface IBookmark extends Document {
   url: string;
   title: string;
@@ -9,7 +11,10 @@ export interface IBookmark extends Document {
   siteName?: string;
   tags: string[];
   groupIds: mongoose.Types.ObjectId[];
-  userNotes?: string;
+  content: string;
+  publishedDate?: Date;
+  status: BookmarkStatus;
+  class?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,7 +29,10 @@ export interface ILeanBookmark {
   siteName?: string;
   tags: string[];
   groupIds: string[];
-  userNotes?: string;
+  content: string;
+  publishedDate?: Date;
+  status: BookmarkStatus;
+  class?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,12 +47,21 @@ const BookmarkSchema = new Schema<IBookmark>(
     siteName: { type: String },
     tags: [{ type: String, trim: true }],
     groupIds: [{ type: Schema.Types.ObjectId, ref: "BookmarkGroup", index: true }],
-    userNotes: { type: String },
+    content: { type: String, default: "" },
+    publishedDate: { type: Date },
+    status: {
+      type: String,
+      enum: ["open", "archived"],
+      default: "open",
+      index: true,
+    },
+    class: { type: String, trim: true },
   },
   { timestamps: true },
 );
 
 BookmarkSchema.index({ createdAt: -1 });
+BookmarkSchema.index({ tags: 1 });
 
 export const Bookmark: mongoose.Model<IBookmark> =
   mongoose.models.Bookmark ||
