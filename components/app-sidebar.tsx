@@ -5,7 +5,6 @@ import {
   CalendarDays,
   Clock,
   Contact,
-  Folder,
   FolderGit2,
   KeyRound,
   Home,
@@ -79,11 +78,6 @@ const items = [
     title: "Now Page",
     url: "/admin/dashboard/now-page",
     icon: Clock,
-  },
-  {
-    title: "Notes",
-    url: "/admin/dashboard/notes",
-    icon: Folder,
   },
   {
     title: "Instagram Tokens",

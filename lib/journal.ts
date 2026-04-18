@@ -3,7 +3,7 @@ import type mongoose from "mongoose";
 import { CalendarEvent } from "@/models/CalendarEvent";
 import type { IJournalLog, ILeanJournalLog } from "@/models/Journal";
 import { JournalLog } from "@/models/Journal";
-import { Note } from "@/models/Notes";
+import { Note } from "@/models/Note";
 import type { IWhiteboard } from "@/models/Whiteboard";
 import { Whiteboard } from "@/models/Whiteboard";
 import { connectDB } from "./mongodb";

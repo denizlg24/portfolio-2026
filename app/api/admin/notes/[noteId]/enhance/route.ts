@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { createSSEStream, streamGenerate } from "@/lib/llm";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
-import { Note } from "@/models/Notes";
+import { Note } from "@/models/Note";
 
 export const maxDuration = 120;
 

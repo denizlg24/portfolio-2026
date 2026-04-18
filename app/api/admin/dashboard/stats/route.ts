@@ -8,7 +8,7 @@ import { CalendarEvent } from "@/models/CalendarEvent";
 import { Contact } from "@/models/Contact";
 import { EmailModel } from "@/models/Email";
 import { LlmUsage } from "@/models/LlmUsage";
-import { Note } from "@/models/Notes";
+import { Note } from "@/models/Note";
 import { Project } from "@/models/Project";
 import { Resource } from "@/models/Resource";
 import { TimetableEntry } from "@/models/TimetableEntry";

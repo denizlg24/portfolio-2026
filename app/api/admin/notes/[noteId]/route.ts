@@ -1,139 +1,150 @@
-import mongoose from "mongoose";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { pruneGroupIds, serializeNote } from "@/lib/note-route-utils";
 import { requireAdmin } from "@/lib/require-admin";
-import { Folder } from "@/models/Folder";
-import { Note } from "@/models/Notes";
+import { Note, type ILeanNote } from "@/models/Note";
+import { NoteEdge } from "@/models/NoteEdge";
 
-export const GET = async (
+async function updateNote(
+  request: NextRequest,
+  noteId: string,
+) {
+  const body = await request.json();
+  const update: Record<string, unknown> = {};
+  const unset: Record<string, unknown> = {};
+
+  if (typeof body.title === "string") update.title = body.title.trim();
+  if (typeof body.content === "string") update.content = body.content;
+  if (typeof body.url === "string") {
+    const trimmed = body.url.trim();
+    if (trimmed.length === 0) unset.url = "";
+    else update.url = trimmed;
+  }
+  if (typeof body.description === "string") update.description = body.description;
+  if (typeof body.siteName === "string") update.siteName = body.siteName;
+  if (typeof body.favicon === "string") update.favicon = body.favicon;
+  if (typeof body.image === "string") update.image = body.image;
+  if (typeof body.class === "string") {
+    const trimmed = body.class.trim();
+    if (trimmed.length === 0) unset.class = "";
+    else update.class = trimmed;
+  }
+  if (Array.isArray(body.tags)) {
+    update.tags = body.tags.filter(
+      (tag: unknown): tag is string => typeof tag === "string",
+    );
+  }
+  if (Array.isArray(body.groupIds)) {
+    update.groupIds = await pruneGroupIds(body.groupIds);
+  }
+  if (body.status === "open" || body.status === "archived") {
+    update.status = body.status;
+  }
+  if (body.publishedDate === null) {
+    unset.publishedDate = "";
+  } else if (typeof body.publishedDate === "string") {
+    const date = new Date(body.publishedDate);
+    if (!Number.isNaN(date.getTime())) {
+      update.publishedDate = date;
+    }
+  }
+
+  const mutation: Record<string, unknown> = {};
+  if (Object.keys(update).length > 0) mutation.$set = update;
+  if (Object.keys(unset).length > 0) mutation.$unset = unset;
+
+  const note = await Note.findByIdAndUpdate(noteId, mutation, {
+    new: true,
+    runValidators: true,
+  })
+    .lean<ILeanNote>()
+    .exec();
+
+  if (!note) {
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
+  }
+
+  return NextResponse.json({ note: serializeNote(note) }, { status: 200 });
+}
+
+export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ noteId: string }> },
-) => {
-  const { noteId } = await params;
-  if (!noteId || typeof noteId !== "string") {
-    return NextResponse.json({ error: "Invalid note ID" }, { status: 400 });
-  }
+) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
-    const authError = await requireAdmin(request);
-    if (authError) return authError;
+    const { noteId } = await params;
     await connectDB();
-    const note = await Note.findById(noteId).lean();
+    const note = await Note.findById(noteId).lean<ILeanNote>().exec();
     if (!note) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    return NextResponse.json({ note }, { status: 200 });
+    return NextResponse.json({ note: serializeNote(note) }, { status: 200 });
   } catch (error) {
     console.error("Error fetching note:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch note" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
-};
+}
 
-export const PUT = async (
+export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ noteId: string }> },
-) => {
-  const { noteId } = await params;
-  if (!noteId || typeof noteId !== "string") {
-    return NextResponse.json({ error: "Invalid note ID" }, { status: 400 });
-  }
+) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
-    const authError = await requireAdmin(request);
-    if (authError) return authError;
-    const body = await request.json();
-    const { content } = body;
+    const { noteId } = await params;
     await connectDB();
-    const note = await Note.findByIdAndUpdate(
-      noteId,
-      { content },
-      { new: true },
-    );
-    if (!note) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    }
-    return NextResponse.json(
-      { message: "Note updated successfully", note },
-      { status: 200 },
-    );
+    return await updateNote(request, noteId);
   } catch (error) {
     console.error("Error updating note:", error);
-    return NextResponse.json(
-      { error: "Failed to update note" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
-};
+}
 
-export const PATCH = async (
+export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ noteId: string }> },
-) => {
-  const { noteId } = await params;
-  if (!noteId || typeof noteId !== "string") {
-    return NextResponse.json({ error: "Invalid note ID" }, { status: 400 });
-  }
+) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
-    const authError = await requireAdmin(request);
-    if (authError) return authError;
-    const body = await request.json();
-    const { parentId } = body;
-    const parentObjectId =
-      parentId && parentId !== "null"
-        ? new mongoose.Types.ObjectId(parentId)
-        : null;
+    const { noteId } = await params;
     await connectDB();
-    const note = await Note.findByIdAndUpdate(
-      noteId,
-      { folder: parentObjectId },
-      { new: true },
-    );
-    if (!note) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
-    }
-    return NextResponse.json(
-      { message: "Note updated successfully", note },
-      { status: 200 },
-    );
+    return await updateNote(request, noteId);
   } catch (error) {
     console.error("Error updating note:", error);
-    return NextResponse.json(
-      { error: "Failed to update note" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
-};
+}
 
-export const DELETE = async (
+export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ noteId: string }> },
-) => {
-  const { noteId } = await params;
-  if (!noteId || typeof noteId !== "string") {
-    return NextResponse.json({ error: "Invalid note ID" }, { status: 400 });
-  }
+) {
+  const authError = await requireAdmin(request);
+  if (authError) return authError;
+
   try {
-    const authError = await requireAdmin(request);
-    if (authError) return authError;
+    const { noteId } = await params;
     await connectDB();
-    const note = await Note.findByIdAndDelete(noteId);
+
+    const note = await Note.findByIdAndDelete(noteId).lean<ILeanNote>().exec();
     if (!note) {
-      return NextResponse.json({ error: "Note not found" }, { status: 404 });
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
-    await Folder.findOneAndUpdate(
-      { notes: note._id },
-      { $pull: { notes: note._id } },
-    );
-    return NextResponse.json(
-      { message: "Note deleted successfully", note },
-      { status: 200 },
-    );
+
+    await NoteEdge.deleteMany({
+      $or: [{ from: note._id }, { to: note._id }],
+    }).exec();
+
+    return NextResponse.json({ success: true }, { status: 200 });
   } catch (error) {
     console.error("Error deleting note:", error);
-    return NextResponse.json(
-      { error: "Failed to delete note" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed" }, { status: 500 });
   }
-};
+}

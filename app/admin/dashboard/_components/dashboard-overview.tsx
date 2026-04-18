@@ -9,7 +9,6 @@ import {
   Calendar,
   Clock,
   Contact,
-  Folder,
   FolderGit2,
   MapPin,
   MessageSquare,
@@ -471,16 +470,10 @@ export function DashboardOverview() {
           delay={0.25}
         />
         <StatNumber
-          value={stats.notes.total}
-          label="Notes"
-          href="/admin/dashboard/notes"
-          delay={0.3}
-        />
-        <StatNumber
           value={stats.emails.total}
           label="Emails"
           href="/admin/dashboard/inbox"
-          delay={0.35}
+          delay={0.3}
         />
       </div>
 
@@ -582,39 +575,6 @@ export function DashboardOverview() {
             )}
           </div>
 
-          {stats.notes.recent.length > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-6 pt-4 border-t border-foreground/4"
-            >
-              <div className="flex items-center justify-between mb-3">
-                <span className="text-xs text-foreground uppercase tracking-wider">
-                  Recent notes
-                </span>
-                <Link
-                  href="/admin/dashboard/notes"
-                  className="text-xs text-foreground hover:text-accent-strong transition-colors flex items-center gap-0.5"
-                >
-                  All notes <ArrowUpRight className="w-3 h-3" />
-                </Link>
-              </div>
-              {stats.notes.recent.map((note) => (
-                <div key={note._id} className="flex items-center gap-3 py-1.5">
-                  <Folder className="w-3 h-3 text-foreground" />
-                  <span className="text-sm text-accent-strong/80 truncate flex-1">
-                    {note.title}
-                  </span>
-                  <span className="text-xs text-foreground">
-                    {formatDistanceToNow(new Date(note.updatedAt), {
-                      addSuffix: true,
-                    })}
-                  </span>
-                </div>
-              ))}
-            </motion.div>
-          )}
         </div>
 
         <div className="md:col-span-2">
@@ -752,12 +712,6 @@ export function DashboardOverview() {
             icon={Clock}
             label="Timeline Entry"
             delay={0.7}
-          />
-          <QuickAction
-            href="/admin/dashboard/notes"
-            icon={Folder}
-            label="Note"
-            delay={0.75}
           />
         </div>
       </motion.div>

@@ -26,7 +26,7 @@ const JournalLogSchema = new mongoose.Schema<IJournalLog>({
   content: { type: String, default: "" },
   whiteboard: { type: WhiteboardSchema },
   events: [{ type: CalendarEventSchema, default: [] }],
-  notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "Note" }],
+  notes: [{ type: mongoose.Schema.Types.ObjectId, ref: "KnowledgeNote" }],
 });
 
 export const JournalLog: mongoose.Model<IJournalLog> =

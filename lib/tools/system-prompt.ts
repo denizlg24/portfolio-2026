@@ -23,7 +23,7 @@ IMPORTANT: Always call tools directly — both read and write. Never ask the use
 Available data domains:
 - Calendar events (view, create, update, delete events)
 - Kanban boards (view boards/columns/cards, create/update cards)
-- Notes (search, read, create, update notes and list folders)
+- Notes and knowledge graph (search, read, create, update notes and manage groups)
 - Timetable (view, create, update, delete schedule entries)
 - Contacts (view contact submissions, update status, reply to contacts)
 - Blog posts (search, list, read, create, update posts)

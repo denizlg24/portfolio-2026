@@ -1,16 +1,15 @@
 import { connectDB } from "@/lib/mongodb";
-import { Folder } from "@/models/Folder";
-import { Note } from "@/models/Notes";
+import { pruneGroupIds } from "@/lib/note-route-utils";
+import { Note } from "@/models/Note";
+import { NoteGroup } from "@/models/NoteGroup";
 import type { ToolDefinition } from "./types";
 
 export const notesTools: ToolDefinition[] = [
-  // ── Folders ─────────────────────────────────────────────
-
   {
     schema: {
-      name: "list_folders",
+      name: "list_groups",
       description:
-        "List all note folders and their structure. Returns folder names, IDs, and the notes they contain.",
+        "List all note groups and their hierarchy. Returns group names, IDs, and parent relationships.",
       input_schema: {
         type: "object",
         properties: {},
@@ -20,33 +19,36 @@ export const notesTools: ToolDefinition[] = [
     category: "notes",
     execute: async () => {
       await connectDB();
-      const folders = await Folder.find().populate("notes", "title").lean();
-      return folders.map((f) => ({
-        _id: String(f._id),
-        name: f.name,
-        parentFolder: f.parentFolder ? String(f.parentFolder) : null,
-        notes: (f.notes as unknown as { _id: unknown; title: string }[]).map(
-          (n) => ({
-            _id: String(n._id),
-            title: n.title,
-          }),
-        ),
+      const groups = await NoteGroup.find().sort({ name: 1 }).lean();
+      return groups.map((group) => ({
+        _id: String(group._id),
+        name: group.name,
+        description: group.description,
+        color: group.color,
+        parentId: group.parentId ? String(group.parentId) : null,
+        autoCreated: group.autoCreated,
       }));
     },
   },
   {
     schema: {
-      name: "create_folder",
-      description:
-        "Create a new folder for organizing notes. Can be a root folder or nested inside another folder.",
+      name: "create_group",
+      description: "Create a new note group.",
       input_schema: {
         type: "object",
         properties: {
-          name: { type: "string", description: "Folder name" },
-          parentFolderId: {
+          name: { type: "string", description: "Group name" },
+          description: {
             type: "string",
-            description:
-              "Parent folder ID to nest this folder under (optional, omit for root folder)",
+            description: "Group description (optional)",
+          },
+          color: {
+            type: "string",
+            description: "Group color in hex (optional)",
+          },
+          parentId: {
+            type: "string",
+            description: "Parent group ID (optional)",
           },
         },
         required: ["name"],
@@ -56,30 +58,40 @@ export const notesTools: ToolDefinition[] = [
     category: "notes",
     execute: async (input) => {
       await connectDB();
-      const data: Record<string, unknown> = { name: input.name as string };
-      if (input.parentFolderId) data.parentFolder = input.parentFolderId;
-      const folder = await Folder.create(data);
+      const group = await NoteGroup.create({
+        name: input.name as string,
+        description: input.description as string | undefined,
+        color: input.color as string | undefined,
+        parentId: (input.parentId as string | undefined) || null,
+        autoCreated: false,
+      });
       return {
-        _id: folder._id.toString(),
-        name: folder.name,
-        parentFolder: folder.parentFolder ? String(folder.parentFolder) : null,
+        _id: group._id.toString(),
+        name: group.name,
+        parentId: group.parentId ? String(group.parentId) : null,
       };
     },
   },
   {
     schema: {
-      name: "update_folder",
-      description:
-        "Rename a folder or move it under a different parent folder.",
+      name: "update_group",
+      description: "Update a note group's name, description, color, or parent.",
       input_schema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "Folder ID" },
-          name: { type: "string", description: "New folder name (optional)" },
-          parentFolderId: {
+          id: { type: "string", description: "Group ID" },
+          name: { type: "string", description: "New name (optional)" },
+          description: {
             type: "string",
-            description:
-              "New parent folder ID (optional, set to null for root)",
+            description: "New description (optional)",
+          },
+          color: {
+            type: "string",
+            description: "New color in hex (optional)",
+          },
+          parentId: {
+            type: "string",
+            description: "New parent group ID (optional, null for top level)",
           },
         },
         required: ["id"],
@@ -91,28 +103,31 @@ export const notesTools: ToolDefinition[] = [
       await connectDB();
       const data: Record<string, unknown> = {};
       if (input.name !== undefined) data.name = input.name;
-      if (input.parentFolderId !== undefined)
-        data.parentFolder = input.parentFolderId || null;
-      const folder = await Folder.findByIdAndUpdate(input.id as string, data, {
+      if (input.description !== undefined) data.description = input.description;
+      if (input.color !== undefined) data.color = input.color;
+      if (input.parentId !== undefined) data.parentId = input.parentId || null;
+
+      const group = await NoteGroup.findByIdAndUpdate(input.id as string, data, {
         new: true,
       }).lean();
-      if (!folder) throw new Error("Folder not found");
+      if (!group) throw new Error("Group not found");
+
       return {
-        _id: String(folder._id),
-        name: folder.name,
-        parentFolder: folder.parentFolder ? String(folder.parentFolder) : null,
+        _id: String(group._id),
+        name: group.name,
+        parentId: group.parentId ? String(group.parentId) : null,
       };
     },
   },
   {
     schema: {
-      name: "delete_folder",
+      name: "delete_group",
       description:
-        "Delete a folder by its ID. Notes inside the folder are not deleted, only removed from the folder.",
+        "Delete a note group. Notes keep their content but lose membership in that group.",
       input_schema: {
         type: "object",
         properties: {
-          id: { type: "string", description: "Folder ID" },
+          id: { type: "string", description: "Group ID" },
         },
         required: ["id"],
       },
@@ -121,19 +136,24 @@ export const notesTools: ToolDefinition[] = [
     category: "notes",
     execute: async (input) => {
       await connectDB();
-      const folder = await Folder.findByIdAndDelete(input.id as string);
-      if (!folder) throw new Error("Folder not found");
+      const group = await NoteGroup.findByIdAndDelete(input.id as string);
+      if (!group) throw new Error("Group not found");
+      await Note.updateMany(
+        { groupIds: group._id },
+        { $pull: { groupIds: group._id } },
+      );
+      await NoteGroup.updateMany(
+        { parentId: group._id },
+        { $set: { parentId: null } },
+      );
       return { success: true };
     },
   },
-
-  // ── Notes ───────────────────────────────────────────────
-
   {
     schema: {
       name: "list_notes",
       description:
-        "List all notes with their titles and last-updated timestamps. Supports pagination.",
+        "List notes with their titles and metadata. Supports pagination.",
       input_schema: {
         type: "object",
         properties: {
@@ -143,7 +163,7 @@ export const notesTools: ToolDefinition[] = [
           },
           offset: {
             type: "number",
-            description: "Number of notes to skip for pagination (default 0)",
+            description: "Number of notes to skip (default 0)",
           },
         },
       },
@@ -159,18 +179,22 @@ export const notesTools: ToolDefinition[] = [
         .skip(offset)
         .limit(limit)
         .lean();
-      return notes.map((n) => ({
-        _id: n._id.toString(),
-        title: n.title,
-        preview: n.content.slice(0, 200),
-        updatedAt: n.updatedAt,
+      return notes.map((note) => ({
+        _id: note._id.toString(),
+        title: note.title,
+        preview: note.content.slice(0, 200),
+        url: note.url,
+        tags: note.tags,
+        groupIds: (note.groupIds ?? []).map(String),
+        status: note.status,
+        updatedAt: note.updatedAt,
       }));
     },
   },
   {
     schema: {
       name: "get_note",
-      description: "Get the full content of a note by its ID.",
+      description: "Get a note by ID.",
       input_schema: {
         type: "object",
         properties: {
@@ -189,6 +213,11 @@ export const notesTools: ToolDefinition[] = [
         _id: note._id.toString(),
         title: note.title,
         content: note.content,
+        url: note.url,
+        description: note.description,
+        tags: note.tags,
+        groupIds: (note.groupIds ?? []).map(String),
+        status: note.status,
         createdAt: note.createdAt,
         updatedAt: note.updatedAt,
       };
@@ -197,15 +226,14 @@ export const notesTools: ToolDefinition[] = [
   {
     schema: {
       name: "search_notes",
-      description:
-        "Search notes by a text query. Searches both titles and content. Returns matching notes with their IDs, titles, and a preview of the content.",
+      description: "Search notes by text query across title and content.",
       input_schema: {
         type: "object",
         properties: {
           query: { type: "string", description: "Search query text" },
           limit: {
             type: "number",
-            description: "Max number of results to return (default 10)",
+            description: "Max results to return (default 10)",
           },
         },
         required: ["query"],
@@ -224,64 +252,123 @@ export const notesTools: ToolDefinition[] = [
         .sort({ score: { $meta: "textScore" } })
         .limit(limit)
         .lean();
-      return notes.map((n) => ({
-        _id: n._id.toString(),
-        title: n.title,
-        preview: n.content.slice(0, 200),
-        updatedAt: n.updatedAt,
+      return notes.map((note) => ({
+        _id: note._id.toString(),
+        title: note.title,
+        preview: note.content.slice(0, 200),
+        url: note.url,
+        status: note.status,
+        updatedAt: note.updatedAt,
       }));
     },
   },
   {
     schema: {
       name: "create_note",
-      description: "Create a new note with a title and content.",
+      description:
+        "Create a new note. URL is optional. Use groupIds to assign conceptual groups.",
       input_schema: {
         type: "object",
         properties: {
           title: { type: "string", description: "Note title" },
           content: {
             type: "string",
-            description: "Note content (markdown supported)",
+            description: "Markdown content (optional)",
           },
-          folderId: {
+          url: {
             type: "string",
-            description: "Folder ID to add the note to (optional)",
+            description: "Source URL if this note is also a saved link (optional)",
+          },
+          description: {
+            type: "string",
+            description: "Description (optional)",
+          },
+          groupIds: {
+            type: "array",
+            items: { type: "string" },
+            description: "Group IDs (optional)",
+          },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "Tags (optional)",
+          },
+          status: {
+            type: "string",
+            enum: ["open", "archived"],
+            description: "Status (optional)",
+          },
+          class: {
+            type: "string",
+            description: "Custom class/category (optional)",
           },
         },
-        required: ["title", "content"],
+        required: ["title"],
       },
     },
     isWrite: true,
     category: "notes",
     execute: async (input) => {
       await connectDB();
+      const groupIds = Array.isArray(input.groupIds)
+        ? await pruneGroupIds(input.groupIds as string[])
+        : [];
       const note = await Note.create({
         title: input.title as string,
-        content: input.content as string,
+        content: (input.content as string | undefined) ?? "",
+        url: input.url as string | undefined,
+        description: input.description as string | undefined,
+        groupIds,
+        tags: (input.tags as string[] | undefined) ?? [],
+        status:
+          input.status === "archived" || input.status === "open"
+            ? input.status
+            : "open",
+        class: input.class as string | undefined,
       });
-      if (input.folderId) {
-        await Folder.findByIdAndUpdate(input.folderId, {
-          $push: { notes: note._id },
-        });
-      }
       return {
         _id: note._id.toString(),
         title: note.title,
         content: note.content,
+        groupIds: groupIds.map(String),
       };
     },
   },
   {
     schema: {
       name: "update_note",
-      description: "Update an existing note's title or content.",
+      description:
+        "Update an existing note. Use groupIds to replace the note's group membership.",
       input_schema: {
         type: "object",
         properties: {
           id: { type: "string", description: "Note ID" },
           title: { type: "string", description: "New title (optional)" },
           content: { type: "string", description: "New content (optional)" },
+          description: {
+            type: "string",
+            description: "New description (optional)",
+          },
+          url: { type: "string", description: "New URL (optional)" },
+          tags: {
+            type: "array",
+            items: { type: "string" },
+            description: "Replacement tags (optional)",
+          },
+          groupIds: {
+            type: "array",
+            items: { type: "string" },
+            description: "Replacement group IDs (optional)",
+          },
+          status: {
+            type: "string",
+            enum: ["open", "archived"],
+            description: "New status (optional)",
+          },
+          class: {
+            type: "string",
+            description: "New class/category (optional)",
+          },
         },
         required: ["id"],
       },
@@ -293,6 +380,15 @@ export const notesTools: ToolDefinition[] = [
       const data: Record<string, unknown> = {};
       if (input.title !== undefined) data.title = input.title;
       if (input.content !== undefined) data.content = input.content;
+      if (input.description !== undefined) data.description = input.description;
+      if (input.url !== undefined) data.url = input.url;
+      if (input.tags !== undefined) data.tags = input.tags;
+      if (input.groupIds !== undefined) {
+        data.groupIds = await pruneGroupIds(input.groupIds as string[]);
+      }
+      if (input.status !== undefined) data.status = input.status;
+      if (input.class !== undefined) data.class = input.class;
+
       const note = await Note.findByIdAndUpdate(input.id as string, data, {
         new: true,
       }).lean();
@@ -301,13 +397,14 @@ export const notesTools: ToolDefinition[] = [
         _id: note._id.toString(),
         title: note.title,
         content: note.content,
+        groupIds: (note.groupIds ?? []).map(String),
       };
     },
   },
   {
     schema: {
       name: "delete_note",
-      description: "Delete a note by its ID.",
+      description: "Delete a note and its graph edges.",
       input_schema: {
         type: "object",
         properties: {
@@ -322,57 +419,11 @@ export const notesTools: ToolDefinition[] = [
       await connectDB();
       const note = await Note.findByIdAndDelete(input.id as string);
       if (!note) throw new Error("Note not found");
-      await Folder.updateMany(
-        { notes: note._id },
-        { $pull: { notes: note._id } },
-      );
+      const { NoteEdge } = await import("@/models/NoteEdge");
+      await NoteEdge.deleteMany({
+        $or: [{ from: note._id }, { to: note._id }],
+      });
       return { success: true };
-    },
-  },
-  {
-    schema: {
-      name: "move_note_to_folder",
-      description:
-        "Move a note into a folder, or remove it from its current folder. Handles removing the note from any previous folder automatically.",
-      input_schema: {
-        type: "object",
-        properties: {
-          noteId: { type: "string", description: "Note ID" },
-          folderId: {
-            type: "string",
-            description:
-              "Target folder ID (omit or set to null to remove from all folders)",
-          },
-        },
-        required: ["noteId"],
-      },
-    },
-    isWrite: true,
-    category: "notes",
-    execute: async (input) => {
-      await connectDB();
-      const noteId = input.noteId as string;
-      const note = await Note.findById(noteId).lean();
-      if (!note) throw new Error("Note not found");
-
-      await Folder.updateMany({ notes: noteId }, { $pull: { notes: noteId } });
-
-      if (input.folderId) {
-        const folder = await Folder.findByIdAndUpdate(
-          input.folderId as string,
-          { $addToSet: { notes: noteId } },
-          { new: true },
-        ).lean();
-        if (!folder) throw new Error("Folder not found");
-        return {
-          success: true,
-          noteId,
-          folderId: String(folder._id),
-          folderName: folder.name,
-        };
-      }
-
-      return { success: true, noteId, folderId: null };
     },
   },
 ];
