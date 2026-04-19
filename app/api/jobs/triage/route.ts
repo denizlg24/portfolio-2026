@@ -1,16 +1,18 @@
-import { requireAdmin } from "@/lib/require-admin";
 import { runTriage } from "@/lib/triage";
-import { NextRequest } from "next/server";
 
-export async function POST(request: NextRequest) {
-  const authError = await requireAdmin(request);
-  if (authError) return authError;
-
-  const body = await request.json();
-  const since = body.since;
+export async function GET(request: Request) {
+  if (
+    request.headers.get("Authorization") !==
+    `Bearer ${process.env.TRIAGE_JOB_BEARER_TOKEN}`
+  ) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   try {
-    const stats = await runTriage({ since });
+    const stats = await runTriage();
     return new Response(JSON.stringify({ stats }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
