@@ -21,6 +21,7 @@ const CATEGORIES: TriageCategory[] = [
   "spam",
   "newsletter",
   "promo",
+  "purchases",
   "fyi",
   "action-needed",
   "scheduled",
@@ -189,7 +190,7 @@ function buildTriageTools(): Anthropic.Tool[] {
             type: "string",
             enum: CATEGORIES,
             description:
-              "spam = junk/phishing/bulk-marketing; newsletter = legit subscription digest; promo = transactional marketing from known sender; fyi = informational, no action needed; action-needed = requires a reply/follow-up/task; scheduled = contains a specific meeting/appointment/event time.",
+              "spam = junk/phishing/bulk-marketing; newsletter = legit subscription digest; promo = transactional marketing from known sender; purchases = receipts, invoices, order confirmations, or payment notices; fyi = informational, no action needed; action-needed = requires a reply/follow-up/task; scheduled = contains a specific meeting/appointment/event time.",
           },
           confidence: {
             type: "number",
@@ -267,7 +268,7 @@ async function runFullTriage(
   body: { text: string; html: string },
 ): Promise<FullTriageResult | null> {
   const system =
-    "You are an email triage assistant. For the given email, call suggest_task (0..N) and suggest_event (0..N) to extract any actionable tasks or calendar events, then call classify_email EXACTLY ONCE to finalize. Always end with classify_email. Keep summary to 1-2 sentences. Only suggest tasks when the email genuinely needs a follow-up action. Only suggest events when a specific date/time is mentioned.";
+    "You are an email triage assistant. For the given email, call suggest_task (0..N) and suggest_event (0..N) to extract any actionable tasks or calendar events, then call classify_email EXACTLY ONCE to finalize. Always end with classify_email. Keep summary to 1-2 sentences. Use purchases for receipts, invoices, payment notices, or order confirmations that do not need follow-up. Only suggest tasks when the email genuinely needs a follow-up action. Only suggest events when a specific date/time is mentioned.";
 
   const bodyText =
     body.text || body.html.replace(/<[^>]+>/g, " ").slice(0, 8000);
@@ -371,13 +372,11 @@ ${bodyText.slice(0, 8000)}`;
 
 async function autoAccept(
   triageId: mongoose.Types.ObjectId,
-  category: TriageCategory,
   result: FullTriageResult,
   routing: ICategoryRouting,
 ): Promise<{ tasks: number; events: number }> {
   const confOk = result.confidence >= routing.autoAcceptThreshold;
   let taskCount = 0;
-  let eventCount = 0;
 
   if (
     routing.autoCreateCard &&
@@ -414,38 +413,7 @@ async function autoAccept(
     }
   }
 
-  if (routing.autoCreateEvent && confOk) {
-    for (let i = 0; i < result.events.length; i++) {
-      const e = result.events[i];
-      try {
-        const created = await createCalendarEvent({
-          title: e.title,
-          date: e.date,
-          place: e.place,
-          status: "scheduled",
-        });
-        if (created) {
-          await EmailTriageModel.updateOne(
-            { _id: triageId },
-            {
-              $set: {
-                [`suggestedEvents.${i}.status`]: "accepted",
-                [`suggestedEvents.${i}.acceptedEventId`]:
-                  new mongoose.Types.ObjectId(created._id),
-              },
-            },
-          );
-          eventCount++;
-        }
-      } catch (err) {
-        console.error("auto-accept event failed:", err);
-      }
-    }
-  }
-
-  // Silence unused warning
-  void category;
-  return { tasks: taskCount, events: eventCount };
+  return { tasks: taskCount, events: 0 };
 }
 
 export async function runTriage(options?: {
@@ -464,10 +432,12 @@ export async function runTriage(options?: {
     };
   }
 
+  console.log("Starting triage run with settings:", options);
+
   const since =
     options?.since ??
     settings.lastRunAt ??
-    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
 
   const alreadyTriaged = await EmailTriageModel.find({
     triagedAt: { $gte: since },
@@ -476,11 +446,13 @@ export async function runTriage(options?: {
     .lean();
   const alreadyIds = new Set(alreadyTriaged.map((t) => t.emailId.toString()));
 
-  const emails = await EmailModel.find({ createdAt: { $gte: since } })
-    .sort({ createdAt: 1 })
+  const emails = await EmailModel.find({ date: { $gte: since } })
+    .sort({ date: 1 })
     .lean();
 
   const candidates = emails.filter((e) => !alreadyIds.has(e._id.toString()));
+
+  console.log(candidates.length, "emails found since", since.toISOString());
 
   const stats: TriageRunStats = {
     scanned: candidates.length,
@@ -576,12 +548,7 @@ export async function runTriage(options?: {
 
       const routing = settings.categoryRouting?.[result.category];
       if (routing) {
-        const accepted = await autoAccept(
-          doc._id,
-          result.category,
-          result,
-          routing,
-        );
+        const accepted = await autoAccept(doc._id, result, routing);
         stats.autoAcceptedTasks += accepted.tasks;
         stats.autoAcceptedEvents += accepted.events;
       }

@@ -45,6 +45,7 @@ export async function saveEmail(emailData: {
   subject: string;
   from: MessageAddressObject[];
   date: Date;
+  createdAt?: Date;
   seen: boolean;
   uid: number;
   inReplyTo?: string;

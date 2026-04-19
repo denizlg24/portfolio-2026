@@ -8,12 +8,18 @@ const TRIAGE_CATEGORIES = [
   "spam",
   "newsletter",
   "promo",
+  "purchases",
   "fyi",
   "action-needed",
   "scheduled",
 ] as const;
 
-const TRIAGE_USER_STATUSES = ["pending", "reviewed", "archived"] as const;
+const TRIAGE_USER_STATUSES = [
+  "open",
+  "pending",
+  "reviewed",
+  "archived",
+] as const;
 
 function isTriageCategory(
   value: string | null,
@@ -55,7 +61,11 @@ export async function GET(request: NextRequest) {
   const query: Record<string, unknown> = {};
   if (category !== "all" && isTriageCategory(category))
     query.category = category;
-  if (status !== "all" && isTriageUserStatus(status)) query.userStatus = status;
+  if (status === "open") {
+    query.userStatus = { $ne: "archived" };
+  } else if (status !== "all" && isTriageUserStatus(status)) {
+    query.userStatus = status;
+  }
   if (cursor) {
     const d = new Date(cursor);
     if (!Number.isNaN(d.getTime())) query.triagedAt = { $lt: d };

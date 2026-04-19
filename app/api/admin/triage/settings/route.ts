@@ -12,6 +12,7 @@ const TRIAGE_CATEGORIES: TriageCategory[] = [
   "spam",
   "newsletter",
   "promo",
+  "purchases",
   "fyi",
   "action-needed",
   "scheduled",
@@ -30,7 +31,6 @@ function isCategoryRouting(value: unknown): value is ICategoryRouting {
     (value.kanbanColumnId === undefined ||
       typeof value.kanbanColumnId === "string") &&
     typeof value.autoCreateCard === "boolean" &&
-    typeof value.autoCreateEvent === "boolean" &&
     typeof value.autoAcceptThreshold === "number" &&
     Number.isFinite(value.autoAcceptThreshold)
   );

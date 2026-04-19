@@ -5,7 +5,6 @@ export interface ICategoryRouting {
   kanbanBoardId?: string;
   kanbanColumnId?: string;
   autoCreateCard: boolean;
-  autoCreateEvent: boolean;
   autoAcceptThreshold: number;
 }
 
@@ -43,12 +42,13 @@ const TriageSettingsSchema = new Schema<ITriageSettings>(
     categoryRouting: {
       type: Schema.Types.Mixed,
       default: () => ({
-        spam: { autoCreateCard: false, autoCreateEvent: false, autoAcceptThreshold: 1 },
-        newsletter: { autoCreateCard: false, autoCreateEvent: false, autoAcceptThreshold: 1 },
-        promo: { autoCreateCard: false, autoCreateEvent: false, autoAcceptThreshold: 1 },
-        fyi: { autoCreateCard: false, autoCreateEvent: false, autoAcceptThreshold: 1 },
-        "action-needed": { autoCreateCard: false, autoCreateEvent: false, autoAcceptThreshold: 0.85 },
-        scheduled: { autoCreateCard: false, autoCreateEvent: true, autoAcceptThreshold: 0.8 },
+        spam: { autoCreateCard: false, autoAcceptThreshold: 1 },
+        newsletter: { autoCreateCard: false, autoAcceptThreshold: 1 },
+        promo: { autoCreateCard: false, autoAcceptThreshold: 1 },
+        purchases: { autoCreateCard: false, autoAcceptThreshold: 1 },
+        fyi: { autoCreateCard: false, autoAcceptThreshold: 1 },
+        "action-needed": { autoCreateCard: false, autoAcceptThreshold: 0.85 },
+        scheduled: { autoCreateCard: false, autoAcceptThreshold: 0.8 },
       }),
     },
     lastRunAt: { type: Date },
@@ -57,7 +57,7 @@ const TriageSettingsSchema = new Schema<ITriageSettings>(
 );
 
 // validate routing shape
-TriageSettingsSchema.path("categoryRouting").validate(function (value: unknown) {
+TriageSettingsSchema.path("categoryRouting").validate((value: unknown) => {
   if (!value || typeof value !== "object") return false;
   return true;
 }, "categoryRouting must be an object");
@@ -73,4 +73,3 @@ export async function getOrCreateTriageSettings(): Promise<
   if (existing) return existing;
   return TriageSettingsModel.create({ _id: "singleton" });
 }
-

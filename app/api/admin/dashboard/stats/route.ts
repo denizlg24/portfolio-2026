@@ -7,6 +7,7 @@ import { BlogComment } from "@/models/BlogComment";
 import { CalendarEvent } from "@/models/CalendarEvent";
 import { Contact } from "@/models/Contact";
 import { EmailModel } from "@/models/Email";
+import { EmailTriageModel } from "@/models/EmailTriage";
 import { LlmUsage } from "@/models/LlmUsage";
 import { Note } from "@/models/Note";
 import { Project } from "@/models/Project";
@@ -21,7 +22,7 @@ export async function GET(request: NextRequest) {
     await connectDB();
 
     const now = new Date();
-    const todayDayOfWeek = (now.getDay() + 6)%7;
+    const todayDayOfWeek = (now.getDay() + 6) % 7;
     const startOfToday = startOfDay(now);
     const endOfToday = endOfDay(now);
     const startOfTomorrow = startOfDay(addDays(now, 1));
@@ -83,10 +84,15 @@ export async function GET(request: NextRequest) {
       .select("name type agentService.lastStatus agentService.lastCheckedAt")
       .lean();
 
-    const [totalEmails, unreadEmails] = await Promise.all([
-      EmailModel.countDocuments(),
-      EmailModel.countDocuments({ seen: false }),
-    ]);
+    const [totalEmails, unreadEmails, actionRequiredTriageCount] =
+      await Promise.all([
+        EmailModel.countDocuments(),
+        EmailModel.countDocuments({ seen: false }),
+        EmailTriageModel.countDocuments({
+          category: "action-needed",
+          userStatus: "pending",
+        }),
+      ]);
 
     const totalNotes = await Note.countDocuments();
     const recentNotes = await Note.find()
@@ -160,6 +166,9 @@ export async function GET(request: NextRequest) {
       emails: {
         total: totalEmails,
         unread: unreadEmails,
+      },
+      triage: {
+        actionRequired: actionRequiredTriageCount,
       },
       notes: {
         total: totalNotes,

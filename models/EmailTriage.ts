@@ -4,6 +4,7 @@ export type TriageCategory =
   | "spam"
   | "newsletter"
   | "promo"
+  | "purchases"
   | "fyi"
   | "action-needed"
   | "scheduled";
@@ -54,17 +55,11 @@ export interface ILeanEmailTriage {
   category: TriageCategory;
   confidence: number;
   summary?: string;
-  suggestedTasks: (Omit<
-    ITriageTaskSuggestion,
-    "_id" | "acceptedCardId"
-  > & {
+  suggestedTasks: (Omit<ITriageTaskSuggestion, "_id" | "acceptedCardId"> & {
     _id: string;
     acceptedCardId?: string;
   })[];
-  suggestedEvents: (Omit<
-    ITriageEventSuggestion,
-    "_id" | "acceptedEventId"
-  > & {
+  suggestedEvents: (Omit<ITriageEventSuggestion, "_id" | "acceptedEventId"> & {
     _id: string;
     acceptedEventId?: string;
   })[];
@@ -125,7 +120,15 @@ const EmailTriageSchema = new Schema<IEmailTriage>(
     },
     category: {
       type: String,
-      enum: ["spam", "newsletter", "promo", "fyi", "action-needed", "scheduled"],
+      enum: [
+        "spam",
+        "newsletter",
+        "promo",
+        "purchases",
+        "fyi",
+        "action-needed",
+        "scheduled",
+      ],
       required: true,
       index: true,
     },
