@@ -36,7 +36,7 @@ export async function requireAdmin(request?: NextRequest) {
     forbidden();
   }
 
-  const userRole = (session.user as any).role;
+  const userRole = session.user.role;
   if (userRole !== "admin") {
     forbidden();
   }

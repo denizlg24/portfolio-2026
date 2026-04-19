@@ -75,6 +75,7 @@ export async function syncInbox(account: IEmailAccount) {
             date: msg.envelope.date || new Date(),
             seen,
             uid: msg.uid,
+            inReplyTo: msg.envelope.inReplyTo || undefined,
           });
 
           emailIds.push(email._id.toString());
@@ -123,6 +124,7 @@ export async function syncInbox(account: IEmailAccount) {
             date: msg.envelope.date || new Date(),
             seen,
             uid: msg.uid,
+            inReplyTo: msg.envelope.inReplyTo || undefined,
           });
 
           emailIds.push(email._id.toString());
