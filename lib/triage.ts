@@ -5,16 +5,20 @@ import { fetchEmailBody } from "@/lib/email";
 import { createCard } from "@/lib/kanban";
 import { anthropic, calculateCost, logLlmUsage } from "@/lib/llm";
 import { connectDB } from "@/lib/mongodb";
+import { string_to_slug } from "@/lib/utils";
 import { EmailModel } from "@/models/Email";
 import {
   EmailTriageModel,
   type TriageCategory,
   type TriagePriority,
 } from "@/models/EmailTriage";
+import { KanbanBoard } from "@/models/KanbanBoard";
+import { KanbanColumn } from "@/models/KanbanColumn";
 import {
   getOrCreateTriageSettings,
   type ICategoryRouting,
   type ITriageSettings,
+  normalizeCategoryRouting,
 } from "@/models/TriageSettings";
 
 const CATEGORIES: TriageCategory[] = [
@@ -169,6 +173,10 @@ interface FullTriageResult {
     description?: string;
     priority: TriagePriority;
     dueDate?: Date;
+    kanbanBoardId?: string;
+    kanbanBoardTitle?: string;
+    kanbanColumnId?: string;
+    kanbanColumnTitle?: string;
   }[];
   events: {
     title: string;
@@ -177,7 +185,156 @@ interface FullTriageResult {
   }[];
 }
 
-function buildTriageTools(): Anthropic.Tool[] {
+interface TriageKanbanTarget {
+  boardId: string;
+  boardTitle: string;
+  boardTitleId: string;
+  columnId: string;
+  columnTitle: string;
+  columnTitleId: string;
+}
+
+function buildTitleId(title: string, id: string): string {
+  const slug = string_to_slug(title) || "item";
+  return `${slug}--${id}`;
+}
+
+async function getKanbanTargets(): Promise<TriageKanbanTarget[]> {
+  const boards = await KanbanBoard.find({ isArchived: false })
+    .select("title")
+    .sort({ createdAt: -1 })
+    .lean();
+
+  if (boards.length === 0) {
+    return [];
+  }
+
+  const boardIds = boards.map((board) => board._id);
+  const columns = await KanbanColumn.find({ boardId: { $in: boardIds } })
+    .select("boardId title order")
+    .sort({ order: 1 })
+    .lean();
+
+  const columnsByBoard = new Map<string, typeof columns>();
+  for (const column of columns) {
+    const boardId = column.boardId.toString();
+    const existing = columnsByBoard.get(boardId);
+    if (existing) {
+      existing.push(column);
+    } else {
+      columnsByBoard.set(boardId, [column]);
+    }
+  }
+
+  const targets: TriageKanbanTarget[] = [];
+  for (const board of boards) {
+    const boardId = board._id.toString();
+    const boardTitleId = buildTitleId(board.title, boardId);
+
+    for (const column of columnsByBoard.get(boardId) ?? []) {
+      const columnId = column._id.toString();
+      targets.push({
+        boardId,
+        boardTitle: board.title,
+        boardTitleId,
+        columnId,
+        columnTitle: column.title,
+        columnTitleId: `${boardTitleId}/${buildTitleId(column.title, columnId)}`,
+      });
+    }
+  }
+
+  return targets;
+}
+
+function formatKanbanTargets(targets: TriageKanbanTarget[]): string {
+  if (targets.length === 0) {
+    return "No kanban boards with columns are currently available.";
+  }
+
+  const lines: string[] = [];
+  let lastBoardId: string | null = null;
+
+  for (const target of targets) {
+    if (target.boardId !== lastBoardId) {
+      lines.push(
+        `- ${target.boardTitle} (boardTitleId: ${target.boardTitleId})`,
+      );
+      lastBoardId = target.boardId;
+    }
+
+    lines.push(
+      `  - ${target.columnTitle} (columnTitleId: ${target.columnTitleId})`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
+function resolveTaskKanbanTarget(
+  boardTitleId: unknown,
+  columnTitleId: unknown,
+  targets: TriageKanbanTarget[],
+):
+  | Pick<
+      FullTriageResult["tasks"][number],
+      | "kanbanBoardId"
+      | "kanbanBoardTitle"
+      | "kanbanColumnId"
+      | "kanbanColumnTitle"
+    >
+  | undefined {
+  if (typeof boardTitleId !== "string" || typeof columnTitleId !== "string") {
+    return undefined;
+  }
+
+  const target = targets.find(
+    (item) =>
+      item.boardTitleId === boardTitleId &&
+      item.columnTitleId === columnTitleId,
+  );
+  if (!target) {
+    return undefined;
+  }
+
+  return {
+    kanbanBoardId: target.boardId,
+    kanbanBoardTitle: target.boardTitle,
+    kanbanColumnId: target.columnId,
+    kanbanColumnTitle: target.columnTitle,
+  };
+}
+
+function buildTriageTools(
+  kanbanTargets: TriageKanbanTarget[],
+): Anthropic.Tool[] {
+  const taskProperties: Record<string, unknown> = {
+    title: { type: "string" },
+    description: { type: "string" },
+    priority: { type: "string", enum: PRIORITIES },
+    dueDate: {
+      type: "string",
+      description: "ISO 8601 due date if mentioned, else omit.",
+    },
+  };
+  const taskRequired = ["title", "priority"];
+
+  if (kanbanTargets.length > 0) {
+    taskProperties.boardTitleId = {
+      type: "string",
+      enum: [...new Set(kanbanTargets.map((target) => target.boardTitleId))],
+      description:
+        "Choose the best matching kanban board title-id from the provided targets.",
+    };
+    taskProperties.columnTitleId = {
+      type: "string",
+      enum: kanbanTargets.map((target) => target.columnTitleId),
+      description:
+        "Choose the best matching kanban column title-id from the provided targets. It must belong to the chosen boardTitleId.",
+    };
+    taskRequired.push("boardTitleId", "columnTitleId");
+  }
+
   return [
     {
       name: "classify_email",
@@ -207,19 +364,13 @@ function buildTriageTools(): Anthropic.Tool[] {
     {
       name: "suggest_task",
       description:
-        "Call 0 or more times to propose a follow-up task extracted from the email.",
+        kanbanTargets.length > 0
+          ? "Call 0 or more times to propose a follow-up task extracted from the email. Every task must include the best matching boardTitleId and columnTitleId from the provided kanban targets."
+          : "Call 0 or more times to propose a follow-up task extracted from the email.",
       input_schema: {
         type: "object",
-        properties: {
-          title: { type: "string" },
-          description: { type: "string" },
-          priority: { type: "string", enum: PRIORITIES },
-          dueDate: {
-            type: "string",
-            description: "ISO 8601 due date if mentioned, else omit.",
-          },
-        },
-        required: ["title", "priority"],
+        properties: taskProperties,
+        required: taskRequired,
       },
     },
     {
@@ -266,9 +417,12 @@ async function runFullTriage(
   model: string,
   email: TriageEmailContext,
   body: { text: string; html: string },
+  kanbanTargets: TriageKanbanTarget[],
 ): Promise<FullTriageResult | null> {
   const system =
-    "You are an email triage assistant. For the given email, call suggest_task (0..N) and suggest_event (0..N) to extract any actionable tasks or calendar events, then call classify_email EXACTLY ONCE to finalize. Always end with classify_email. Keep summary to 1-2 sentences. Use purchases for receipts, invoices, payment notices, or order confirmations that do not need follow-up. Only suggest tasks when the email genuinely needs a follow-up action. Only suggest events when a specific date/time is mentioned.";
+    kanbanTargets.length > 0
+      ? "You are an email triage assistant. For the given email, call suggest_task (0..N) and suggest_event (0..N) to extract any actionable tasks or calendar events, then call classify_email EXACTLY ONCE to finalize. Always end with classify_email. Keep summary to 1-2 sentences. Use purchases for receipts, invoices, payment notices, or order confirmations that do not need follow-up. Only suggest tasks when the email genuinely needs a follow-up action. Only suggest events when a specific date/time is mentioned. Every suggested task must include the best matching boardTitleId and columnTitleId from the provided kanban targets."
+      : "You are an email triage assistant. For the given email, call suggest_task (0..N) and suggest_event (0..N) to extract any actionable tasks or calendar events, then call classify_email EXACTLY ONCE to finalize. Always end with classify_email. Keep summary to 1-2 sentences. Use purchases for receipts, invoices, payment notices, or order confirmations that do not need follow-up. Only suggest tasks when the email genuinely needs a follow-up action. Only suggest events when a specific date/time is mentioned.";
 
   const bodyText =
     body.text || body.html.replace(/<[^>]+>/g, " ").slice(0, 8000);
@@ -276,10 +430,13 @@ async function runFullTriage(
 From: ${formatFrom(email.from)}
 Date: ${email.date.toISOString()}
 
+Available Kanban Targets:
+${formatKanbanTargets(kanbanTargets)}
+
 Body:
 ${bodyText.slice(0, 8000)}`;
 
-  const tools = buildTriageTools();
+  const tools = buildTriageTools(kanbanTargets);
   const messages: Anthropic.MessageParam[] = [
     { role: "user", content: prompt },
   ];
@@ -315,6 +472,21 @@ ${bodyText.slice(0, 8000)}`;
       const input = isRecord(block.input) ? block.input : {};
 
       if (block.name === "suggest_task") {
+        const kanbanTarget = resolveTaskKanbanTarget(
+          input.boardTitleId,
+          input.columnTitleId,
+          kanbanTargets,
+        );
+        if (kanbanTargets.length > 0 && !kanbanTarget) {
+          toolResults.push({
+            type: "tool_result",
+            tool_use_id: block.id,
+            content:
+              "Invalid kanban target. Use one of the listed boardTitleId and columnTitleId pairs.",
+          });
+          continue;
+        }
+
         tasks.push({
           title: String(input.title ?? "Untitled"),
           description:
@@ -323,7 +495,14 @@ ${bodyText.slice(0, 8000)}`;
               : undefined,
           priority: coercePriority(input.priority),
           dueDate: parseDate(input.dueDate),
+          ...kanbanTarget,
         });
+        toolResults.push({
+          type: "tool_result",
+          tool_use_id: block.id,
+          content: "ok",
+        });
+        continue;
       } else if (block.name === "suggest_event") {
         const date = parseDate(input.date);
         if (date) {
@@ -378,25 +557,20 @@ async function autoAccept(
   const confOk = result.confidence >= routing.autoAcceptThreshold;
   let taskCount = 0;
 
-  if (
-    routing.autoCreateCard &&
-    confOk &&
-    routing.kanbanBoardId &&
-    routing.kanbanColumnId
-  ) {
+  if (routing.autoCreateCard && confOk) {
     for (let i = 0; i < result.tasks.length; i++) {
       const t = result.tasks[i];
+      if (!t.kanbanBoardId || !t.kanbanColumnId) {
+        continue;
+      }
+
       try {
-        const card = await createCard(
-          routing.kanbanBoardId,
-          routing.kanbanColumnId,
-          {
-            title: t.title,
-            description: t.description,
-            priority: t.priority,
-            dueDate: t.dueDate ? t.dueDate.toISOString() : undefined,
-          },
-        );
+        const card = await createCard(t.kanbanBoardId, t.kanbanColumnId, {
+          title: t.title,
+          description: t.description,
+          priority: t.priority,
+          dueDate: t.dueDate ? t.dueDate.toISOString() : undefined,
+        });
         await EmailTriageModel.updateOne(
           { _id: triageId },
           {
@@ -421,6 +595,7 @@ export async function runTriage(options?: {
 }): Promise<TriageRunStats> {
   await connectDB();
   const settings = await getOrCreateTriageSettings();
+  const categoryRouting = normalizeCategoryRouting(settings.categoryRouting);
   if (!settings.enabled) {
     return {
       scanned: 0,
@@ -462,6 +637,7 @@ export async function runTriage(options?: {
     autoAcceptedEvents: 0,
     errors: 0,
   };
+  const kanbanTargets = await getKanbanTargets();
 
   if (candidates.length === 0) {
     await updateLastRunAt(settings);
@@ -515,6 +691,7 @@ export async function runTriage(options?: {
           date: email.date,
         },
         { text: body.text, html: body.html },
+        kanbanTargets,
       );
       if (!result) {
         stats.errors++;
@@ -533,6 +710,10 @@ export async function runTriage(options?: {
           description: t.description,
           priority: t.priority,
           dueDate: t.dueDate,
+          kanbanBoardId: t.kanbanBoardId,
+          kanbanBoardTitle: t.kanbanBoardTitle,
+          kanbanColumnId: t.kanbanColumnId,
+          kanbanColumnTitle: t.kanbanColumnTitle,
           status: "pending",
         })),
         suggestedEvents: result.events.map((e) => ({
@@ -546,12 +727,13 @@ export async function runTriage(options?: {
       });
       stats.fullTriaged++;
 
-      const routing = settings.categoryRouting?.[result.category];
-      if (routing) {
-        const accepted = await autoAccept(doc._id, result, routing);
-        stats.autoAcceptedTasks += accepted.tasks;
-        stats.autoAcceptedEvents += accepted.events;
-      }
+      const accepted = await autoAccept(
+        doc._id,
+        result,
+        categoryRouting[result.category],
+      );
+      stats.autoAcceptedTasks += accepted.tasks;
+      stats.autoAcceptedEvents += accepted.events;
     } catch (err) {
       console.error("full triage failed for", email._id, err);
       stats.errors++;
@@ -586,13 +768,11 @@ export async function acceptSuggestion(
     if (idx < 0) return { ok: false, error: "Suggestion not found" };
     const t = triage.suggestedTasks[idx];
     const boardId =
-      getStringOverride(overrides, "boardId") ??
-      (await resolveRoutingBoard(triage.category));
+      getStringOverride(overrides, "boardId") ?? t.kanbanBoardId?.toString();
     const columnId =
-      getStringOverride(overrides, "columnId") ??
-      (await resolveRoutingColumn(triage.category));
+      getStringOverride(overrides, "columnId") ?? t.kanbanColumnId?.toString();
     if (!boardId || !columnId) {
-      return { ok: false, error: "No kanban routing configured" };
+      return { ok: false, error: "No kanban target found on this suggestion" };
     }
     const card = await createCard(boardId, columnId, {
       title: getStringOverride(overrides, "title") ?? t.title,
@@ -645,18 +825,4 @@ export async function dismissSuggestion(
     { $set: { [`${key}.$.status`]: "dismissed" } },
   );
   return { ok: res.modifiedCount > 0 };
-}
-
-async function resolveRoutingBoard(
-  category: TriageCategory,
-): Promise<string | undefined> {
-  const settings = await getOrCreateTriageSettings();
-  return settings.categoryRouting?.[category]?.kanbanBoardId;
-}
-
-async function resolveRoutingColumn(
-  category: TriageCategory,
-): Promise<string | undefined> {
-  const settings = await getOrCreateTriageSettings();
-  return settings.categoryRouting?.[category]?.kanbanColumnId;
 }

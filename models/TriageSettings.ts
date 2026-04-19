@@ -2,8 +2,6 @@ import mongoose, { Schema } from "mongoose";
 import type { TriageCategory } from "./EmailTriage";
 
 export interface ICategoryRouting {
-  kanbanBoardId?: string;
-  kanbanColumnId?: string;
   autoCreateCard: boolean;
   autoAcceptThreshold: number;
 }
@@ -32,6 +30,59 @@ export interface ILeanTriageSettings {
   updatedAt: Date;
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
+}
+
+function isCategoryRouting(value: unknown): value is ICategoryRouting {
+  return (
+    isRecord(value) &&
+    typeof value.autoCreateCard === "boolean" &&
+    typeof value.autoAcceptThreshold === "number" &&
+    Number.isFinite(value.autoAcceptThreshold)
+  );
+}
+
+export function getDefaultCategoryRouting(): Record<
+  TriageCategory,
+  ICategoryRouting
+> {
+  return {
+    spam: { autoCreateCard: false, autoAcceptThreshold: 1 },
+    newsletter: { autoCreateCard: false, autoAcceptThreshold: 1 },
+    promo: { autoCreateCard: false, autoAcceptThreshold: 1 },
+    purchases: { autoCreateCard: false, autoAcceptThreshold: 1 },
+    fyi: { autoCreateCard: false, autoAcceptThreshold: 1 },
+    "action-needed": { autoCreateCard: false, autoAcceptThreshold: 0.85 },
+    scheduled: { autoCreateCard: false, autoAcceptThreshold: 0.8 },
+  };
+}
+
+export function normalizeCategoryRouting(
+  value: unknown,
+): Record<TriageCategory, ICategoryRouting> {
+  const defaults = getDefaultCategoryRouting();
+
+  if (!isRecord(value)) {
+    return defaults;
+  }
+
+  const normalized = { ...defaults };
+  for (const category of Object.keys(defaults) as TriageCategory[]) {
+    const entry = value[category];
+    if (!isCategoryRouting(entry)) {
+      continue;
+    }
+
+    normalized[category] = {
+      autoCreateCard: entry.autoCreateCard,
+      autoAcceptThreshold: entry.autoAcceptThreshold,
+    };
+  }
+
+  return normalized;
+}
+
 const TriageSettingsSchema = new Schema<ITriageSettings>(
   {
     _id: { type: String, default: "singleton" },
@@ -41,15 +92,7 @@ const TriageSettingsSchema = new Schema<ITriageSettings>(
     fullModel: { type: String, default: "claude-sonnet-4-6" },
     categoryRouting: {
       type: Schema.Types.Mixed,
-      default: () => ({
-        spam: { autoCreateCard: false, autoAcceptThreshold: 1 },
-        newsletter: { autoCreateCard: false, autoAcceptThreshold: 1 },
-        promo: { autoCreateCard: false, autoAcceptThreshold: 1 },
-        purchases: { autoCreateCard: false, autoAcceptThreshold: 1 },
-        fyi: { autoCreateCard: false, autoAcceptThreshold: 1 },
-        "action-needed": { autoCreateCard: false, autoAcceptThreshold: 0.85 },
-        scheduled: { autoCreateCard: false, autoAcceptThreshold: 0.8 },
-      }),
+      default: getDefaultCategoryRouting,
     },
     lastRunAt: { type: Date },
   },

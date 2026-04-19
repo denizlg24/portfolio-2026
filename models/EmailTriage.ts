@@ -18,6 +18,10 @@ export interface ITriageTaskSuggestion {
   description?: string;
   priority: TriagePriority;
   dueDate?: Date;
+  kanbanBoardId?: mongoose.Types.ObjectId;
+  kanbanBoardTitle?: string;
+  kanbanColumnId?: mongoose.Types.ObjectId;
+  kanbanColumnTitle?: string;
   status: TriageSuggestionStatus;
   acceptedCardId?: mongoose.Types.ObjectId;
 }
@@ -55,9 +59,14 @@ export interface ILeanEmailTriage {
   category: TriageCategory;
   confidence: number;
   summary?: string;
-  suggestedTasks: (Omit<ITriageTaskSuggestion, "_id" | "acceptedCardId"> & {
+  suggestedTasks: (Omit<
+    ITriageTaskSuggestion,
+    "_id" | "acceptedCardId" | "kanbanBoardId" | "kanbanColumnId"
+  > & {
     _id: string;
     acceptedCardId?: string;
+    kanbanBoardId?: string;
+    kanbanColumnId?: string;
   })[];
   suggestedEvents: (Omit<ITriageEventSuggestion, "_id" | "acceptedEventId"> & {
     _id: string;
@@ -79,6 +88,10 @@ const TaskSuggestionSchema = new Schema<ITriageTaskSuggestion>({
     default: "none",
   },
   dueDate: { type: Date },
+  kanbanBoardId: { type: Schema.Types.ObjectId, ref: "KanbanBoard" },
+  kanbanBoardTitle: { type: String },
+  kanbanColumnId: { type: Schema.Types.ObjectId, ref: "KanbanColumn" },
+  kanbanColumnTitle: { type: String },
   status: {
     type: String,
     enum: ["pending", "accepted", "dismissed"],

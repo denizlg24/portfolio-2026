@@ -57,6 +57,10 @@ export async function GET(
       suggestedTasks: (triage.suggestedTasks ?? []).map((s) => ({
         ...s,
         _id: String(s._id),
+        kanbanBoardId: s.kanbanBoardId ? s.kanbanBoardId.toString() : undefined,
+        kanbanColumnId: s.kanbanColumnId
+          ? s.kanbanColumnId.toString()
+          : undefined,
         acceptedCardId: s.acceptedCardId
           ? s.acceptedCardId.toString()
           : undefined,

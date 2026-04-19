@@ -5,6 +5,7 @@ import type { TriageCategory } from "@/models/EmailTriage";
 import {
   getOrCreateTriageSettings,
   type ICategoryRouting,
+  normalizeCategoryRouting,
   TriageSettingsModel,
 } from "@/models/TriageSettings";
 
@@ -26,10 +27,6 @@ function isCategoryRouting(value: unknown): value is ICategoryRouting {
   if (!isRecord(value)) return false;
 
   return (
-    (value.kanbanBoardId === undefined ||
-      typeof value.kanbanBoardId === "string") &&
-    (value.kanbanColumnId === undefined ||
-      typeof value.kanbanColumnId === "string") &&
     typeof value.autoCreateCard === "boolean" &&
     typeof value.autoAcceptThreshold === "number" &&
     Number.isFinite(value.autoAcceptThreshold)
@@ -50,7 +47,10 @@ function parseCategoryRouting(
       continue;
     }
 
-    next[category] = entry;
+    next[category] = {
+      autoCreateCard: entry.autoCreateCard,
+      autoAcceptThreshold: entry.autoAcceptThreshold,
+    };
     hasEntries = true;
   }
 
@@ -63,7 +63,14 @@ export async function GET(request: NextRequest) {
 
   await connectDB();
   const settings = await getOrCreateTriageSettings();
-  return NextResponse.json({ settings: settings.toObject() });
+  const settingsObject = settings.toObject();
+
+  return NextResponse.json({
+    settings: {
+      ...settingsObject,
+      categoryRouting: normalizeCategoryRouting(settingsObject.categoryRouting),
+    },
+  });
 }
 
 export async function PATCH(request: NextRequest) {
@@ -91,7 +98,7 @@ export async function PATCH(request: NextRequest) {
   const categoryRouting = parseCategoryRouting(payload.categoryRouting);
   if (categoryRouting) {
     update.categoryRouting = {
-      ...settings.categoryRouting,
+      ...normalizeCategoryRouting(settings.categoryRouting),
       ...categoryRouting,
     };
   }
@@ -106,5 +113,16 @@ export async function PATCH(request: NextRequest) {
     { new: true },
   );
 
-  return NextResponse.json({ settings: updated?.toObject() });
+  const updatedObject = updated?.toObject();
+
+  return NextResponse.json({
+    settings: updatedObject
+      ? {
+          ...updatedObject,
+          categoryRouting: normalizeCategoryRouting(
+            updatedObject.categoryRouting,
+          ),
+        }
+      : null,
+  });
 }
