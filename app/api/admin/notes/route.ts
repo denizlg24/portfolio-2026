@@ -66,6 +66,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const url = pickString(body.url);
     const skipCategorize = body.skipCategorize === true;
+    const skipMetadataFetch = body.skipMetadataFetch === true;
 
     await connectDB();
 
@@ -98,8 +99,10 @@ export async function POST(request: NextRequest) {
           image: pickString(providedMeta.image),
           siteName: pickString(providedMeta.siteName),
         };
-      } else {
+      } else if (!skipMetadataFetch) {
         metadata = await fetchUrlMetadata(url);
+      } else {
+        metadata = { url, title: url };
       }
     }
 

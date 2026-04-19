@@ -73,16 +73,21 @@ export async function saveEmail(emailData: {
       messageId: emailData.messageId,
     },
     {
-      subject: emailData.subject,
-      from: fromAddresses,
-      date: emailData.date,
-      seen: emailData.seen,
-      uid: emailData.uid,
-      ...(emailData.inReplyTo ? { inReplyTo: emailData.inReplyTo } : {}),
-      ...(emailData.references?.length
-        ? { references: emailData.references }
-        : {}),
-      threadId,
+      $set: {
+        subject: emailData.subject,
+        from: fromAddresses,
+        date: emailData.date,
+        seen: emailData.seen,
+        uid: emailData.uid,
+        ...(emailData.inReplyTo ? { inReplyTo: emailData.inReplyTo } : {}),
+        ...(emailData.references?.length
+          ? { references: emailData.references }
+          : {}),
+        threadId,
+      },
+      $setOnInsert: {
+        createdAt: new Date(),
+      },
     },
     {
       upsert: true,

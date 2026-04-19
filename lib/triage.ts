@@ -607,6 +607,27 @@ export async function runTriage(options?: {
     };
   }
 
+  const isManualRun = options?.since !== undefined;
+  if (!isManualRun && settings.lastRunAt) {
+    const nextRunAt = new Date(
+      settings.lastRunAt.getTime() + settings.runIntervalMinutes * 60 * 1000,
+    );
+    if (nextRunAt > new Date()) {
+      console.log(
+        "Skipping triage run — next run scheduled at",
+        nextRunAt.toISOString(),
+      );
+      return {
+        scanned: 0,
+        prefilteredSpam: 0,
+        fullTriaged: 0,
+        autoAcceptedTasks: 0,
+        autoAcceptedEvents: 0,
+        errors: 0,
+      };
+    }
+  }
+
   console.log("Starting triage run with settings:", options);
 
   const since =
@@ -621,7 +642,12 @@ export async function runTriage(options?: {
     .lean();
   const alreadyIds = new Set(alreadyTriaged.map((t) => t.emailId.toString()));
 
-  const emails = await EmailModel.find({ date: { $gte: since } })
+  const emails = await EmailModel.find({
+    $or: [
+      { createdAt: { $gte: since } },
+      { createdAt: { $exists: false }, date: { $gte: since } },
+    ],
+  })
     .sort({ date: 1 })
     .lean();
 
