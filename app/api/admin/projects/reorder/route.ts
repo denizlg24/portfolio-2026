@@ -1,6 +1,6 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateProjectsContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import { Project } from "@/models/Project";
 
@@ -29,10 +29,7 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await Project.bulkWrite(bulkOps);
-    revalidatePath("/", "layout");
-    revalidatePath("/projects", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/projects", "page");
+    revalidateProjectsContent();
     return NextResponse.json(
       { message: "Projects reordered successfully" },
       { status: 200 },

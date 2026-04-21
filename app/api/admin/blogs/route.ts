@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { getAllBlogs } from "@/lib/blog";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateBlogContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import { calculateReadingTime, string_to_slug } from "@/lib/utils";
 import { Blog } from "@/models/Blog";
@@ -44,10 +44,7 @@ export async function POST(request: NextRequest) {
       tags: tags || [],
       isActive: isActive !== undefined ? isActive : true,
     });
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/blog", "layout");
-    revalidatePath("/blog", "page");
+    revalidateBlogContent();
     return NextResponse.json(
       {
         message: "Blog created successfully",

@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { getBlogById, toggleBlogActive } from "@/lib/blog";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateBlogContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import { calculateReadingTime } from "@/lib/utils";
 import { Blog } from "@/models/Blog";
@@ -47,12 +47,7 @@ export async function PATCH(
       if (!blog) {
         return NextResponse.json({ error: "Blog not found" }, { status: 404 });
       }
-      revalidatePath("/", "layout");
-      revalidatePath("/", "page");
-      revalidatePath("/blog", "layout");
-      revalidatePath("/blog", "page");
-      revalidatePath(`/blog/${blog.slug}`, "layout");
-      revalidatePath(`/blog/${blog.slug}`, "page");
+      revalidateBlogContent();
       return NextResponse.json(
         { message: "Blog visibility toggled successfully", blog },
         { status: 200 },
@@ -75,12 +70,7 @@ export async function PATCH(
     if (!blog) {
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/blog", "layout");
-    revalidatePath("/blog", "page");
-    revalidatePath(`/blog/${blog.slug}`, "layout");
-    revalidatePath(`/blog/${blog.slug}`, "page");
+    revalidateBlogContent();
     return NextResponse.json(
       {
         message: "Blog updated successfully",
@@ -116,12 +106,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Blog not found" }, { status: 404 });
     }
 
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/blog", "layout");
-    revalidatePath("/blog", "page");
-    revalidatePath(`/blog/${blog.slug}`, "layout");
-    revalidatePath(`/blog/${blog.slug}`, "page");
+    revalidateBlogContent();
     return NextResponse.json(
       { message: "Blog deleted successfully" },
       { status: 200 },

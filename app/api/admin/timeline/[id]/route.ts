@@ -1,13 +1,18 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateTimelineContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import {
   deleteTimelineItem,
   toggleTimelineItemActive,
   updateTimelineItem,
 } from "@/lib/timeline";
+import type { ITimelineItem } from "@/models/TimelineItem";
 import TimelineItem from "@/models/TimelineItem";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export async function GET(
   request: NextRequest,
@@ -30,10 +35,13 @@ export async function GET(
     }
 
     return NextResponse.json({ item }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching timeline item:", error);
     return NextResponse.json(
-      { error: "Failed to fetch timeline item", details: error.message },
+      {
+        error: "Failed to fetch timeline item",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }
@@ -50,7 +58,7 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    let item;
+    let item: ITimelineItem | null;
 
     if (body.toggleActive) {
       item = await toggleTimelineItemActive(id);
@@ -64,13 +72,15 @@ export async function PATCH(
         { status: 404 },
       );
     }
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
+    revalidateTimelineContent();
     return NextResponse.json({ item }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating timeline item:", error);
     return NextResponse.json(
-      { error: "Failed to update timeline item", details: error.message },
+      {
+        error: "Failed to update timeline item",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }
@@ -87,13 +97,15 @@ export async function DELETE(
     const { id } = await params;
 
     await deleteTimelineItem(id);
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
+    revalidateTimelineContent();
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error deleting timeline item:", error);
     return NextResponse.json(
-      { error: "Failed to delete timeline item", details: error.message },
+      {
+        error: "Failed to delete timeline item",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }

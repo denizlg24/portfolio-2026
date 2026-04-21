@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getAllProjects } from "@/lib/projects";
+import { revalidateProjectsContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import { Project } from "@/models/Project";
 
@@ -60,10 +60,7 @@ export async function POST(request: NextRequest) {
       isFeatured: isFeatured !== undefined ? isFeatured : false,
       order,
     });
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/projects", "layout");
-    revalidatePath("/projects", "page");
+    revalidateProjectsContent();
     return NextResponse.json(
       {
         message: "Project created successfully",

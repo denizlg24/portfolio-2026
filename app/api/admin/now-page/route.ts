@@ -1,7 +1,11 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { getNowPageContent, upsertNowPageContent } from "@/lib/now-page";
+import { revalidateNowContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -14,10 +18,13 @@ export async function GET(request: NextRequest) {
       { item: doc || { content: "", updatedAt: null } },
       { status: 200 },
     );
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error fetching now page content:", error);
     return NextResponse.json(
-      { error: "Failed to fetch now page content", details: error.message },
+      {
+        error: "Failed to fetch now page content",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }
@@ -39,16 +46,16 @@ export async function PUT(request: NextRequest) {
 
     const item = await upsertNowPageContent(body.content);
 
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/now", "layout");
-    revalidatePath("/now", "page");
+    revalidateNowContent();
 
     return NextResponse.json({ item }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error updating now page content:", error);
     return NextResponse.json(
-      { error: "Failed to update now page content", details: error.message },
+      {
+        error: "Failed to update now page content",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }

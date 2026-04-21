@@ -1,7 +1,7 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { getProjectById, toggleProjectActive } from "@/lib/projects";
+import { revalidateProjectsContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import { Project } from "@/models/Project";
 
@@ -49,12 +49,7 @@ export async function PATCH(
           { status: 404 },
         );
       }
-      revalidatePath("/", "layout");
-      revalidatePath("/projects", "layout");
-      revalidatePath(`/projects/${project._id.toString()}`, "layout");
-      revalidatePath("/", "page");
-      revalidatePath("/projects", "page");
-      revalidatePath(`/projects/${project._id.toString()}`, "page");
+      revalidateProjectsContent();
       return NextResponse.json(
         { message: "Project visibility toggled successfully", project },
         { status: 200 },
@@ -77,12 +72,7 @@ export async function PATCH(
       )
         .lean()
         .exec();
-      revalidatePath("/", "layout");
-      revalidatePath("/projects", "layout");
-      revalidatePath(`/projects/${project?._id.toString()}`, "layout");
-      revalidatePath("/", "page");
-      revalidatePath("/projects", "page");
-      revalidatePath(`/projects/${project?._id.toString()}`, "page");
+      revalidateProjectsContent();
       return NextResponse.json(
         { message: "Project featured status toggled successfully", project },
         { status: 200 },
@@ -100,12 +90,7 @@ export async function PATCH(
     if (!project) {
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
-    revalidatePath("/", "layout");
-    revalidatePath("/projects", "layout");
-    revalidatePath(`/projects/${project._id.toString()}`, "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/projects", "page");
-    revalidatePath(`/projects/${project._id.toString()}`, "page");
+    revalidateProjectsContent();
     return NextResponse.json(
       {
         message: "Project updated successfully",
@@ -141,12 +126,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Project not found" }, { status: 404 });
     }
 
-    revalidatePath("/", "layout");
-    revalidatePath("/projects", "layout");
-    revalidatePath(`/projects/${project._id.toString()}`, "layout");
-    revalidatePath("/", "page");
-    revalidatePath("/projects", "page");
-    revalidatePath(`/projects/${project._id.toString()}`, "page");
+    revalidateProjectsContent();
     return NextResponse.json(
       { message: "Project deleted successfully" },
       { status: 200 },

@@ -1,8 +1,12 @@
-import { revalidatePath } from "next/cache";
 import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
+import { revalidateTimelineContent } from "@/lib/public-content-revalidation";
 import { requireAdmin } from "@/lib/require-admin";
 import TimelineItem from "@/models/TimelineItem";
+
+function getErrorMessage(error: unknown) {
+  return error instanceof Error ? error.message : "Unknown error";
+}
 
 export async function PATCH(request: NextRequest) {
   const authError = await requireAdmin(request);
@@ -29,13 +33,15 @@ export async function PATCH(request: NextRequest) {
     }));
 
     await TimelineItem.bulkWrite(bulkOps);
-    revalidatePath("/", "layout");
-    revalidatePath("/", "page");
+    revalidateTimelineContent();
     return NextResponse.json({ success: true }, { status: 200 });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error reordering timeline items:", error);
     return NextResponse.json(
-      { error: "Failed to reorder timeline items", details: error.message },
+      {
+        error: "Failed to reorder timeline items",
+        details: getErrorMessage(error),
+      },
       { status: 500 },
     );
   }
