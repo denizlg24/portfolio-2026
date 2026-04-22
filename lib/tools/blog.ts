@@ -1,7 +1,7 @@
 import { getAllBlogs, getBlogById, getFilteredActiveBlogs } from "@/lib/blog";
 import { Blog } from "@/models/Blog";
 import { connectDB } from "../mongodb";
-import { revalidateBlogContent } from "../public-content-revalidation";
+import { triggerPublicContentRevalidation } from "../public-content-revalidation";
 import type { ToolDefinition } from "./types";
 
 function estimateReadTime(content: string): number {
@@ -143,7 +143,7 @@ export const blogTools: ToolDefinition[] = [
       });
       const blog = await doc.save();
 
-      revalidateBlogContent();
+      await triggerPublicContentRevalidation(["blog"]);
 
       return {
         _id: blog._id.toString(),
@@ -205,7 +205,7 @@ export const blogTools: ToolDefinition[] = [
       }).lean();
       if (!blog) throw new Error("Blog post not found");
 
-      revalidateBlogContent();
+      await triggerPublicContentRevalidation(["blog"]);
 
       return {
         _id: blog._id.toString(),
@@ -237,7 +237,7 @@ export const blogTools: ToolDefinition[] = [
       const blog = await Blog.findByIdAndDelete(input.id as string).lean();
       if (!blog) throw new Error("Blog post not found");
 
-      revalidateBlogContent();
+      await triggerPublicContentRevalidation(["blog"]);
 
       return { success: true };
     },

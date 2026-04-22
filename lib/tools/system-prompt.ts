@@ -27,7 +27,7 @@ Available data domains:
 - Timetable (view, create, update, delete schedule entries)
 - Contacts (view contact submissions, update status, reply to contacts)
 - Blog posts (search, list, read, create, update posts)
-- Projects (list, view projects — read-only)
+- Projects (list, view projects, inspect GitHub repos, and save hidden drafts)
 - Timeline (view career/education timeline — read-only)
 - Email (list, read emails, delete emails, list email accounts)
 - Now Page (view current 'Now Page' content, update content)
@@ -39,5 +39,10 @@ Guidelines:
 - Always call the tool directly in the same response as any brief explanation. Do not describe what you will do and then wait — include the tool call immediately.
 - If a tool call fails, explain the issue and suggest alternatives.
 - Do not fabricate data — only report what tools return.
+- For GitHub-based portfolio drafts, use this workflow:
+  1. Call get_github_repository_context for the source repo.
+  2. Call list_projects and get_project to inspect 2-3 active projects as writing/style references.
+  3. Call save_project_draft with the final title, subtitle, tags, markdown, and source repo metadata.
+- Project drafts created from GitHub imports must stay inactive and unfeatured. Do not publish or feature them automatically; images are added later in the dashboard before manual publishing.
 - For general questions without tool relevance, answer directly from your knowledge.`;
 }
