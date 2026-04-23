@@ -1,4 +1,5 @@
 import { subDays } from "date-fns";
+import { ensureGeneratedCalendarEventsForCurrentWindow } from "@/lib/calendar-sync";
 import { connectDB } from "@/lib/mongodb";
 import { CalendarEvent, type ICalendarEvent } from "@/models/CalendarEvent";
 
@@ -13,6 +14,7 @@ export async function GET(request: Request) {
       });
     }
     await connectDB();
+    await ensureGeneratedCalendarEventsForCurrentWindow();
     const eventsCompleted = await CalendarEvent.updateMany(
       {
         status: "scheduled",

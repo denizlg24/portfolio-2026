@@ -54,6 +54,10 @@ export const calendarTools: ToolDefinition[] = [
             type: "string",
             description: "Event date/time in ISO 8601 format",
           },
+          calendarDate: {
+            type: "string",
+            description: "Event day in YYYY-MM-DD format (optional)",
+          },
           place: { type: "string", description: "Event location (optional)" },
           status: {
             type: "string",
@@ -101,6 +105,9 @@ export const calendarTools: ToolDefinition[] = [
       const result = await createCalendarEvent({
         title: input.title as string,
         date: new Date(input.date as string),
+        calendarDate: input.calendarDate as string | undefined,
+        isAllDay: false,
+        kind: "manual",
         place: input.place as string | undefined,
         status:
           (input.status as "scheduled" | "completed" | "canceled") ??
@@ -125,6 +132,10 @@ export const calendarTools: ToolDefinition[] = [
           date: {
             type: "string",
             description: "New date in ISO 8601 (optional)",
+          },
+          calendarDate: {
+            type: "string",
+            description: "New event day in YYYY-MM-DD format (optional)",
           },
           place: { type: "string", description: "New location (optional)" },
           status: {
@@ -163,6 +174,7 @@ export const calendarTools: ToolDefinition[] = [
       const data: Record<string, unknown> = {};
       if (input.title) data.title = input.title;
       if (input.date) data.date = new Date(input.date as string);
+      if (input.calendarDate) data.calendarDate = input.calendarDate;
       if (input.place) data.place = input.place;
       if (input.status) data.status = input.status;
       if (input.notifyBySlack !== undefined)

@@ -4,6 +4,7 @@ import {
   getCalendarEvents,
   getMonthCalendarEvents,
 } from "@/lib/calendar-events";
+import { ensureGeneratedCalendarEventsForRange } from "@/lib/calendar-sync";
 import { requireAdmin } from "@/lib/require-admin";
 
 export async function POST(request: NextRequest) {
@@ -32,6 +33,7 @@ export async function GET(request: NextRequest) {
 
   if (dateParam) {
     const date = new Date(dateParam);
+    await ensureGeneratedCalendarEventsForRange(date, date);
     const events = await getCalendarEvents(date);
     return NextResponse.json({ events }, { status: 200 });
   }
@@ -39,6 +41,7 @@ export async function GET(request: NextRequest) {
   if (startParam && endParam) {
     const start = new Date(startParam);
     const end = new Date(endParam);
+    await ensureGeneratedCalendarEventsForRange(start, end);
     const events = await getMonthCalendarEvents(start, end);
     return NextResponse.json({ events }, { status: 200 });
   }

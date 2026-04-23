@@ -27,6 +27,20 @@ function serializeJournal(journal: IJournalLog): ILeanJournalLog {
     events: (journal.events ?? []).map((event) => ({
       _id: String(event._id),
       date: event.date,
+      calendarDate:
+        event.calendarDate ?? new Date(event.date).toISOString().slice(0, 10),
+      isAllDay: event.isAllDay ?? false,
+      kind: event.kind ?? "manual",
+      source: event.source
+        ? {
+            ...event.source,
+            personId: event.source.personId
+              ? String(event.source.personId)
+              : undefined,
+            isCustomized: event.source.isCustomized ?? false,
+            isSuppressed: event.source.isSuppressed ?? false,
+          }
+        : undefined,
       title: event.title,
       place: event.place,
       links: (event.links ?? []).map((link) => ({
@@ -212,6 +226,10 @@ export async function collectDayDataToJournal(
 
     const [events, notes, todayBoard] = await Promise.all([
       CalendarEvent.find({
+        $or: [
+          { "source.isSuppressed": { $ne: true } },
+          { source: { $exists: false } },
+        ],
         date: { $gte: dayStart, $lte: dayEnd },
         status: { $ne: "canceled" },
       }).lean(),

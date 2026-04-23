@@ -50,20 +50,32 @@ export async function GET(request: NextRequest) {
 
     const [todayEvents, upcomingEvents, calendarEvents] = await Promise.all([
       CalendarEvent.countDocuments({
+        $or: [
+          { "source.isSuppressed": { $ne: true } },
+          { source: { $exists: false } },
+        ],
         date: { $gte: startOfToday, $lte: endOfToday },
         status: { $ne: "canceled" },
       }),
       CalendarEvent.countDocuments({
+        $or: [
+          { "source.isSuppressed": { $ne: true } },
+          { source: { $exists: false } },
+        ],
         date: { $gte: startOfTomorrow, $lte: endOfWeek },
         status: "scheduled",
       }),
       CalendarEvent.find({
+        $or: [
+          { "source.isSuppressed": { $ne: true } },
+          { source: { $exists: false } },
+        ],
         date: { $gte: startOfToday },
         status: { $ne: "canceled" },
       })
         .sort({ date: 1 })
         .limit(5)
-        .select("title date status")
+        .select("title date calendarDate isAllDay kind status source")
         .lean(),
     ]);
 
@@ -141,6 +153,9 @@ export async function GET(request: NextRequest) {
           _id: String(event._id),
           title: event.title,
           date: event.date,
+          calendarDate: event.calendarDate,
+          isAllDay: event.isAllDay ?? false,
+          kind: event.kind ?? "manual",
           status: event.status,
         })),
       },
