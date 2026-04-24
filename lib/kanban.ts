@@ -262,3 +262,126 @@ export async function reorderCards(
   await KanbanCard.bulkWrite(bulkOps);
   return true;
 }
+
+export interface UpcomingKanbanCard extends ILeanKanbanCard {
+  columnTitle: string;
+  daysUntilDue: number;
+  overdue: boolean;
+}
+
+export interface UpcomingBoardGroup {
+  boardId: string;
+  boardTitle: string;
+  boardColor?: string;
+  cards: UpcomingKanbanCard[];
+}
+
+export interface UpcomingKanbanResult {
+  boards: UpcomingBoardGroup[];
+  stats: {
+    total: number;
+    overdue: number;
+    dueToday: number;
+    dueThisWeek: number;
+  };
+}
+
+export async function getUpcomingCards(
+  days = 7,
+): Promise<UpcomingKanbanResult> {
+  await connectDB();
+
+  const now = new Date();
+  const endOfToday = new Date(now);
+  endOfToday.setHours(23, 59, 59, 999);
+  const horizon = new Date(now);
+  horizon.setDate(horizon.getDate() + days);
+  horizon.setHours(23, 59, 59, 999);
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(endOfWeek.getDate() + 7);
+  endOfWeek.setHours(23, 59, 59, 999);
+
+  const cards = await KanbanCard.find({
+    isArchived: false,
+    dueDate: { $ne: null, $lte: horizon },
+  })
+    .sort({ dueDate: 1 })
+    .lean();
+
+  if (cards.length === 0) {
+    return {
+      boards: [],
+      stats: { total: 0, overdue: 0, dueToday: 0, dueThisWeek: 0 },
+    };
+  }
+
+  const boardIds = [...new Set(cards.map((c) => c.boardId.toString()))];
+  const columnIds = [...new Set(cards.map((c) => c.columnId.toString()))];
+
+  const [boards, columns] = await Promise.all([
+    KanbanBoard.find({ _id: { $in: boardIds }, isArchived: false }).lean(),
+    KanbanColumn.find({ _id: { $in: columnIds } }).lean(),
+  ]);
+
+  const boardById = new Map(
+    boards.map((b) => [b._id.toString(), b] as const),
+  );
+  const columnTitleById = new Map(
+    columns.map((c) => [c._id.toString(), c.title] as const),
+  );
+
+  const msPerDay = 24 * 60 * 60 * 1000;
+  const grouped = new Map<string, UpcomingBoardGroup>();
+  let overdue = 0;
+  let dueToday = 0;
+  let dueThisWeek = 0;
+
+  for (const card of cards) {
+    const boardIdStr = card.boardId.toString();
+    const board = boardById.get(boardIdStr);
+    if (!board) continue;
+
+    const due = card.dueDate as Date;
+    const diffMs = due.getTime() - now.getTime();
+    const daysUntilDue = Math.ceil(diffMs / msPerDay);
+    const isOverdue = due < now;
+
+    if (isOverdue) overdue++;
+    else if (due <= endOfToday) dueToday++;
+    if (due <= endOfWeek) dueThisWeek++;
+
+    const upcomingCard: UpcomingKanbanCard = {
+      ...card,
+      _id: card._id.toString(),
+      boardId: boardIdStr,
+      columnId: card.columnId.toString(),
+      columnTitle: columnTitleById.get(card.columnId.toString()) ?? "",
+      daysUntilDue,
+      overdue: isOverdue,
+    };
+
+    let group = grouped.get(boardIdStr);
+    if (!group) {
+      group = {
+        boardId: boardIdStr,
+        boardTitle: board.title,
+        boardColor: board.color,
+        cards: [],
+      };
+      grouped.set(boardIdStr, group);
+    }
+    group.cards.push(upcomingCard);
+  }
+
+  return {
+    boards: [...grouped.values()],
+    stats: {
+      total: cards.filter((c) =>
+        boardById.has(c.boardId.toString()),
+      ).length,
+      overdue,
+      dueToday,
+      dueThisWeek,
+    },
+  };
+}

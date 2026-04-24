@@ -4,6 +4,7 @@ import { syncBirthdayEventsForPerson } from "@/lib/calendar-sync";
 import { connectDB } from "@/lib/mongodb";
 import {
   canonicalPersonPair,
+  parsePersonSocials,
   prunePersonGroupIds,
   serializePerson,
 } from "@/lib/people-route-utils";
@@ -117,6 +118,16 @@ export async function PATCH(
     }
     if (Array.isArray(body.groupIds)) {
       update.groupIds = await prunePersonGroupIds(body.groupIds);
+    }
+    for (const field of ["email", "phone", "website", "address"] as const) {
+      if (field in body) {
+        const value = body[field];
+        update[field] =
+          typeof value === "string" && value.trim() ? value.trim() : undefined;
+      }
+    }
+    if ("socials" in body) {
+      update.socials = parsePersonSocials(body.socials) ?? [];
     }
 
     const person = await Person.findByIdAndUpdate(id, update, {

@@ -20,6 +20,39 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
+interface UpcomingCard {
+  _id: string;
+  title: string;
+  dueDate?: string;
+  columnTitle: string;
+  daysUntilDue: number;
+  overdue: boolean;
+}
+
+interface UpcomingBoardGroup {
+  boardId: string;
+  boardTitle: string;
+  boardColor?: string;
+  cards: UpcomingCard[];
+}
+
+interface UpcomingKanbanResult {
+  boards: UpcomingBoardGroup[];
+  stats: {
+    total: number;
+    overdue: number;
+    dueToday: number;
+    dueThisWeek: number;
+  };
+}
+
+function formatDueLabel(card: UpcomingCard) {
+  if (card.overdue) return "overdue";
+  if (card.daysUntilDue <= 0) return "today";
+  if (card.daysUntilDue === 1) return "tomorrow";
+  return `in ${card.daysUntilDue}d`;
+}
+
 interface DashboardStats {
   contacts: {
     total: number;
@@ -317,15 +350,17 @@ function LoadingSkeleton() {
 
 export function DashboardOverview() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [upcoming, setUpcoming] = useState<UpcomingKanbanResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await fetch("/api/admin/dashboard/stats");
-      if (response.ok) {
-        const data = await response.json();
-        setStats(data);
-      }
+      const [statsRes, upcomingRes] = await Promise.all([
+        fetch("/api/admin/dashboard/stats"),
+        fetch("/api/admin/kanban/upcoming?days=7"),
+      ]);
+      if (statsRes.ok) setStats(await statsRes.json());
+      if (upcomingRes.ok) setUpcoming(await upcomingRes.json());
     } catch (error) {
       console.error("Failed to fetch dashboard stats:", error);
     } finally {
@@ -537,6 +572,82 @@ export function DashboardOverview() {
           )}
         </AnimatePresence>
       </div>
+
+      {upcoming && upcoming.stats.total > 0 && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.35 }}
+          className="py-10 border-b border-foreground/6"
+        >
+          <div className="flex items-baseline justify-between mb-4">
+            <SectionLabel>Upcoming Deadlines</SectionLabel>
+            <div className="flex items-center gap-3 text-[11px] text-foreground">
+              {upcoming.stats.overdue > 0 && (
+                <span className="text-destructive">
+                  {upcoming.stats.overdue} overdue
+                </span>
+              )}
+              {upcoming.stats.dueToday > 0 && (
+                <span>{upcoming.stats.dueToday} today</span>
+              )}
+              <Link
+                href="/admin/dashboard/kanban"
+                className="hover:text-accent-strong transition-colors flex items-center gap-0.5"
+              >
+                Kanban <ArrowUpRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </div>
+          <div className="flex flex-col gap-6">
+            {upcoming.boards.map((board, bi) => (
+              <motion.div
+                key={board.boardId}
+                initial={{ opacity: 0, x: -6 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 + bi * 0.05 }}
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <span
+                    className="w-1.5 h-1.5 rounded-full shrink-0"
+                    style={{
+                      backgroundColor:
+                        board.boardColor ?? "var(--muted-foreground)",
+                    }}
+                  />
+                  <span className="text-[11px] uppercase tracking-wider text-foreground">
+                    {board.boardTitle}
+                  </span>
+                </div>
+                <div className="flex flex-col divide-y divide-foreground/4 border-l border-foreground/10 pl-4 ml-[3px]">
+                  {board.cards.map((card) => (
+                    <div
+                      key={card._id}
+                      className="flex items-baseline gap-4 py-2"
+                    >
+                      <span
+                        className={`text-xs font-mono w-20 shrink-0 tabular-nums ${
+                          card.overdue
+                            ? "text-destructive"
+                            : "text-muted-foreground"
+                        }`}
+                      >
+                        {formatDueLabel(card)}
+                      </span>
+                      <span className="text-sm text-accent-strong truncate flex-1">
+                        {card.title}
+                      </span>
+                      <span className="text-[11px] text-muted-foreground shrink-0">
+                        {card.columnTitle}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       <div className="py-10 grid grid-cols-1 md:grid-cols-5 gap-10 md:gap-12 border-b border-foreground/6">
         <div className="md:col-span-3">

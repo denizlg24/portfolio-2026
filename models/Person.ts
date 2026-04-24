@@ -6,6 +6,12 @@ export interface BirthdayParts {
   year?: number | null;
 }
 
+export interface PersonSocial {
+  platform: string;
+  handle: string;
+  url?: string;
+}
+
 export interface IPerson extends Document {
   name: string;
   birthday?: BirthdayParts | null;
@@ -13,6 +19,11 @@ export interface IPerson extends Document {
   notes: string;
   photos: string[];
   groupIds: mongoose.Types.ObjectId[];
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  socials: PersonSocial[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -25,6 +36,11 @@ export interface ILeanPerson {
   notes: string;
   photos: string[];
   groupIds: string[];
+  email?: string;
+  phone?: string;
+  website?: string;
+  address?: string;
+  socials: PersonSocial[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -34,6 +50,15 @@ const BirthdaySchema = new Schema<BirthdayParts>(
     month: { type: Number, required: true, min: 1, max: 12 },
     day: { type: Number, required: true, min: 1, max: 31 },
     year: { type: Number, default: null },
+  },
+  { _id: false },
+);
+
+const SocialSchema = new Schema<PersonSocial>(
+  {
+    platform: { type: String, required: true, trim: true },
+    handle: { type: String, required: true, trim: true },
+    url: { type: String, trim: true },
   },
   { _id: false },
 );
@@ -52,6 +77,11 @@ const PersonSchema = new Schema<IPerson>(
         index: true,
       },
     ],
+    email: { type: String, trim: true },
+    phone: { type: String, trim: true },
+    website: { type: String, trim: true },
+    address: { type: String, trim: true },
+    socials: { type: [SocialSchema], default: [] },
   },
   { timestamps: true },
 );

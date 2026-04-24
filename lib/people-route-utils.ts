@@ -3,9 +3,24 @@ import {
   buildAncestorMap,
   pruneRedundantAncestors,
 } from "@/lib/note-group-hierarchy";
-import type { ILeanPerson } from "@/models/Person";
+import type { ILeanPerson, PersonSocial } from "@/models/Person";
 import type { ILeanPersonEdge } from "@/models/PersonEdge";
 import { type ILeanPersonGroup, PersonGroup } from "@/models/PersonGroup";
+
+export function parsePersonSocials(value: unknown): PersonSocial[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const result: PersonSocial[] = [];
+  for (const raw of value) {
+    if (!raw || typeof raw !== "object") continue;
+    const data = raw as Record<string, unknown>;
+    const platform = typeof data.platform === "string" ? data.platform.trim() : "";
+    const handle = typeof data.handle === "string" ? data.handle.trim() : "";
+    if (!platform || !handle) continue;
+    const urlRaw = typeof data.url === "string" ? data.url.trim() : "";
+    result.push({ platform, handle, url: urlRaw || undefined });
+  }
+  return result;
+}
 
 export function serializePerson(person: ILeanPerson) {
   return {

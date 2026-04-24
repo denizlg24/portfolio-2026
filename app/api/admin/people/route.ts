@@ -4,6 +4,7 @@ import { syncBirthdayEventsForPerson } from "@/lib/calendar-sync";
 import { connectDB } from "@/lib/mongodb";
 import {
   canonicalPersonPair,
+  parsePersonSocials,
   prunePersonGroupIds,
   serializePerson,
   serializePersonEdge,
@@ -142,6 +143,13 @@ export async function POST(request: NextRequest) {
       notes: typeof body.notes === "string" ? body.notes : "",
       photos: parsePhotos(body.photos),
       groupIds,
+      email: typeof body.email === "string" ? body.email.trim() : undefined,
+      phone: typeof body.phone === "string" ? body.phone.trim() : undefined,
+      website:
+        typeof body.website === "string" ? body.website.trim() : undefined,
+      address:
+        typeof body.address === "string" ? body.address.trim() : undefined,
+      socials: parsePersonSocials(body.socials) ?? [],
     });
 
     await replaceRelations(String(person._id), body.relations);
