@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { deleteAccount, updateAccount } from "@/lib/authenticator";
 import { requireAdmin } from "@/lib/require-admin";
-import { updateAccount, deleteAccount } from "@/lib/authenticator";
 
 export async function PATCH(
   request: NextRequest,

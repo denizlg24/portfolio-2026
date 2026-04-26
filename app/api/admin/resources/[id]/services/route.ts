@@ -58,5 +58,9 @@ export async function POST(
     );
   }
 
-  return NextResponse.json({ status: "restarting", serviceName, message: result.message });
+  return NextResponse.json({
+    status: "restarting",
+    serviceName,
+    message: result.message,
+  });
 }

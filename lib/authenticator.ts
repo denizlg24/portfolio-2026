@@ -1,10 +1,10 @@
 import * as OTPAuth from "otpauth";
-import { connectDB } from "./mongodb";
-import { encryptPassword, decryptPassword } from "./safe-email-password";
 import {
   AuthenticatorAccount,
   type TotpAlgorithm,
 } from "@/models/AuthenticatorAccount";
+import { connectDB } from "./mongodb";
+import { decryptPassword, encryptPassword } from "./safe-email-password";
 
 const VALID_ALGORITHMS: Set<string> = new Set(["SHA1", "SHA256", "SHA512"]);
 
@@ -45,16 +45,16 @@ export function parseOtpAuthUri(uri: string) {
 
   const labelParts = parsed.label.split(":");
   const accountName =
-    labelParts.length > 1
-      ? labelParts.slice(1).join(":").trim()
-      : parsed.label;
+    labelParts.length > 1 ? labelParts.slice(1).join(":").trim() : parsed.label;
 
   return {
     label: parsed.issuer || parsed.label.split(":")[0].trim(),
     issuer: parsed.issuer,
     accountName,
     secret: parsed.secret.base32,
-    algorithm: isTotpAlgorithm(parsed.algorithm) ? parsed.algorithm : ("SHA1" as const),
+    algorithm: isTotpAlgorithm(parsed.algorithm)
+      ? parsed.algorithm
+      : ("SHA1" as const),
     digits: parsed.digits || 6,
     period: parsed.period || 30,
   };

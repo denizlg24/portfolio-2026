@@ -5,8 +5,8 @@ import {
 } from "@/lib/note-group-hierarchy";
 import type { ILeanNote } from "@/models/Note";
 import type { ILeanNoteEdge } from "@/models/NoteEdge";
-import { NoteGroup } from "@/models/NoteGroup";
 import type { ILeanNoteGroup } from "@/models/NoteGroup";
+import { NoteGroup } from "@/models/NoteGroup";
 
 export function serializeNote(note: ILeanNote) {
   return {
@@ -38,7 +38,8 @@ export async function pruneGroupIds(groupIds: string[]) {
     ...new Set(
       groupIds.filter(
         (groupId) =>
-          typeof groupId === "string" && mongoose.Types.ObjectId.isValid(groupId),
+          typeof groupId === "string" &&
+          mongoose.Types.ObjectId.isValid(groupId),
       ),
     ),
   ];
@@ -49,7 +50,12 @@ export async function pruneGroupIds(groupIds: string[]) {
 
   const groups = await NoteGroup.find()
     .select("_id parentId")
-    .lean<Array<{ _id: mongoose.Types.ObjectId; parentId?: mongoose.Types.ObjectId | null }>>()
+    .lean<
+      Array<{
+        _id: mongoose.Types.ObjectId;
+        parentId?: mongoose.Types.ObjectId | null;
+      }>
+    >()
     .exec();
 
   const ancestorMap = buildAncestorMap(

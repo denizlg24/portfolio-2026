@@ -1,7 +1,7 @@
 import { anthropic, calculateCost, logLlmUsage } from "@/lib/llm";
 import { connectDB } from "@/lib/mongodb";
-import { Note, type ILeanNote, type NoteStatus } from "@/models/Note";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNote, Note, type NoteStatus } from "@/models/Note";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 const MODEL = "claude-haiku-4-5-20251001";
 const SOURCE = "categorize-notes";
@@ -270,7 +270,11 @@ function parseJsonObject<T>(text: string): T | null {
   }
 }
 
-async function callLlm(prompt: string, system: string, source: string): Promise<string> {
+async function callLlm(
+  prompt: string,
+  system: string,
+  source: string,
+): Promise<string> {
   const response = await anthropic.messages.create({
     model: MODEL,
     max_tokens: 4096,
@@ -296,8 +300,10 @@ async function callLlm(prompt: string, system: string, source: string): Promise<
     .filter(
       (
         block,
-      ): block is Extract<(typeof response.content)[number], { type: "text" }> =>
-        block.type === "text",
+      ): block is Extract<
+        (typeof response.content)[number],
+        { type: "text" }
+      > => block.type === "text",
     )
     .map((block) => block.text)
     .join("");
@@ -373,14 +379,20 @@ export async function categorizeIncomingNote(
     ]),
   ]);
 
-  const nameById = new Map(groups.map((group) => [String(group._id), group.name] as const));
-  const countById = new Map(memberCounts.map((item) => [item._id, item.count] as const));
+  const nameById = new Map(
+    groups.map((group) => [String(group._id), group.name] as const),
+  );
+  const countById = new Map(
+    memberCounts.map((item) => [item._id, item.count] as const),
+  );
 
   const compactGroups = groups.map((group) => ({
     _id: String(group._id),
     name: group.name,
     description: group.description,
-    parentName: group.parentId ? nameById.get(String(group.parentId)) ?? null : null,
+    parentName: group.parentId
+      ? (nameById.get(String(group.parentId)) ?? null)
+      : null,
     memberCount: countById.get(String(group._id)) ?? 0,
   }));
 
@@ -402,7 +414,11 @@ export async function categorizeIncomingNote(
   }));
 
   if (totalCount < PASS_ALL_THRESHOLD) {
-    const prompt = buildIncomingPromptPassAll(input, compactNotes, compactGroups);
+    const prompt = buildIncomingPromptPassAll(
+      input,
+      compactNotes,
+      compactGroups,
+    );
     const text = await callLlm(
       prompt,
       SINGLE_SYSTEM_PROMPT_PASS_ALL,
@@ -457,8 +473,9 @@ export async function categorizeIncomingNote(
         SINGLE_SYSTEM_PROMPT_GROUPS_ONLY,
         SINGLE_SOURCE,
       );
-      const relationResult =
-        parseJsonObject<{ relatedNoteIds: string[] }>(relationText);
+      const relationResult = parseJsonObject<{ relatedNoteIds: string[] }>(
+        relationText,
+      );
       relatedNoteIds = relationResult?.relatedNoteIds ?? [];
     }
   }

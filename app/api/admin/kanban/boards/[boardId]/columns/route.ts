@@ -37,7 +37,12 @@ export async function POST(
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
 
-    const column = await createColumn(boardId, { title, color, wipLimit, icon });
+    const column = await createColumn(boardId, {
+      title,
+      color,
+      wipLimit,
+      icon,
+    });
     return NextResponse.json({ column }, { status: 201 });
   } catch (_error) {
     return NextResponse.json(

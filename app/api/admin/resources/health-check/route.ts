@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { runAllHealthChecks } from "@/lib/resource-agent";
 import { requireAdmin } from "@/lib/require-admin";
+import { runAllHealthChecks } from "@/lib/resource-agent";
 
 export async function POST(request: NextRequest) {
   const authError = await requireAdmin(request);

@@ -158,11 +158,13 @@ export const resourceTools: ToolDefinition[] = [
           },
           agentServiceNodeId: {
             type: "string",
-            description: "Node ID for the agent service, must match the agent's configured node_id (optional)",
+            description:
+              "Node ID for the agent service, must match the agent's configured node_id (optional)",
           },
           agentServiceHmacSecret: {
             type: "string",
-            description: "HMAC shared secret for signing requests to the agent (optional)",
+            description:
+              "HMAC shared secret for signing requests to the agent (optional)",
           },
         },
         required: ["name", "url", "type"],
@@ -173,9 +175,11 @@ export const resourceTools: ToolDefinition[] = [
     execute: async (input) => {
       const { name, url, type, description, isActive } = input;
       await connectDB();
-      const hmacSecret = typeof input.agentServiceHmacSecret === "string" && (input.agentServiceHmacSecret as string).trim()
-        ? encryptPassword(input.agentServiceHmacSecret as string)
-        : null;
+      const hmacSecret =
+        typeof input.agentServiceHmacSecret === "string" &&
+        (input.agentServiceHmacSecret as string).trim()
+          ? encryptPassword(input.agentServiceHmacSecret as string)
+          : null;
       const newResource = new Resource({
         name,
         url,
@@ -267,7 +271,8 @@ export const resourceTools: ToolDefinition[] = [
           },
           agentServiceHmacSecret: {
             type: "string",
-            description: "HMAC shared secret for signing requests to the agent (optional, leave empty to keep current)",
+            description:
+              "HMAC shared secret for signing requests to the agent (optional, leave empty to keep current)",
           },
         },
         required: ["id"],
@@ -291,8 +296,13 @@ export const resourceTools: ToolDefinition[] = [
       if (input.agentServiceNodeId !== undefined) {
         updates["agentService.nodeId"] = input.agentServiceNodeId;
       }
-      if (typeof input.agentServiceHmacSecret === "string" && (input.agentServiceHmacSecret as string).trim()) {
-        updates["agentService.hmacSecret"] = encryptPassword(input.agentServiceHmacSecret as string);
+      if (
+        typeof input.agentServiceHmacSecret === "string" &&
+        (input.agentServiceHmacSecret as string).trim()
+      ) {
+        updates["agentService.hmacSecret"] = encryptPassword(
+          input.agentServiceHmacSecret as string,
+        );
       }
 
       const updatedResource = await Resource.findByIdAndUpdate(
@@ -336,7 +346,10 @@ export const resourceTools: ToolDefinition[] = [
       if (!resource) throw new Error("Resource not found");
       const result = await rebootResource(resource);
       if (!result.success) throw new Error(result.error ?? "Reboot failed");
-      return { success: true, message: `Reboot initiated for ${resource.name}` };
+      return {
+        success: true,
+        message: `Reboot initiated for ${resource.name}`,
+      };
     },
   },
   {
@@ -353,7 +366,8 @@ export const resourceTools: ToolDefinition[] = [
           },
           serviceName: {
             type: "string",
-            description: "Name of the service to restart (e.g. 'nginx', 'picron')",
+            description:
+              "Name of the service to restart (e.g. 'nginx', 'picron')",
           },
         },
         required: ["id", "serviceName"],

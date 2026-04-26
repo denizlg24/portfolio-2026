@@ -1,14 +1,14 @@
-import { type NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { type NextRequest, NextResponse } from "next/server";
+import { connectDB } from "@/lib/mongodb";
 import {
   buildAncestorMap,
   pruneRedundantAncestors,
 } from "@/lib/note-group-hierarchy";
-import { connectDB } from "@/lib/mongodb";
 import { serializeGroup } from "@/lib/note-route-utils";
 import { requireAdmin } from "@/lib/require-admin";
-import { Note, type ILeanNote } from "@/models/Note";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNote, Note } from "@/models/Note";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 export async function PATCH(
   request: NextRequest,
@@ -25,7 +25,8 @@ export async function PATCH(
 
     const update: Record<string, unknown> = {};
     if (typeof body.name === "string") update.name = body.name;
-    if (typeof body.description === "string") update.description = body.description;
+    if (typeof body.description === "string")
+      update.description = body.description;
     if (typeof body.color === "string") update.color = body.color;
     if ("parentId" in body) {
       if (body.parentId === null || body.parentId === "") {
@@ -53,7 +54,12 @@ export async function PATCH(
     if ("parentId" in update) {
       const groups = await NoteGroup.find()
         .select("_id parentId")
-        .lean<Array<{ _id: mongoose.Types.ObjectId; parentId?: mongoose.Types.ObjectId | null }>>()
+        .lean<
+          Array<{
+            _id: mongoose.Types.ObjectId;
+            parentId?: mongoose.Types.ObjectId | null;
+          }>
+        >()
         .exec();
 
       const ancestorMap = buildAncestorMap(
@@ -131,7 +137,10 @@ export async function DELETE(
     const objectId = new mongoose.Types.ObjectId(id);
 
     await Promise.all([
-      Note.updateMany({ groupIds: objectId }, { $pull: { groupIds: objectId } }).exec(),
+      Note.updateMany(
+        { groupIds: objectId },
+        { $pull: { groupIds: objectId } },
+      ).exec(),
       NoteGroup.updateMany(
         { parentId: objectId },
         { $set: { parentId: null } },

@@ -24,7 +24,11 @@ function decodeEntities(s: string): string {
     .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
 }
 
-function matchMeta(html: string, attr: "property" | "name", key: string): string | undefined {
+function matchMeta(
+  html: string,
+  attr: "property" | "name",
+  key: string,
+): string | undefined {
   const re = new RegExp(
     `<meta[^>]+${attr}=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`,
     "i",
@@ -80,7 +84,10 @@ export async function fetchUrlMetadata(rawUrl: string): Promise<UrlMetadata> {
     });
     clearTimeout(timer);
 
-    if (res.ok && (res.headers.get("content-type") || "").includes("text/html")) {
+    if (
+      res.ok &&
+      (res.headers.get("content-type") || "").includes("text/html")
+    ) {
       const reader = res.body?.getReader();
       if (reader) {
         const decoder = new TextDecoder();

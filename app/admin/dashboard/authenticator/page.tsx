@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  Download,
-  KeyRound,
-  Loader2,
-  Plus,
-  Search,
-} from "lucide-react";
+import { Download, KeyRound, Loader2, Plus, Search } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -19,14 +13,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { AddAccountDialog } from "./_components/add-account-dialog";
+import { AuthenticatorAccountRow } from "./_components/authenticator-account";
+import { ImportDialog } from "./_components/import-dialog";
 import type {
   IAuthenticatorAccount,
   IAuthenticatorCode,
   TotpAlgorithm,
 } from "./types";
-import { AddAccountDialog } from "./_components/add-account-dialog";
-import { AuthenticatorAccountRow } from "./_components/authenticator-account";
-import { ImportDialog } from "./_components/import-dialog";
 
 export default function AuthenticatorPage() {
   const [accounts, setAccounts] = useState<IAuthenticatorAccount[]>([]);
@@ -109,18 +103,15 @@ export default function AuthenticatorPage() {
     accountName: string;
   }) => {
     if (!editingAccount) return;
-    const res = await fetch(
-      `/api/admin/authenticator/${editingAccount._id}`,
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          label: data.label,
-          issuer: data.issuer,
-          accountName: data.accountName,
-        }),
-      },
-    );
+    const res = await fetch(`/api/admin/authenticator/${editingAccount._id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        label: data.label,
+        issuer: data.issuer,
+        accountName: data.accountName,
+      }),
+    });
     if (!res.ok) {
       toast.error("Failed to update account");
       return;
@@ -136,10 +127,9 @@ export default function AuthenticatorPage() {
   const handleDelete = async () => {
     if (!deleteTarget) return;
     setDeleting(true);
-    const res = await fetch(
-      `/api/admin/authenticator/${deleteTarget._id}`,
-      { method: "DELETE" },
-    );
+    const res = await fetch(`/api/admin/authenticator/${deleteTarget._id}`, {
+      method: "DELETE",
+    });
     setDeleting(false);
     if (!res.ok) {
       toast.error("Failed to delete account");

@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { createAccount, getAllAccounts } from "@/lib/authenticator";
 import { requireAdmin } from "@/lib/require-admin";
-import { getAllAccounts, createAccount } from "@/lib/authenticator";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);

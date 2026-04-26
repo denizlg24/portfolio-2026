@@ -685,7 +685,6 @@ export function DashboardOverview() {
               </>
             )}
           </div>
-
         </div>
 
         <div className="md:col-span-2">

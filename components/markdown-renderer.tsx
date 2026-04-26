@@ -173,6 +173,15 @@ const MediumStyleComponents = {
   ),
 
   em: ({ node, ...props }: any) => <em className="italic" {...props} />,
+
+  parameter: ({ node, children, ...props }: any) => (
+    <code
+      className="bg-muted/50 text-foreground px-[6px] py-[3px] rounded-[3px] text-[14px] sm:text-[15px] md:text-[15px] font-mono border border-border/40"
+      {...props}
+    >
+      {children}
+    </code>
+  ),
 };
 
 interface MarkdownRendererProps {

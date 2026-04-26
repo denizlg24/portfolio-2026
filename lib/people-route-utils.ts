@@ -13,7 +13,8 @@ export function parsePersonSocials(value: unknown): PersonSocial[] | undefined {
   for (const raw of value) {
     if (!raw || typeof raw !== "object") continue;
     const data = raw as Record<string, unknown>;
-    const platform = typeof data.platform === "string" ? data.platform.trim() : "";
+    const platform =
+      typeof data.platform === "string" ? data.platform.trim() : "";
     const handle = typeof data.handle === "string" ? data.handle.trim() : "";
     if (!platform || !handle) continue;
     const urlRaw = typeof data.url === "string" ? data.url.trim() : "";

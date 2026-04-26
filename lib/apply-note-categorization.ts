@@ -5,7 +5,7 @@ import {
 } from "@/lib/note-categorize";
 import { pruneGroupIds } from "@/lib/note-route-utils";
 import { NoteEdge } from "@/models/NoteEdge";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 interface ResolveIncomingCategorizationInput {
   input: IncomingNoteCategorizeInput;
@@ -126,8 +126,8 @@ export async function resolveIncomingCategorization({
       ...createdGroupIds,
     ]),
   ];
-  const relatedNoteIds = (categorization.relatedNoteIds ?? []).filter((noteId) =>
-    mongoose.Types.ObjectId.isValid(noteId),
+  const relatedNoteIds = (categorization.relatedNoteIds ?? []).filter(
+    (noteId) => mongoose.Types.ObjectId.isValid(noteId),
   );
 
   return {

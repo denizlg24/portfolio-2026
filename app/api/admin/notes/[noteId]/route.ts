@@ -2,13 +2,10 @@ import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { pruneGroupIds, serializeNote } from "@/lib/note-route-utils";
 import { requireAdmin } from "@/lib/require-admin";
-import { Note, type ILeanNote } from "@/models/Note";
+import { type ILeanNote, Note } from "@/models/Note";
 import { NoteEdge } from "@/models/NoteEdge";
 
-async function updateNote(
-  request: NextRequest,
-  noteId: string,
-) {
+async function updateNote(request: NextRequest, noteId: string) {
   const body = await request.json();
   const update: Record<string, unknown> = {};
   const unset: Record<string, unknown> = {};
@@ -20,7 +17,8 @@ async function updateNote(
     if (trimmed.length === 0) unset.url = "";
     else update.url = trimmed;
   }
-  if (typeof body.description === "string") update.description = body.description;
+  if (typeof body.description === "string")
+    update.description = body.description;
   if (typeof body.siteName === "string") update.siteName = body.siteName;
   if (typeof body.favicon === "string") update.favicon = body.favicon;
   if (typeof body.image === "string") update.image = body.image;

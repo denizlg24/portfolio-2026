@@ -41,10 +41,9 @@ export function buildAncestorMap(groups: GroupLike[]): AncestorMap {
   return memo;
 }
 
-export function pruneRedundantAncestors<T extends string | { toString(): string }>(
-  groupIds: T[],
-  ancestorMap: AncestorMap,
-): T[] {
+export function pruneRedundantAncestors<
+  T extends string | { toString(): string },
+>(groupIds: T[], ancestorMap: AncestorMap): T[] {
   if (groupIds.length < 2) return [...groupIds];
 
   const idSet = new Set(groupIds.map((groupId) => String(groupId)));
@@ -63,7 +62,10 @@ export function pruneRedundantAncestors<T extends string | { toString(): string 
   );
 }
 
-export function descendantIds(rootId: string, groups: GroupLike[]): Set<string> {
+export function descendantIds(
+  rootId: string,
+  groups: GroupLike[],
+): Set<string> {
   const childrenByParent = new Map<string, string[]>();
   for (const group of groups) {
     const parentId = group.parentId ? String(group.parentId) : null;

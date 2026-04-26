@@ -1,9 +1,9 @@
-import { type NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { serializeGroup } from "@/lib/note-route-utils";
 import { requireAdmin } from "@/lib/require-admin";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);

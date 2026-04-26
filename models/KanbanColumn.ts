@@ -4,7 +4,7 @@ export interface IKanbanColumn extends Document {
   boardId: mongoose.Types.ObjectId;
   title: string;
   color?: string;
-  icon?:string;
+  icon?: string;
   order: number;
   wipLimit?: number;
   createdAt: Date;

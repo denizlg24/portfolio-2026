@@ -61,9 +61,10 @@ export async function POST(request: NextRequest) {
         enabled: agentService.enabled ?? false,
         nodeId: agentService.nodeId ?? "",
         hmacSecret:
-          typeof agentService.hmacSecret === "string" && agentService.hmacSecret.trim()
+          typeof agentService.hmacSecret === "string" &&
+          agentService.hmacSecret.trim()
             ? encryptPassword(agentService.hmacSecret)
-            : agentService.hmacSecret ?? null,
+            : (agentService.hmacSecret ?? null),
       }
     : {};
 

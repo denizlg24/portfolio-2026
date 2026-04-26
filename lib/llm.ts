@@ -108,19 +108,26 @@ export function calculateCost(
   cacheUsage?: CacheUsage,
 ): number {
   const pricing = PRICING[model] ?? DEFAULT_PRICING;
-  
+
   let inputCost: number;
-  
+
   if (cacheUsage) {
-    const cacheWriteCost = (cacheUsage.cacheCreationInputTokens * pricing.input * CACHE_WRITE_MULTIPLIER) / 1_000_000;
-    const cacheReadCost = (cacheUsage.cacheReadInputTokens * pricing.input * CACHE_READ_MULTIPLIER) / 1_000_000;
+    const cacheWriteCost =
+      (cacheUsage.cacheCreationInputTokens *
+        pricing.input *
+        CACHE_WRITE_MULTIPLIER) /
+      1_000_000;
+    const cacheReadCost =
+      (cacheUsage.cacheReadInputTokens *
+        pricing.input *
+        CACHE_READ_MULTIPLIER) /
+      1_000_000;
     const uncachedInputCost = (inputTokens * pricing.input) / 1_000_000;
     inputCost = cacheWriteCost + cacheReadCost + uncachedInputCost;
   } else {
-    
     inputCost = (inputTokens * pricing.input) / 1_000_000;
   }
-  
+
   const outputCost = (outputTokens * pricing.output) / 1_000_000;
   return inputCost + outputCost;
 }
@@ -225,27 +232,36 @@ export function createSSEStream(result: StreamResult): ReadableStream {
         const finalMessage = await stream.finalMessage();
         outputTokens = finalMessage.usage.output_tokens;
         const actualInputTokens = finalMessage.usage.input_tokens;
-        
+
         const usage = finalMessage.usage as Anthropic.Usage & {
           cache_creation_input_tokens?: number;
           cache_read_input_tokens?: number;
         };
         const cacheCreationInputTokens = usage.cache_creation_input_tokens ?? 0;
         const cacheReadInputTokens = usage.cache_read_input_tokens ?? 0;
-        
-        const cacheUsage: CacheUsage | undefined = enableCache ? {
-          cacheCreationInputTokens,
-          cacheReadInputTokens,
-        } : undefined;
 
-        const costUsd = calculateCost(model, actualInputTokens, outputTokens, cacheUsage);
+        const cacheUsage: CacheUsage | undefined = enableCache
+          ? {
+              cacheCreationInputTokens,
+              cacheReadInputTokens,
+            }
+          : undefined;
+
+        const costUsd = calculateCost(
+          model,
+          actualInputTokens,
+          outputTokens,
+          cacheUsage,
+        );
 
         send({
           type: "done",
           usage: {
             inputTokens: actualInputTokens,
             outputTokens,
-            ...(enableCache ? { cacheCreationInputTokens, cacheReadInputTokens } : {}),
+            ...(enableCache
+              ? { cacheCreationInputTokens, cacheReadInputTokens }
+              : {}),
             costUsd,
             model,
           },

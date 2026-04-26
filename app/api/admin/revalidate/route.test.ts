@@ -1,7 +1,9 @@
 import { afterAll, beforeEach, describe, expect, mock, test } from "bun:test";
 import { NextResponse } from "next/server";
 
-const requireAdminMock = mock(async () => null);
+const requireAdminMock = mock(
+  async (): Promise<NextResponse<{ error: string }> | null> => null,
+);
 const revalidatePublicContentMock = mock((targets: string[]) => [
   ...new Set(targets),
 ]);

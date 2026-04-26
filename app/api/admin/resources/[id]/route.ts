@@ -53,7 +53,11 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
   let newSecret = null;
-  if (body.agentService && typeof body.agentService.hmacSecret === "string" && body.agentService.hmacSecret.trim()) {
+  if (
+    body.agentService &&
+    typeof body.agentService.hmacSecret === "string" &&
+    body.agentService.hmacSecret.trim()
+  ) {
     newSecret = encryptPassword(body.agentService.hmacSecret);
   }
 
@@ -62,12 +66,16 @@ export async function PATCH(
   if (!existingResource) {
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }
-    if(!newSecret){
+  if (!newSecret) {
     newSecret = existingResource?.agentService?.hmacSecret;
   }
-  const resource = await Resource.findByIdAndUpdate(id, {...body, "agentService.hmacSecret":newSecret}, {
-    new: true,
-  }).lean();
+  const resource = await Resource.findByIdAndUpdate(
+    id,
+    { ...body, "agentService.hmacSecret": newSecret },
+    {
+      new: true,
+    },
+  ).lean();
   if (!resource) {
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }

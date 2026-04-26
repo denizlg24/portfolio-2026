@@ -73,7 +73,10 @@ export function AuthenticatorAccountRow({
       </button>
 
       {codeData && (
-        <CountdownRing remaining={codeData.remaining} period={codeData.period} />
+        <CountdownRing
+          remaining={codeData.remaining}
+          period={codeData.period}
+        />
       )}
 
       <DropdownMenu>

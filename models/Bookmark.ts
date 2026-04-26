@@ -46,7 +46,9 @@ const BookmarkSchema = new Schema<IBookmark>(
     image: { type: String },
     siteName: { type: String },
     tags: [{ type: String, trim: true }],
-    groupIds: [{ type: Schema.Types.ObjectId, ref: "BookmarkGroup", index: true }],
+    groupIds: [
+      { type: Schema.Types.ObjectId, ref: "BookmarkGroup", index: true },
+    ],
     content: { type: String, default: "" },
     publishedDate: { type: Date },
     status: {

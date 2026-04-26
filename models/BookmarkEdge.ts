@@ -21,8 +21,18 @@ export interface ILeanBookmarkEdge {
 
 const BookmarkEdgeSchema = new Schema<IBookmarkEdge>(
   {
-    from: { type: Schema.Types.ObjectId, ref: "Bookmark", required: true, index: true },
-    to: { type: Schema.Types.ObjectId, ref: "Bookmark", required: true, index: true },
+    from: {
+      type: Schema.Types.ObjectId,
+      ref: "Bookmark",
+      required: true,
+      index: true,
+    },
+    to: {
+      type: Schema.Types.ObjectId,
+      ref: "Bookmark",
+      required: true,
+      index: true,
+    },
     strength: { type: Number, default: 1, min: 0, max: 1 },
     reason: { type: String },
   },

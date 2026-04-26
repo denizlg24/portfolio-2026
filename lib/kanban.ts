@@ -104,7 +104,7 @@ export async function getBoardColumns(
 
 export async function createColumn(
   boardId: string,
-  data: { title: string; color?: string; wipLimit?: number, icon?: string },
+  data: { title: string; color?: string; wipLimit?: number; icon?: string },
 ) {
   await connectDB();
   const lastCol = await KanbanColumn.findOne({ boardId })
@@ -121,7 +121,12 @@ export async function createColumn(
 
 export async function updateColumn(
   id: string,
-  data: Partial<{ title: string; color: string; wipLimit: number, icon: string }>,
+  data: Partial<{
+    title: string;
+    color: string;
+    wipLimit: number;
+    icon: string;
+  }>,
 ) {
   await connectDB();
   const column = await KanbanColumn.findByIdAndUpdate(id, data, {
@@ -142,6 +147,14 @@ export async function deleteColumn(id: string) {
   if (!column) return false;
   await KanbanCard.deleteMany({ columnId: id });
   return true;
+}
+
+export async function clearColumnCards(boardId: string, columnId: string) {
+  await connectDB();
+  const column = await KanbanColumn.findOne({ _id: columnId, boardId }).lean();
+  if (!column) return null;
+  const result = await KanbanCard.deleteMany({ boardId, columnId });
+  return { deletedCount: result.deletedCount ?? 0 };
 }
 
 export async function reorderColumns(items: { _id: string; order: number }[]) {
@@ -323,9 +336,7 @@ export async function getUpcomingCards(
     KanbanColumn.find({ _id: { $in: columnIds } }).lean(),
   ]);
 
-  const boardById = new Map(
-    boards.map((b) => [b._id.toString(), b] as const),
-  );
+  const boardById = new Map(boards.map((b) => [b._id.toString(), b] as const));
   const columnTitleById = new Map(
     columns.map((c) => [c._id.toString(), c.title] as const),
   );
@@ -376,9 +387,7 @@ export async function getUpcomingCards(
   return {
     boards: [...grouped.values()],
     stats: {
-      total: cards.filter((c) =>
-        boardById.has(c.boardId.toString()),
-      ).length,
+      total: cards.filter((c) => boardById.has(c.boardId.toString())).length,
       overdue,
       dueToday,
       dueThisWeek,

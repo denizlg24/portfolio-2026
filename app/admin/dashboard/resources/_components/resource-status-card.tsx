@@ -232,10 +232,7 @@ export function ResourceStatusCard({
                 Capabilities
               </DropdownMenuItem>
               {agent.enabled && (
-                <DropdownMenuItem
-                  onClick={handleReboot}
-                  disabled={rebooting}
-                >
+                <DropdownMenuItem onClick={handleReboot} disabled={rebooting}>
                   <Power className="w-3.5 h-3.5 mr-2" />
                   {rebooting ? "Rebooting..." : "Reboot"}
                 </DropdownMenuItem>

@@ -30,10 +30,7 @@ export async function GET(
 
     const account = await EmailAccountModel.findById(id).lean();
     if (!account) {
-      return NextResponse.json(
-        { error: "Account not found" },
-        { status: 404 },
-      );
+      return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
 
     const password = decryptPassword(
@@ -101,7 +98,8 @@ export async function GET(
 
         return new NextResponse(new Uint8Array(attachment.content), {
           headers: {
-            "Content-Type": attachment.contentType || "application/octet-stream",
+            "Content-Type":
+              attachment.contentType || "application/octet-stream",
             "Content-Disposition": `attachment; filename="${encodeURIComponent(attachment.filename || `attachment-${idx}`)}"`,
             "Content-Length": String(attachment.size),
           },

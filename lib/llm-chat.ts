@@ -1,6 +1,12 @@
 import type Anthropic from "@anthropic-ai/sdk";
 import { APIError } from "@anthropic-ai/sdk";
-import { anthropic, calculateCost, getMaxTokens, logLlmUsage, type CacheUsage } from "@/lib/llm";
+import {
+  anthropic,
+  type CacheUsage,
+  calculateCost,
+  getMaxTokens,
+  logLlmUsage,
+} from "@/lib/llm";
 import { getToolByName, isWriteTool } from "@/lib/tools/registry";
 import type { TokenUsage } from "@/models/Conversation";
 
@@ -317,7 +323,8 @@ export function createAgenticSSEStream({
             cache_creation_input_tokens?: number;
             cache_read_input_tokens?: number;
           };
-          totalCacheCreationInputTokens += usage.cache_creation_input_tokens ?? 0;
+          totalCacheCreationInputTokens +=
+            usage.cache_creation_input_tokens ?? 0;
           totalCacheReadInputTokens += usage.cache_read_input_tokens ?? 0;
 
           for (const block of finalMessage.content) {

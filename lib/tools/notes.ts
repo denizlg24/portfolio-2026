@@ -107,9 +107,13 @@ export const notesTools: ToolDefinition[] = [
       if (input.color !== undefined) data.color = input.color;
       if (input.parentId !== undefined) data.parentId = input.parentId || null;
 
-      const group = await NoteGroup.findByIdAndUpdate(input.id as string, data, {
-        new: true,
-      }).lean();
+      const group = await NoteGroup.findByIdAndUpdate(
+        input.id as string,
+        data,
+        {
+          new: true,
+        },
+      ).lean();
       if (!group) throw new Error("Group not found");
 
       return {
@@ -277,7 +281,8 @@ export const notesTools: ToolDefinition[] = [
           },
           url: {
             type: "string",
-            description: "Source URL if this note is also a saved link (optional)",
+            description:
+              "Source URL if this note is also a saved link (optional)",
           },
           description: {
             type: "string",

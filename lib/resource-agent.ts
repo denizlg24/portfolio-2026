@@ -134,15 +134,14 @@ export async function checkResourceHealth(
     const diskUsed = sys?.disk?.used ?? 0;
 
     const metrics = {
-      cpuUsagePercent: sys?.cpu_usage_percent != null
-        ? Math.round(sys.cpu_usage_percent * 10) / 10
-        : null,
-      memoryUsagePercent: memTotal > 0
-        ? Math.round((memUsed / memTotal) * 1000) / 10
-        : null,
-      diskUsagePercent: diskTotal > 0
-        ? Math.round((diskUsed / diskTotal) * 1000) / 10
-        : null,
+      cpuUsagePercent:
+        sys?.cpu_usage_percent != null
+          ? Math.round(sys.cpu_usage_percent * 10) / 10
+          : null,
+      memoryUsagePercent:
+        memTotal > 0 ? Math.round((memUsed / memTotal) * 1000) / 10 : null,
+      diskUsagePercent:
+        diskTotal > 0 ? Math.round((diskUsed / diskTotal) * 1000) / 10 : null,
     };
 
     const services: Array<{ name: string; status: string }> =
@@ -257,9 +256,10 @@ export async function restartService(
   }
 }
 
-export async function getServicesList(
-  resource: IResource,
-): Promise<{ services: Array<{ name: string; status: string }>; error?: string }> {
+export async function getServicesList(resource: IResource): Promise<{
+  services: Array<{ name: string; status: string }>;
+  error?: string;
+}> {
   const result = await checkResourceHealth(resource);
   if (result.status === "unreachable") {
     return { services: [], error: result.error };
@@ -282,8 +282,7 @@ export async function runAllHealthChecks(
   for (const resource of resources) {
     if (!force && resource.agentService.lastCheckedAt) {
       const elapsed =
-        Date.now() -
-        new Date(resource.agentService.lastCheckedAt).getTime();
+        Date.now() - new Date(resource.agentService.lastCheckedAt).getTime();
       if (elapsed < 5 * 60 * 1000) continue;
     }
 

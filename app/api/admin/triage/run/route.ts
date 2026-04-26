@@ -1,6 +1,6 @@
+import type { NextRequest } from "next/server";
 import { requireAdmin } from "@/lib/require-admin";
 import { runTriage } from "@/lib/triage";
-import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   const authError = await requireAdmin(request);

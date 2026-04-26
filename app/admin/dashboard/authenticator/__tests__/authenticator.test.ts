@@ -5,7 +5,7 @@
  * search/filter logic, API route validation, sidebar navigation, and
  * component contracts.
  */
-import { describe, test, expect } from "bun:test";
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
@@ -13,19 +13,16 @@ import { resolve } from "node:path";
 // Helpers
 // ---------------------------------------------------------------------------
 const ROOT = resolve(import.meta.dir, "../../../../..");
-const readSrc = (rel: string) =>
-  readFileSync(resolve(ROOT, rel), "utf-8");
+const readSrc = (rel: string) => readFileSync(resolve(ROOT, rel), "utf-8");
 
 // ---------------------------------------------------------------------------
 // 1. Type Safety — types.ts
 // ---------------------------------------------------------------------------
 describe("Type definitions (types.ts)", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/types.ts",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/types.ts");
 
   test("exports TotpAlgorithm type with SHA1, SHA256, SHA512", () => {
-    expect(src).toContain('export type TotpAlgorithm');
+    expect(src).toContain("export type TotpAlgorithm");
     expect(src).toContain('"SHA1"');
     expect(src).toContain('"SHA256"');
     expect(src).toContain('"SHA512"');
@@ -248,9 +245,7 @@ describe("TOTP code formatting", () => {
 // 7. Page — loading state (skeleton UI)
 // ---------------------------------------------------------------------------
 describe("Page loading state", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("initialLoading state starts true", () => {
     expect(src).toContain("useState(true)");
@@ -272,9 +267,7 @@ describe("Page loading state", () => {
 // 8. Page — empty state
 // ---------------------------------------------------------------------------
 describe("Page empty state", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("shows 'No authenticator accounts yet' message", () => {
     expect(src).toContain("No authenticator accounts yet");
@@ -291,14 +284,18 @@ describe("Page empty state", () => {
 // 9. Page — search/filter
 // ---------------------------------------------------------------------------
 describe("Page search/filter", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("filters by label, issuer, and accountName (case-insensitive)", () => {
-    expect(src).toContain("a.label.toLowerCase().includes(search.toLowerCase())");
-    expect(src).toContain("a.issuer.toLowerCase().includes(search.toLowerCase())");
-    expect(src).toContain("a.accountName.toLowerCase().includes(search.toLowerCase())");
+    expect(src).toContain(
+      "a.label.toLowerCase().includes(search.toLowerCase())",
+    );
+    expect(src).toContain(
+      "a.issuer.toLowerCase().includes(search.toLowerCase())",
+    );
+    expect(src).toContain(
+      "a.accountName.toLowerCase().includes(search.toLowerCase())",
+    );
   });
 
   test("shows no-matches state with search query", () => {
@@ -364,9 +361,7 @@ describe("Search filter logic (unit)", () => {
 // 11. Page — code polling
 // ---------------------------------------------------------------------------
 describe("Page code polling", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("polls /api/admin/authenticator/codes every 1 second", () => {
     expect(src).toContain("setInterval(fetchCodes, 1000)");
@@ -390,7 +385,9 @@ describe("AddAccountDialog component", () => {
   );
 
   test("requires label + secret for new accounts", () => {
-    expect(src).toContain('label.trim().length > 0 && secret.trim().length > 0');
+    expect(src).toContain(
+      "label.trim().length > 0 && secret.trim().length > 0",
+    );
   });
 
   test("only requires label for edit mode", () => {
@@ -480,9 +477,7 @@ describe("ImportDialog component", () => {
 // 14. Page — CRUD operations (add, edit, delete)
 // ---------------------------------------------------------------------------
 describe("Page CRUD operations", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("handleAdd POSTs to /api/admin/authenticator", () => {
     expect(src).toContain('fetch("/api/admin/authenticator"');
@@ -525,9 +520,7 @@ describe("Page CRUD operations", () => {
 // 15. Page — import flow
 // ---------------------------------------------------------------------------
 describe("Page import flow", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("handleImport POSTs to /api/admin/authenticator/import", () => {
     expect(src).toContain('"/api/admin/authenticator/import"');
@@ -744,9 +737,11 @@ describe("lib/authenticator.ts service functions", () => {
 
   test("toPublicAccount strips secret from response", () => {
     // Verify secret is NOT in the return object
-    const fnMatch = src.match(/function toPublicAccount[\s\S]*?return \{([\s\S]*?)\};/);
+    const fnMatch = src.match(
+      /function toPublicAccount[\s\S]*?return \{([\s\S]*?)\};/,
+    );
     expect(fnMatch).not.toBeNull();
-    const returnBlock = fnMatch![1];
+    const returnBlock = fnMatch?.[1];
     expect(returnBlock).not.toContain("secret");
   });
 
@@ -765,9 +760,7 @@ describe("lib/authenticator.ts service functions", () => {
 // 23. Page — account display header
 // ---------------------------------------------------------------------------
 describe("Page account count display", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("shows account count in header", () => {
     expect(src).toContain("{accounts.length}");
@@ -783,9 +776,7 @@ describe("Page account count display", () => {
 // 24. Page — dialog key props for React reconciliation
 // ---------------------------------------------------------------------------
 describe("Page dialog key management", () => {
-  const src = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const src = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("AddAccountDialog (add) has stable key", () => {
     expect(src).toContain('key="add-dialog"');
@@ -800,9 +791,7 @@ describe("Page dialog key management", () => {
 // 25. Integration: all imports resolve (no missing modules)
 // ---------------------------------------------------------------------------
 describe("Import resolution", () => {
-  const pageSrc = readSrc(
-    "app/admin/dashboard/authenticator/page.tsx",
-  );
+  const pageSrc = readSrc("app/admin/dashboard/authenticator/page.tsx");
 
   test("page imports types from ./types", () => {
     expect(pageSrc).toContain('from "./types"');

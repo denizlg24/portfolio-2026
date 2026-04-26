@@ -42,7 +42,13 @@ export async function POST(
     id,
     {
       $push: {
-        capabilities: { type, label, baseUrl, config, isActive: isActive ?? true },
+        capabilities: {
+          type,
+          label,
+          baseUrl,
+          config,
+          isActive: isActive ?? true,
+        },
       },
     },
     { new: true },

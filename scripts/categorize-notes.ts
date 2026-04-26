@@ -6,15 +6,15 @@ import {
   type KnowledgeMigrationNoteTracking,
   type KnowledgeMigrationTrackingDocument,
 } from "@/lib/knowledge-migration";
+import { connectDB } from "@/lib/mongodb";
 import { categorizeNotesBatch } from "@/lib/note-categorize";
 import {
   buildAncestorMap,
   pruneRedundantAncestors,
 } from "@/lib/note-group-hierarchy";
-import { connectDB } from "@/lib/mongodb";
-import { Note, type ILeanNote } from "@/models/Note";
+import { type ILeanNote, Note } from "@/models/Note";
 import { NoteEdge } from "@/models/NoteEdge";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 const BATCH_SIZE = 20;
@@ -48,7 +48,9 @@ function levenshtein(a: string, b: string): number {
   return matrix[a.length][b.length];
 }
 
-function buildFolderTree(legacyFolders: KnowledgeMigrationManifest["legacyFolders"]) {
+function buildFolderTree(
+  legacyFolders: KnowledgeMigrationManifest["legacyFolders"],
+) {
   const childrenByParent = new Map<string | null, typeof legacyFolders>();
 
   for (const folder of legacyFolders) {
@@ -104,30 +106,32 @@ async function main() {
     throw new Error("Mongo database connection not available");
   }
 
-  const trackingCollection =
-    db.collection<KnowledgeMigrationTrackingDocument>(
-      KNOWLEDGE_MIGRATION_COLLECTION,
-    );
+  const trackingCollection = db.collection<KnowledgeMigrationTrackingDocument>(
+    KNOWLEDGE_MIGRATION_COLLECTION,
+  );
 
-  const [manifest, trackingDocs, notes, groups, existingEdges] = await Promise.all([
-    trackingCollection.findOne<KnowledgeMigrationManifest>({
-      _id: KNOWLEDGE_MIGRATION_MANIFEST_ID,
-      kind: "manifest",
-    }),
-    trackingCollection
-      .find<KnowledgeMigrationNoteTracking>({
-        kind: "note-tracking",
-        source: "legacy-note",
-        categorizedAt: null,
-      })
-      .toArray(),
-    Note.find().lean<ILeanNote[]>().exec(),
-    NoteGroup.find().sort({ name: 1 }).lean<ILeanNoteGroup[]>().exec(),
-    NoteEdge.find().lean().exec(),
-  ]);
+  const [manifest, trackingDocs, notes, groups, existingEdges] =
+    await Promise.all([
+      trackingCollection.findOne<KnowledgeMigrationManifest>({
+        _id: KNOWLEDGE_MIGRATION_MANIFEST_ID,
+        kind: "manifest",
+      }),
+      trackingCollection
+        .find<KnowledgeMigrationNoteTracking>({
+          kind: "note-tracking",
+          source: "legacy-note",
+          categorizedAt: null,
+        })
+        .toArray(),
+      Note.find().lean<ILeanNote[]>().exec(),
+      NoteGroup.find().sort({ name: 1 }).lean<ILeanNoteGroup[]>().exec(),
+      NoteEdge.find().lean().exec(),
+    ]);
 
   if (!manifest) {
-    throw new Error("Knowledge migration manifest not found. Run migrate-knowledge.ts first.");
+    throw new Error(
+      "Knowledge migration manifest not found. Run migrate-knowledge.ts first.",
+    );
   }
 
   if (trackingDocs.length === 0) {
@@ -136,7 +140,9 @@ async function main() {
   }
 
   const folderTree = buildFolderTree(manifest.legacyFolders);
-  const noteById = new Map(notes.map((note) => [String(note._id), note] as const));
+  const noteById = new Map(
+    notes.map((note) => [String(note._id), note] as const),
+  );
   const existingEdgeKeys = new Set(
     existingEdges.map((edge) => `${String(edge.from)}:${String(edge.to)}`),
   );
@@ -197,7 +203,8 @@ async function main() {
         }
       }
 
-      const createdGroups: Array<{ id: string; parentName?: string | null }> = [];
+      const createdGroups: Array<{ id: string; parentName?: string | null }> =
+        [];
 
       for (const newGroup of result.newGroups ?? []) {
         const trimmedName = newGroup.name?.trim();
@@ -234,7 +241,10 @@ async function main() {
 
       for (const createdGroup of createdGroups) {
         if (!createdGroup.parentName) continue;
-        const parentGroupId = await resolveGroupId(createdGroup.parentName, groups);
+        const parentGroupId = await resolveGroupId(
+          createdGroup.parentName,
+          groups,
+        );
         if (!parentGroupId || parentGroupId === createdGroup.id) continue;
 
         await NoteGroup.updateOne(
@@ -264,7 +274,9 @@ async function main() {
 
       const update: Record<string, unknown> = {
         tags: [...new Set((result.tags ?? []).slice(0, 2))],
-        groupIds: mergedGroupIds.map((groupId) => new mongoose.Types.ObjectId(groupId)),
+        groupIds: mergedGroupIds.map(
+          (groupId) => new mongoose.Types.ObjectId(groupId),
+        ),
         status: result.status === "archived" ? "archived" : "open",
       };
 

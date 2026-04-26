@@ -224,7 +224,11 @@ export function CreateResourceDialog({
                   <Label className="text-xs">HMAC Secret</Label>
                   <Input
                     type="password"
-                    placeholder={isEdit ? "Leave blank to keep current" : "Shared secret for request signing"}
+                    placeholder={
+                      isEdit
+                        ? "Leave blank to keep current"
+                        : "Shared secret for request signing"
+                    }
                     value={hmacSecret}
                     onChange={(e) => setHmacSecret(e.target.value)}
                     autoComplete="off"

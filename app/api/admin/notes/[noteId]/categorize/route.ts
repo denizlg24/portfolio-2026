@@ -1,5 +1,5 @@
-import { type NextRequest, NextResponse } from "next/server";
 import mongoose from "mongoose";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   resolveIncomingCategorization,
   upsertRelatedEdges,
@@ -11,9 +11,9 @@ import {
   serializeNote,
 } from "@/lib/note-route-utils";
 import { requireAdmin } from "@/lib/require-admin";
-import { Note, type ILeanNote } from "@/models/Note";
-import { NoteEdge, type ILeanNoteEdge } from "@/models/NoteEdge";
-import { NoteGroup, type ILeanNoteGroup } from "@/models/NoteGroup";
+import { type ILeanNote, Note } from "@/models/Note";
+import { type ILeanNoteEdge, NoteEdge } from "@/models/NoteEdge";
+import { type ILeanNoteGroup, NoteGroup } from "@/models/NoteGroup";
 
 function pickString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0
@@ -41,7 +41,7 @@ export async function POST(
 
     const title = pickString(body.title) ?? note.title;
     const content =
-      typeof body.content === "string" ? body.content : note.content ?? "";
+      typeof body.content === "string" ? body.content : (note.content ?? "");
     const description =
       typeof body.description === "string"
         ? body.description

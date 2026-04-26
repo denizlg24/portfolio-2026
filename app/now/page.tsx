@@ -4,11 +4,11 @@ import { Suspense } from "react";
 import { MarkdownRenderer } from "@/components/markdown-renderer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getNowPageContent } from "@/lib/now-page";
-import { GitHubRecentCommits } from "./github-recent-commits";
 import {
   GitHubContributions,
   GitHubContributionsSkeleton,
 } from "./github-contributions";
+import { GitHubRecentCommits } from "./github-recent-commits";
 
 export const revalidate = 86400;
 

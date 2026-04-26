@@ -1,19 +1,6 @@
-import { createInterface } from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
+import { createInterface } from "node:readline/promises";
 import mongoose from "mongoose";
-import { Bookmark, type ILeanBookmark } from "@/models/Bookmark";
-import { type ILeanBookmarkEdge, BookmarkEdge } from "@/models/BookmarkEdge";
-import {
-  type ILeanBookmarkGroup,
-  BookmarkGroup,
-} from "@/models/BookmarkGroup";
-import { type ILeanFolder, Folder } from "@/models/Folder";
-import { JournalLog } from "@/models/Journal";
-import { KanbanCard } from "@/models/KanbanCard";
-import { type ILeanNote as ILegacyLeanNote, Note as LegacyNote } from "@/models/Notes";
-import { Note } from "@/models/Note";
-import { NoteEdge } from "@/models/NoteEdge";
-import { NoteGroup } from "@/models/NoteGroup";
 import {
   KNOWLEDGE_MIGRATION_COLLECTION,
   KNOWLEDGE_MIGRATION_MANIFEST_ID,
@@ -22,6 +9,19 @@ import {
   type KnowledgeMigrationTrackingDocument,
 } from "@/lib/knowledge-migration";
 import { connectDB } from "@/lib/mongodb";
+import { Bookmark, type ILeanBookmark } from "@/models/Bookmark";
+import { BookmarkEdge, type ILeanBookmarkEdge } from "@/models/BookmarkEdge";
+import { BookmarkGroup, type ILeanBookmarkGroup } from "@/models/BookmarkGroup";
+import { Folder, type ILeanFolder } from "@/models/Folder";
+import { JournalLog } from "@/models/Journal";
+import { KanbanCard } from "@/models/KanbanCard";
+import { Note } from "@/models/Note";
+import { NoteEdge } from "@/models/NoteEdge";
+import { NoteGroup } from "@/models/NoteGroup";
+import {
+  type ILeanNote as ILegacyLeanNote,
+  Note as LegacyNote,
+} from "@/models/Notes";
 
 const DRY_RUN = process.argv.includes("--dry-run");
 const LEGACY_COLLECTIONS = [
@@ -89,7 +89,9 @@ async function promptYesNo(question: string, defaultValue = false) {
   const rl = createInterface({ input, output });
   try {
     const suffix = defaultValue ? " [Y/n] " : " [y/N] ";
-    const answer = (await rl.question(`${question}${suffix}`)).trim().toLowerCase();
+    const answer = (await rl.question(`${question}${suffix}`))
+      .trim()
+      .toLowerCase();
     if (!answer) return defaultValue;
     return answer === "y" || answer === "yes";
   } finally {
@@ -109,7 +111,9 @@ async function promptBackupConfirmation() {
 }
 
 function summarizeSamples(label: string, docs: unknown[]) {
-  console.log(`\n${label} (${docs.length} sample${docs.length === 1 ? "" : "s"}):`);
+  console.log(
+    `\n${label} (${docs.length} sample${docs.length === 1 ? "" : "s"}):`,
+  );
   console.log(JSON.stringify(docs, null, 2));
 }
 
@@ -132,10 +136,9 @@ async function main() {
     console.log("Dry run enabled. No writes will be performed.");
   }
 
-  const trackingCollection =
-    db.collection<KnowledgeMigrationTrackingDocument>(
-      KNOWLEDGE_MIGRATION_COLLECTION,
-    );
+  const trackingCollection = db.collection<KnowledgeMigrationTrackingDocument>(
+    KNOWLEDGE_MIGRATION_COLLECTION,
+  );
 
   const [existingNotes, existingGroups, existingEdges, existingTracking] =
     await Promise.all([
@@ -172,7 +175,9 @@ async function main() {
     parentFolder: folder.parentFolder
       ? new mongoose.Types.ObjectId(String(folder.parentFolder))
       : null,
-    notes: (folder.notes ?? []).map((noteId) => new mongoose.Types.ObjectId(String(noteId))),
+    notes: (folder.notes ?? []).map(
+      (noteId) => new mongoose.Types.ObjectId(String(noteId)),
+    ),
     createdAt: folder.createdAt,
     updatedAt: folder.updatedAt,
   })) satisfies FolderSeedDoc[];
@@ -182,7 +187,9 @@ async function main() {
     name: group.name,
     description: group.description,
     color: group.color,
-    parentId: group.parentId ? new mongoose.Types.ObjectId(String(group.parentId)) : null,
+    parentId: group.parentId
+      ? new mongoose.Types.ObjectId(String(group.parentId))
+      : null,
     autoCreated: group.autoCreated,
     createdAt: group.createdAt,
     updatedAt: group.updatedAt,
@@ -254,7 +261,7 @@ async function main() {
   for (const folder of folderDocs) {
     const newGroupId = idMap.get(String(folder._id));
     const parentId = folder.parentFolder
-      ? idMap.get(String(folder.parentFolder)) ?? null
+      ? (idMap.get(String(folder.parentFolder)) ?? null)
       : null;
 
     if (!newGroupId || isSelfParent(newGroupId, parentId)) {
@@ -296,7 +303,7 @@ async function main() {
   for (const group of bookmarkGroupDocs) {
     const newGroupId = idMap.get(String(group._id));
     const parentId = group.parentId
-      ? idMap.get(String(group.parentId)) ?? null
+      ? (idMap.get(String(group.parentId)) ?? null)
       : null;
 
     if (!newGroupId || isSelfParent(newGroupId, parentId)) {
@@ -316,8 +323,11 @@ async function main() {
 
   for (const legacyNote of legacyNoteDocs) {
     const newNoteId = new mongoose.Types.ObjectId();
-    const legacyFolderId = folderByLegacyNoteId.get(String(legacyNote._id)) ?? null;
-    const mappedGroupId = legacyFolderId ? idMap.get(legacyFolderId) ?? null : null;
+    const legacyFolderId =
+      folderByLegacyNoteId.get(String(legacyNote._id)) ?? null;
+    const mappedGroupId = legacyFolderId
+      ? (idMap.get(legacyFolderId) ?? null)
+      : null;
 
     const noteDoc = {
       _id: newNoteId,
@@ -542,7 +552,9 @@ async function main() {
     actualCounts.groups !== expectedGroupCount ||
     actualCounts.edges !== expectedEdgeCount
   ) {
-    throw new Error("Verification failed. Unified collection counts do not match expectations.");
+    throw new Error(
+      "Verification failed. Unified collection counts do not match expectations.",
+    );
   }
 
   if (DRY_RUN) {
