@@ -19,6 +19,10 @@ const calistoga = Calistoga({
   weight: "400",
 });
 
+const appleTouchIconSizes = [
+  57, 60, 72, 76, 114, 120, 144, 152, 167, 180, 1024,
+];
+
 export const metadata: Metadata = {
   metadataBase: new URL("https://denizlg24.com"),
   title: {
@@ -67,6 +71,23 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
+  icons: {
+    icon: "/favicon.ico",
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+      ...appleTouchIconSizes.map((size) => ({
+        url: `/apple-touch-icon-${size}x${size}.png`,
+        sizes: `${size}x${size}`,
+        type: "image/png",
+      })),
+      ...appleTouchIconSizes.map((size) => ({
+        url: `/apple-touch-icon-transparent-${size}x${size}.png`,
+        sizes: `${size}x${size}`,
+        type: "image/png",
+      })),
+    ],
+  },
+  manifest: "/manifest.webmanifest",
 };
 
 export default function RootLayout({
