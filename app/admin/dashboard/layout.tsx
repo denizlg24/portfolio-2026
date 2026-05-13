@@ -1,8 +1,19 @@
+import type { Metadata } from "next";
 import { forbidden } from "next/navigation";
 import { AppSidebar } from "@/components/app-sidebar";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAdminSession } from "@/lib/require-admin";
+
+export const metadata: Metadata = {
+  title: "Dashboard",
+  manifest: "/admin/dashboard/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Deniz Dashboard",
+    statusBarStyle: "default",
+  },
+};
 
 export default async function RootLayout({
   children,
