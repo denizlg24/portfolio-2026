@@ -75,5 +75,8 @@ const BlogSchema = new Schema<IBlog>(
   },
 );
 
+BlogSchema.index({ isActive: 1 });
+BlogSchema.index({ createdAt: -1 });
+
 export const Blog: mongoose.Model<IBlog> =
   mongoose.models.Blog || mongoose.model<IBlog>("Blog", BlogSchema);

@@ -67,6 +67,10 @@ const BlogCommentSchema = new Schema<IBlogComment>(
   },
 );
 
+BlogCommentSchema.index({ isApproved: 1 });
+BlogCommentSchema.index({ isDeleted: 1 });
+BlogCommentSchema.index({ createdAt: -1 });
+
 export const BlogComment: mongoose.Model<IBlogComment> =
   mongoose.models.BlogComment ||
   mongoose.model<IBlogComment>("BlogComment", BlogCommentSchema);

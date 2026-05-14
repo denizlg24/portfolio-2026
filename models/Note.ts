@@ -70,6 +70,7 @@ const NoteSchema = new Schema<INote>(
 );
 
 NoteSchema.index({ createdAt: -1 });
+NoteSchema.index({ updatedAt: -1 });
 NoteSchema.index({ tags: 1 });
 NoteSchema.index({ title: "text", content: "text" });
 

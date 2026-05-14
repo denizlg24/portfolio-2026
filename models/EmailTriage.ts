@@ -162,6 +162,7 @@ const EmailTriageSchema = new Schema<IEmailTriage>(
 );
 
 EmailTriageSchema.index({ userStatus: 1, triagedAt: -1 });
+EmailTriageSchema.index({ category: 1, userStatus: 1 });
 
 export const EmailTriageModel: mongoose.Model<IEmailTriage> =
   mongoose.models.EmailTriage ||

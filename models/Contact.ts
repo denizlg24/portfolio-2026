@@ -82,6 +82,7 @@ ContactSchema.pre("save", async function () {
 });
 
 ContactSchema.index({ email: 1, status: 1 });
+ContactSchema.index({ status: 1 });
 ContactSchema.index({ createdAt: -1 });
 
 export const Contact =

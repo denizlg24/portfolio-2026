@@ -14,6 +14,9 @@ import { Project } from "@/models/Project";
 import { Resource } from "@/models/Resource";
 import { TimetableEntry } from "@/models/TimetableEntry";
 
+type FacetCount = { n?: number }[];
+const countOf = (arr: FacetCount | undefined): number => arr?.[0]?.n ?? 0;
+
 export async function GET(request: NextRequest) {
   const authError = await requireAdmin(request);
   if (authError) return authError;
@@ -28,109 +31,216 @@ export async function GET(request: NextRequest) {
     const startOfTomorrow = startOfDay(addDays(now, 1));
     const endOfWeek = endOfDay(addDays(now, 7));
 
-    const [totalContacts, unreadContacts, recentContacts] = await Promise.all([
-      Contact.countDocuments(),
-      Contact.countDocuments({ status: "new" }),
-      Contact.find()
-        .sort({ createdAt: -1 })
-        .limit(5)
-        .select("name email createdAt status")
-        .lean(),
-    ]);
+    const calendarSuppressionMatch = {
+      $or: [
+        { "source.isSuppressed": { $ne: true } },
+        { source: { $exists: false } },
+      ],
+    };
 
-    const [totalProjects, featuredProjects] = await Promise.all([
-      Project.countDocuments(),
-      Project.countDocuments({ isFeatured: true }),
-    ]);
-
-    const [totalBlogs, publishedBlogs] = await Promise.all([
-      Blog.countDocuments(),
-      Blog.countDocuments({ isActive: true }),
-    ]);
-
-    const [todayEvents, upcomingEvents, calendarEvents] = await Promise.all([
-      CalendarEvent.countDocuments({
-        $or: [
-          { "source.isSuppressed": { $ne: true } },
-          { source: { $exists: false } },
-        ],
-        date: { $gte: startOfToday, $lte: endOfToday },
-        status: { $ne: "canceled" },
-      }),
-      CalendarEvent.countDocuments({
-        $or: [
-          { "source.isSuppressed": { $ne: true } },
-          { source: { $exists: false } },
-        ],
-        date: { $gte: startOfTomorrow, $lte: endOfWeek },
-        status: "scheduled",
-      }),
-      CalendarEvent.find({
-        $or: [
-          { "source.isSuppressed": { $ne: true } },
-          { source: { $exists: false } },
-        ],
-        date: { $gte: startOfToday },
-        status: { $ne: "canceled" },
-      })
-        .sort({ date: 1 })
-        .limit(5)
-        .select("title date calendarDate isAllDay kind status source")
-        .lean(),
-    ]);
-
-    const [totalComments, pendingComments] = await Promise.all([
-      BlogComment.countDocuments(),
-      BlogComment.countDocuments({ approved: false }),
-    ]);
-
-    const todayTimetable = await TimetableEntry.find({
-      dayOfWeek: todayDayOfWeek,
-      isActive: true,
-    })
-      .sort({ startTime: 1 })
-      .select("title startTime endTime place color")
-      .lean();
-
-    const resources = await Resource.find({ isActive: true })
-      .select("name type agentService.lastStatus agentService.lastCheckedAt")
-      .lean();
-
-    const [totalEmails, unreadEmails, actionRequiredTriageCount] =
-      await Promise.all([
-        EmailModel.countDocuments(),
-        EmailModel.countDocuments({ seen: false }),
-        EmailTriageModel.countDocuments({
-          category: "action-needed",
-          userStatus: "pending",
-        }),
-      ]);
-
-    const totalNotes = await Note.countDocuments();
-    const recentNotes = await Note.find()
-      .sort({ updatedAt: -1 })
-      .limit(3)
-      .select("title updatedAt")
-      .lean();
-
-    const llmToday = await LlmUsage.aggregate([
-      { $match: { createdAt: { $gte: startOfToday } } },
-      {
-        $group: {
-          _id: null,
-          totalCost: { $sum: "$costUsd" },
-          totalRequests: { $sum: 1 },
-          totalInputTokens: { $sum: "$inputTokens" },
-          totalOutputTokens: { $sum: "$outputTokens" },
+    const [
+      contactFacet,
+      projectFacet,
+      blogFacet,
+      calendarFacet,
+      commentFacet,
+      emailFacet,
+      noteFacet,
+      todayTimetable,
+      resources,
+      actionRequiredTriageCount,
+      llmToday,
+    ] = await Promise.all([
+      Contact.aggregate<{
+        total: FacetCount;
+        unread: FacetCount;
+        recent: {
+          _id: unknown;
+          name: string;
+          email: string;
+          createdAt: Date;
+          status: string;
+        }[];
+      }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            unread: [{ $match: { status: "new" } }, { $count: "n" }],
+            recent: [
+              { $sort: { createdAt: -1 } },
+              { $limit: 5 },
+              {
+                $project: {
+                  _id: 1,
+                  name: 1,
+                  email: 1,
+                  createdAt: 1,
+                  status: 1,
+                },
+              },
+            ],
+          },
         },
-      },
+      ]),
+
+      Project.aggregate<{ total: FacetCount; featured: FacetCount }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            featured: [{ $match: { isFeatured: true } }, { $count: "n" }],
+          },
+        },
+      ]),
+
+      Blog.aggregate<{ total: FacetCount; published: FacetCount }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            published: [{ $match: { isActive: true } }, { $count: "n" }],
+          },
+        },
+      ]),
+
+      CalendarEvent.aggregate<{
+        todayEvents: FacetCount;
+        upcomingEvents: FacetCount;
+        events: {
+          _id: unknown;
+          title: string;
+          date: Date;
+          calendarDate: string;
+          isAllDay?: boolean;
+          kind?: string;
+          status: string;
+        }[];
+      }>([
+        { $match: calendarSuppressionMatch },
+        {
+          $facet: {
+            todayEvents: [
+              {
+                $match: {
+                  date: { $gte: startOfToday, $lte: endOfToday },
+                  status: { $ne: "canceled" },
+                },
+              },
+              { $count: "n" },
+            ],
+            upcomingEvents: [
+              {
+                $match: {
+                  date: { $gte: startOfTomorrow, $lte: endOfWeek },
+                  status: "scheduled",
+                },
+              },
+              { $count: "n" },
+            ],
+            events: [
+              {
+                $match: {
+                  date: { $gte: startOfToday },
+                  status: { $ne: "canceled" },
+                },
+              },
+              { $sort: { date: 1 } },
+              { $limit: 5 },
+              {
+                $project: {
+                  _id: 1,
+                  title: 1,
+                  date: 1,
+                  calendarDate: 1,
+                  isAllDay: 1,
+                  kind: 1,
+                  status: 1,
+                },
+              },
+            ],
+          },
+        },
+      ]),
+
+      BlogComment.aggregate<{ total: FacetCount; pending: FacetCount }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            pending: [
+              { $match: { isApproved: false, isDeleted: { $ne: true } } },
+              { $count: "n" },
+            ],
+          },
+        },
+      ]),
+
+      EmailModel.aggregate<{ total: FacetCount; unread: FacetCount }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            unread: [{ $match: { seen: false } }, { $count: "n" }],
+          },
+        },
+      ]),
+
+      Note.aggregate<{
+        total: FacetCount;
+        recent: { _id: unknown; title: string; updatedAt: Date }[];
+      }>([
+        {
+          $facet: {
+            total: [{ $count: "n" }],
+            recent: [
+              { $sort: { updatedAt: -1 } },
+              { $limit: 3 },
+              { $project: { _id: 1, title: 1, updatedAt: 1 } },
+            ],
+          },
+        },
+      ]),
+
+      TimetableEntry.find({
+        dayOfWeek: todayDayOfWeek,
+        isActive: true,
+      })
+        .sort({ startTime: 1 })
+        .select("title startTime endTime place color")
+        .lean(),
+
+      Resource.find({ isActive: true })
+        .select("name type agentService.lastStatus agentService.lastCheckedAt")
+        .lean(),
+
+      EmailTriageModel.countDocuments({
+        category: "action-needed",
+        userStatus: "pending",
+      }),
+
+      LlmUsage.aggregate([
+        { $match: { createdAt: { $gte: startOfToday } } },
+        {
+          $group: {
+            _id: null,
+            totalCost: { $sum: "$costUsd" },
+            totalRequests: { $sum: 1 },
+            totalInputTokens: { $sum: "$inputTokens" },
+            totalOutputTokens: { $sum: "$outputTokens" },
+          },
+        },
+      ]),
     ]);
+
+    const c = contactFacet[0];
+    const p = projectFacet[0];
+    const b = blogFacet[0];
+    const cal = calendarFacet[0];
+    const cm = commentFacet[0];
+    const em = emailFacet[0];
+    const nt = noteFacet[0];
 
     return NextResponse.json({
       contacts: {
-        total: totalContacts,
-        unread: unreadContacts,
-        recent: recentContacts.map((contact) => ({
+        total: countOf(c?.total),
+        unread: countOf(c?.unread),
+        recent: (c?.recent ?? []).map((contact) => ({
           _id: String(contact._id),
           name: contact.name,
           email: contact.email,
@@ -139,17 +249,17 @@ export async function GET(request: NextRequest) {
         })),
       },
       projects: {
-        total: totalProjects,
-        featured: featuredProjects,
+        total: countOf(p?.total),
+        featured: countOf(p?.featured),
       },
       blogs: {
-        total: totalBlogs,
-        published: publishedBlogs,
+        total: countOf(b?.total),
+        published: countOf(b?.published),
       },
       calendar: {
-        todayEvents,
-        upcomingEvents,
-        events: calendarEvents.map((event) => ({
+        todayEvents: countOf(cal?.todayEvents),
+        upcomingEvents: countOf(cal?.upcomingEvents),
+        events: (cal?.events ?? []).map((event) => ({
           _id: String(event._id),
           title: event.title,
           date: event.date,
@@ -160,8 +270,8 @@ export async function GET(request: NextRequest) {
         })),
       },
       comments: {
-        total: totalComments,
-        pending: pendingComments,
+        total: countOf(cm?.total),
+        pending: countOf(cm?.pending),
       },
       timetable: todayTimetable.map((entry) => ({
         _id: String(entry._id),
@@ -179,15 +289,15 @@ export async function GET(request: NextRequest) {
         lastCheckedAt: r.agentService?.lastCheckedAt ?? null,
       })),
       emails: {
-        total: totalEmails,
-        unread: unreadEmails,
+        total: countOf(em?.total),
+        unread: countOf(em?.unread),
       },
       triage: {
         actionRequired: actionRequiredTriageCount,
       },
       notes: {
-        total: totalNotes,
-        recent: recentNotes.map((n) => ({
+        total: countOf(nt?.total),
+        recent: (nt?.recent ?? []).map((n) => ({
           _id: String(n._id),
           title: n.title,
           updatedAt: n.updatedAt,
