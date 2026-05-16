@@ -3,6 +3,8 @@ import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { getUptimeData } from "@/lib/resource-agent";
 import { encryptPassword } from "@/lib/safe-email-password";
+import { upsertPingResource } from "@/lib/sync-ping-resource";
+import { getPingResourceModel } from "@/models/resource-db/PingResource";
 import { Resource } from "@/models/Resource";
 
 export async function GET(request: NextRequest) {
@@ -13,11 +15,23 @@ export async function GET(request: NextRequest) {
   const resources = await Resource.find().sort({ createdAt: -1 }).lean();
 
   const resourceIds = resources.map((r) => r._id.toString());
-  const uptimeMap = await getUptimeData(resourceIds);
+  const [uptimeMap, PingResource] = await Promise.all([
+    getUptimeData(resourceIds),
+    getPingResourceModel(),
+  ]);
+  const pingDocs = await PingResource.find({ _id: { $in: resourceIds } }).lean();
+  const pingMap = new Map(pingDocs.map((p) => [p._id.toString(), p]));
 
   return NextResponse.json({
     resources: resources.map((r) => {
       const id = r._id.toString();
+      const ping = pingMap.get(id);
+      const mergedAgent = {
+        ...r.agentService,
+        lastCheckedAt: ping?.agentService?.lastCheckedAt ?? null,
+        lastStatus: ping?.agentService?.lastStatus ?? null,
+        lastMetrics: ping?.agentService?.lastMetrics ?? null,
+      };
       return {
         _id: id,
         name: r.name,
@@ -25,7 +39,8 @@ export async function GET(request: NextRequest) {
         url: r.url,
         type: r.type,
         isActive: r.isActive,
-        agentService: r.agentService,
+        isPublic: r.isPublic,
+        agentService: mergedAgent,
         capabilities: r.capabilities.map((c) => ({
           _id: c._id.toString(),
           type: c.type,
@@ -47,7 +62,8 @@ export async function POST(request: NextRequest) {
   if (authError) return authError;
 
   const body = await request.json();
-  const { name, url, type, description, isActive, agentService } = body;
+  const { name, url, type, description, isActive, isPublic, agentService } =
+    body;
 
   if (!name || !url || !type) {
     return NextResponse.json(
@@ -75,9 +91,12 @@ export async function POST(request: NextRequest) {
     type,
     description: description ?? "",
     isActive: isActive ?? true,
+    isPublic: isPublic ?? true,
     agentService: sanitizedAgent,
     capabilities: [],
   });
+
+  await upsertPingResource(resource);
 
   return NextResponse.json(
     {

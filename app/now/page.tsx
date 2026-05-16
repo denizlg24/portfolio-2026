@@ -9,6 +9,7 @@ import {
   GitHubContributionsSkeleton,
 } from "./github-contributions";
 import { GitHubRecentCommits } from "./github-recent-commits";
+import { ResourceStatus } from "./resource-status";
 
 export const revalidate = 86400;
 
@@ -91,6 +92,7 @@ export default function Page() {
           </h2>
           <GitHubRecentCommits />
         </div>
+        <ResourceStatus />
       </section>
     </main>
   );

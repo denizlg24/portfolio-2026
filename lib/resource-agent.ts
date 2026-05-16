@@ -1,9 +1,14 @@
 import crypto from "node:crypto";
 import mongoose from "mongoose";
-import { HealthCheckLog } from "@/models/HealthCheckLog";
-import { type IResource, Resource } from "@/models/Resource";
-import { connectDB } from "./mongodb";
+import { getHealthCheckLogModel } from "@/models/resource-db/HealthCheckLog";
+import {
+  getPingResourceModel,
+  type IPingAgentService,
+} from "@/models/resource-db/PingResource";
+import { connectResourceDB } from "./mongodb-resource";
 import { decryptPassword } from "./safe-email-password";
+
+const STALE_MS = 10 * 60 * 1000;
 
 export interface AgentCheckResult {
   resourceId: string;
@@ -15,6 +20,7 @@ export interface AgentCheckResult {
     diskUsagePercent: number | null;
   } | null;
   services: Array<{ name: string; status: string }> | null;
+  responseTimeMs: number | null;
   error?: string;
 }
 
@@ -32,7 +38,36 @@ export interface ResourceUptimeData {
   dailyHistory: DailyUptimeEntry[];
 }
 
-function getDecryptedHmacSecret(resource: IResource): string | null {
+export interface PublicDailyStatus {
+  date: string;
+  status: "up" | "degraded" | "down" | "unknown";
+  totalChecks: number;
+  healthyChecks: number;
+  avgResponseTimeMs: number | null;
+}
+
+export interface PublicResourceStatus {
+  name: string;
+  status: "up" | "degraded" | "down" | "stale";
+  uptimePercent30d: number;
+  dailyHistory: PublicDailyStatus[];
+}
+
+/**
+ * Minimum shape needed by the per-resource ping helpers. Both the main
+ * `IResource` and the resource-DB `IPingResource` satisfy this.
+ */
+export interface PingableResource {
+  _id: mongoose.Types.ObjectId | string;
+  name: string;
+  url: string;
+  agentService: Pick<
+    IPingAgentService,
+    "enabled" | "nodeId" | "hmacSecret"
+  > | null;
+}
+
+function getDecryptedHmacSecret(resource: PingableResource): string | null {
   const secret = resource.agentService?.hmacSecret;
   if (!secret?.ciphertext) return null;
   return decryptPassword(secret.ciphertext, secret.iv, secret.authTag);
@@ -91,7 +126,7 @@ async function agentFetch(
 }
 
 export async function checkResourceHealth(
-  resource: IResource,
+  resource: PingableResource,
 ): Promise<AgentCheckResult> {
   const agent = resource.agentService;
   if (!agent?.enabled || !resource.url || !agent.nodeId) {
@@ -101,10 +136,12 @@ export async function checkResourceHealth(
       status: "unreachable",
       metrics: null,
       services: null,
+      responseTimeMs: null,
       error: "Agent service not configured",
     };
   }
 
+  const startedAt = Date.now();
   try {
     const rawSecret = getDecryptedHmacSecret(resource);
     const res = await agentFetch(
@@ -113,6 +150,7 @@ export async function checkResourceHealth(
       agent.nodeId,
       rawSecret,
     );
+    const responseTimeMs = Date.now() - startedAt;
 
     if (!res.ok) {
       return {
@@ -121,6 +159,7 @@ export async function checkResourceHealth(
         status: "unreachable",
         metrics: null,
         services: null,
+        responseTimeMs,
         error: `Agent returned ${res.status}`,
       };
     }
@@ -155,6 +194,7 @@ export async function checkResourceHealth(
       status: agentStatus,
       metrics,
       services,
+      responseTimeMs,
       error: data.error ?? undefined,
     };
   } catch (err) {
@@ -164,12 +204,13 @@ export async function checkResourceHealth(
       status: "unreachable",
       metrics: null,
       services: null,
+      responseTimeMs: Date.now() - startedAt,
       error: err instanceof Error ? err.message : String(err),
     };
   }
 }
 
-export async function rebootResource(resource: IResource): Promise<{
+export async function rebootResource(resource: PingableResource): Promise<{
   success: boolean;
   message?: string;
   error?: string;
@@ -209,7 +250,7 @@ export async function rebootResource(resource: IResource): Promise<{
 }
 
 export async function restartService(
-  resource: IResource,
+  resource: PingableResource,
   serviceName: string,
 ): Promise<{ success: boolean; message?: string; error?: string }> {
   const agent = resource.agentService;
@@ -256,7 +297,7 @@ export async function restartService(
   }
 }
 
-export async function getServicesList(resource: IResource): Promise<{
+export async function getServicesList(resource: PingableResource): Promise<{
   services: Array<{ name: string; status: string }>;
   error?: string;
 }> {
@@ -270,9 +311,11 @@ export async function getServicesList(resource: IResource): Promise<{
 export async function runAllHealthChecks(
   force = false,
 ): Promise<AgentCheckResult[]> {
-  await connectDB();
+  await connectResourceDB();
+  const PingResource = await getPingResourceModel();
+  const HealthCheckLog = await getHealthCheckLogModel();
 
-  const resources = await Resource.find({
+  const resources = await PingResource.find({
     isActive: true,
     "agentService.enabled": true,
   });
@@ -289,7 +332,7 @@ export async function runAllHealthChecks(
     const result = await checkResourceHealth(resource);
     const checkedAt = new Date();
 
-    await Resource.updateOne(
+    await PingResource.updateOne(
       { _id: resource._id },
       {
         $set: {
@@ -303,7 +346,7 @@ export async function runAllHealthChecks(
     await HealthCheckLog.create({
       resourceId: resource._id,
       status: result.status === "unreachable" ? null : 200,
-      responseTimeMs: null,
+      responseTimeMs: result.responseTimeMs,
       isHealthy: result.status !== "unreachable",
       error: result.error,
       checkedAt,
@@ -318,6 +361,8 @@ export async function runAllHealthChecks(
 export async function getUptimeData(
   resourceIds: string[],
 ): Promise<Map<string, ResourceUptimeData>> {
+  const HealthCheckLog = await getHealthCheckLogModel();
+
   const thirtyDaysAgo = new Date();
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
@@ -423,6 +468,54 @@ export async function getUptimeData(
   }
 
   return uptimeMap;
+}
+
+export async function getPublicResourceStatuses(): Promise<
+  PublicResourceStatus[]
+> {
+  const PingResource = await getPingResourceModel();
+  const resources = await PingResource.find({
+    isActive: true,
+    isPublic: true,
+  })
+    .lean()
+    .sort({ name: 1 });
+
+  if (resources.length === 0) return [];
+
+  const ids = resources.map((r) => r._id.toString());
+  const uptimeMap = await getUptimeData(ids);
+  const now = Date.now();
+
+  return resources.map((r) => {
+    const lastCheckedAt = r.agentService?.lastCheckedAt;
+    const lastStatus = r.agentService?.lastStatus;
+    const uptime = uptimeMap.get(r._id.toString());
+
+    let status: PublicResourceStatus["status"];
+    if (!lastCheckedAt || now - new Date(lastCheckedAt).getTime() > STALE_MS) {
+      status = "stale";
+    } else if (lastStatus === "healthy") {
+      status = "up";
+    } else if (lastStatus === "degraded") {
+      status = "degraded";
+    } else {
+      status = "down";
+    }
+
+    return {
+      name: r.name,
+      status,
+      uptimePercent30d: uptime?.uptimePercentage ?? 0,
+      dailyHistory: (uptime?.dailyHistory ?? []).map((d) => ({
+        date: d.date,
+        status: d.status,
+        totalChecks: d.totalChecks,
+        healthyChecks: d.healthyChecks,
+        avgResponseTimeMs: d.avgResponseTimeMs,
+      })),
+    };
+  });
 }
 
 function buildEmptyHistory(): DailyUptimeEntry[] {

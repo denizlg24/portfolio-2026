@@ -43,6 +43,7 @@ export interface IResource extends Document {
   url: string;
   type: "pi" | "vps" | "api" | "service";
   isActive: boolean;
+  isPublic: boolean;
   agentService: IAgentService;
   capabilities: Types.DocumentArray<ICapability>;
   createdAt: Date;
@@ -56,6 +57,7 @@ export interface ILeanResource {
   url: string;
   type: "pi" | "vps" | "api" | "service";
   isActive: boolean;
+  isPublic: boolean;
   agentService: IAgentService;
   capabilities: ILeanCapability[];
   createdAt: string;
@@ -106,6 +108,7 @@ const ResourceSchema: Schema = new Schema(
       required: true,
     },
     isActive: { type: Boolean, default: true },
+    isPublic: { type: Boolean, default: true },
     agentService: { type: AgentServiceSchema, default: () => ({}) },
     capabilities: [CapabilitySchema],
   },

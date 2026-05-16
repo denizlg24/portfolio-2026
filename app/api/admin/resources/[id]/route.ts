@@ -2,7 +2,29 @@ import { type NextRequest, NextResponse } from "next/server";
 import { connectDB } from "@/lib/mongodb";
 import { requireAdmin } from "@/lib/require-admin";
 import { encryptPassword } from "@/lib/safe-email-password";
+import {
+  deletePingResource,
+  upsertPingResource,
+} from "@/lib/sync-ping-resource";
+import { getPingResourceModel } from "@/models/resource-db/PingResource";
 import { Resource } from "@/models/Resource";
+
+async function mergeLivePingState<T extends { _id: any; agentService: any }>(
+  r: T,
+): Promise<T> {
+  const PingResource = await getPingResourceModel();
+  const ping = await PingResource.findById(r._id).lean();
+  if (!ping) return r;
+  return {
+    ...r,
+    agentService: {
+      ...r.agentService,
+      lastCheckedAt: ping.agentService?.lastCheckedAt ?? null,
+      lastStatus: ping.agentService?.lastStatus ?? null,
+      lastMetrics: ping.agentService?.lastMetrics ?? null,
+    },
+  };
+}
 
 function serializeResource(r: any) {
   return {
@@ -12,6 +34,7 @@ function serializeResource(r: any) {
     url: r.url,
     type: r.type,
     isActive: r.isActive,
+    isPublic: r.isPublic,
     agentService: r.agentService,
     capabilities: (r.capabilities ?? []).map((c: any) => ({
       _id: c._id.toString(),
@@ -40,7 +63,8 @@ export async function GET(
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }
 
-  return NextResponse.json(serializeResource(resource));
+  const merged = await mergeLivePingState(resource);
+  return NextResponse.json(serializeResource(merged));
 }
 
 export async function PATCH(
@@ -80,6 +104,8 @@ export async function PATCH(
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }
 
+  await upsertPingResource(resource);
+
   return NextResponse.json(serializeResource(resource));
 }
 
@@ -96,6 +122,8 @@ export async function DELETE(
   if (!resource) {
     return NextResponse.json({ error: "Resource not found" }, { status: 404 });
   }
+
+  await deletePingResource(id);
 
   return NextResponse.json({ status: "deleted" });
 }
