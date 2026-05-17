@@ -117,7 +117,7 @@ export const POST = async (req: NextRequest) => {
     const {
       conversationId,
       message,
-      model = "claude-sonnet-4-5-20250929",
+      model = "claude-sonnet-4-6",
       toolsEnabled = true,
       webSearchEnabled = false,
       toolApprovals,

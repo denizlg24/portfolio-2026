@@ -12,6 +12,9 @@ export const anthropic = new Anthropic({
 
 // Cost per 1M tokens (USD)
 const PRICING: Record<string, { input: number; output: number }> = {
+  // Claude 4.7 family
+  "claude-opus-4-7": { input: 5, output: 25 },
+
   // Claude 4.6 family
   "claude-opus-4-6": { input: 5, output: 25 },
   "claude-sonnet-4-6": { input: 3, output: 15 },
@@ -52,6 +55,9 @@ const CACHE_READ_MULTIPLIER = 0.1;
 
 // Context window and max output tokens per model
 const MODEL_LIMITS: Record<string, { context: number; maxOutput: number }> = {
+  // Claude 4.7 family
+  "claude-opus-4-7": { context: 200000, maxOutput: 128000 }, // 1M ctx via beta header
+
   // Claude 4.6 family
   "claude-opus-4-6": { context: 200000, maxOutput: 128000 }, // 1M ctx via beta header
   "claude-sonnet-4-6": { context: 200000, maxOutput: 64000 }, // 1M ctx via beta header
@@ -94,6 +100,19 @@ export function getMaxTokens(model: string): number {
 
 export function getContextWindow(model: string): number {
   return (MODEL_LIMITS[model] ?? DEFAULT_LIMITS).context;
+}
+
+// Models that support `thinking: {type: "adaptive"}`.
+// Adaptive thinking auto-enables interleaved thinking and works
+// seamlessly with tool use — no beta header needed.
+const ADAPTIVE_THINKING_MODELS = new Set([
+  "claude-opus-4-7",
+  "claude-opus-4-6",
+  "claude-sonnet-4-6",
+]);
+
+export function supportsAdaptiveThinking(model: string): boolean {
+  return ADAPTIVE_THINKING_MODELS.has(model);
 }
 
 export interface CacheUsage {
@@ -233,12 +252,10 @@ export function createSSEStream(result: StreamResult): ReadableStream {
         outputTokens = finalMessage.usage.output_tokens;
         const actualInputTokens = finalMessage.usage.input_tokens;
 
-        const usage = finalMessage.usage as Anthropic.Usage & {
-          cache_creation_input_tokens?: number;
-          cache_read_input_tokens?: number;
-        };
-        const cacheCreationInputTokens = usage.cache_creation_input_tokens ?? 0;
-        const cacheReadInputTokens = usage.cache_read_input_tokens ?? 0;
+        const cacheCreationInputTokens =
+          finalMessage.usage.cache_creation_input_tokens ?? 0;
+        const cacheReadInputTokens =
+          finalMessage.usage.cache_read_input_tokens ?? 0;
 
         const cacheUsage: CacheUsage | undefined = enableCache
           ? {
